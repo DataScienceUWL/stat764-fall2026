@@ -1,0 +1,14 @@
+[project]
+name = "stat764"
+version = "2026.1"
+description = "STAT 764 Statistical Learning, Fall 2026 — UW-La Crosse"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "matplotlib>=3.9",
+    "scikit-learn>=1.5",
+    "statsmodels>=0.14",
+    "jupyter>=1.1",
+    "ipykernel>=6.29",
+]
