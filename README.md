@@ -2,7 +2,7 @@
 
 Course notebooks and materials. UW–La Crosse, MS Applied Statistics.
 
-**Canvas:** <https://uws.instructure.com/courses/869255>
+**Canvas:** <https://uwlac.instructure.com/courses/869255>
 
 ---
 
@@ -44,7 +44,7 @@ machine.
 ## Setting up Python
 
 Full instructions with screenshots are on Canvas:
-**[Software Setup](https://uws.instructure.com/courses/869255/pages/software-setup)**
+**[Software Setup](https://uwlac.instructure.com/courses/869255/pages/software-setup)**
 
 The short version:
 
@@ -95,8 +95,14 @@ the assignment.
 ## Layout
 
 ```
-course/     weekly notebooks and data — read only
-work/       your workspace — gitignored
+course/
+  m01/ m02/ ...            one notebook per meeting
+  labs/lab01/ lab02/ ...   labs, submitted on Canvas
+  data/                    every dataset, vendored
+  stat764.py               shared helpers
+work/                      your workspace — gitignored
 pyproject.toml, uv.lock    the environment
 check_setup.py             verifies your install
 ```
+
+See `course/README.md` for the schedule of notebooks and what each dataset is.
