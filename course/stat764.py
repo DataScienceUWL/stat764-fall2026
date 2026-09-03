@@ -27,17 +27,35 @@ def repo_root(start: pathlib.Path | None = None) -> pathlib.Path:
 
 
 def data_path(name: str) -> pathlib.Path:
-    """Absolute path to a file in course/data/."""
-    p = repo_root() / "course" / "data" / name
-    if not p.exists():
-        have = sorted(q.name for q in p.parent.glob("*.csv"))
-        raise FileNotFoundError(f"No course/data/{name}. Available: {', '.join(have)}")
-    return p
+    """Absolute path to a file in course/data/.
+
+    Larger datasets are stored gzipped, so `data_path("diabetes_130.csv")` finds
+    `diabetes_130.csv.gz`. pandas reads either transparently.
+    """
+    folder = repo_root() / "course" / "data"
+    for candidate in (folder / name, folder / f"{name}.gz"):
+        if candidate.exists():
+            return candidate
+    have = sorted(q.name for q in folder.glob("*.csv*"))
+    raise FileNotFoundError(f"No course/data/{name}. Available: {', '.join(have)}")
 
 
 def load(name: str, **kwargs) -> pd.DataFrame:
     """Read a course dataset by filename: load('ames.csv')."""
     return pd.read_csv(data_path(name), **kwargs)
+
+
+def diabetes(patient_level: bool = False) -> pd.DataFrame:
+    """Diabetes 130-US Hospitals (UCI 296). 101,766 encounters, 71,518 patients.
+
+    Encounters, not patients — `patient_nbr` recurs. A random split puts the same
+    patient on both sides. Pass patient_level=True for one row per patient (the
+    first encounter), or keep every row and group on `patient_nbr` when splitting.
+    """
+    d = load("diabetes_130.csv", low_memory=False)
+    if patient_level:
+        d = d.sort_values("encounter_id").groupby("patient_nbr", as_index=False).first()
+    return d
 
 
 def ames_day1() -> tuple[pd.DataFrame, pd.DataFrame, pd.Series]:

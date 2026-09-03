@@ -46,3 +46,35 @@ ames = load("ames.csv")
 Every notebook opens with the four lines that make this importable. It is a plain
 Python module rather than a notebook on purpose — anything reused across meetings
 belongs in a module, and we will talk about why.
+
+## Bigger datasets
+
+`diabetes_130.csv.gz` and `county_health_*.csv.gz` are stored gzipped. Nothing
+changes for you — `load("diabetes_130.csv")` finds the `.gz` and pandas reads it
+directly.
+
+| File | Rows | What it is |
+|---|---:|---|
+| `diabetes_130.csv.gz` | 101,766 | Diabetes 130-US Hospitals (UCI 296). **Encounters, not patients** — 71,518 patients, and 47,021 rows belong to someone with more than one visit. |
+| `county_health_2025.csv.gz` | 3,204 | County Health Rankings 2025, ~790 columns. Week 11 (PCA). |
+| `county_health_2024.csv.gz` | 3,195 | The 2024 release — a real held-out year. |
+
+```python
+from stat764 import diabetes
+d = diabetes()                      # all 101,766 encounters
+p = diabetes(patient_level=True)    # one row per patient, first encounter
+```
+
+## Capstone datasets
+
+Too large or too multi-file to ship here. `fetch_data.py` downloads them:
+
+```bash
+python fetch_data.py --list     # what's available
+python fetch_data.py --check    # are the sources still up?
+python fetch_data.py loans      # download one
+```
+
+Three of them (OULAD, College Scorecard, FAA strikes) sit behind a form or
+landing page and have to be downloaded by hand — `--list` marks those `[manual]`
+and `--check` prints the page to get them from.
