@@ -4,7 +4,7 @@ import sys
 print(f"Python {sys.version.split()[0]}")
 print(f"  at {sys.executable}\n")
 
-need = ["numpy", "pandas", "matplotlib", "sklearn", "statsmodels"]
+need = ["numpy", "pandas", "matplotlib", "sklearn", "statsmodels", "ipykernel"]
 missing = []
 for name in need:
     try:
@@ -26,4 +26,18 @@ if ".venv" not in sys.executable:
     print("Expected an interpreter inside .venv -- check your VS Code kernel.")
     sys.exit(1)
 
-print("All good. You're ready for class.")
+print("All good. You're ready for class.\n")
+
+# The check above ran in the terminal, where `uv run` always picks the right
+# Python. VS Code is a separate question: it has to FIND this interpreter.
+print("-" * 62)
+print("If VS Code cannot find the kernel, this is the path it wants:\n")
+print(f"    {sys.executable}\n")
+print("  1. Make sure VS Code has the FOLDER open, not just the notebook:")
+print("     File > Open Folder > stat764-fall2026")
+print("  2. Click 'Select Kernel' (top right of the notebook)")
+print("       > Select Another Kernel... > Python Environments... > .venv")
+print("  3. Still not listed? Cmd+Shift+P (Ctrl+Shift+P on Windows),")
+print("     'Python: Select Interpreter', 'Enter interpreter path...',")
+print("     and paste the path printed above. That always works.")
+print("-" * 62)
