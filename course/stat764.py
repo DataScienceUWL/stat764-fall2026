@@ -13,6 +13,9 @@ import pathlib
 
 import pandas as pd
 
+RAW = ("https://raw.githubusercontent.com/DataScienceUWL/stat764-fall2026/"
+       "main/course/data/")
+
 
 def repo_root(start: pathlib.Path | None = None) -> pathlib.Path:
     """The stat764-fall2026 directory, found by walking up from `start`."""
@@ -20,9 +23,17 @@ def repo_root(start: pathlib.Path | None = None) -> pathlib.Path:
     for p in [here, *here.parents]:
         if (p / "course" / "stat764.py").exists():
             return p
+    # Not above us. Maybe we are sitting just *outside* the clone -- a very
+    # common way to get here is opening the parent folder in VS Code.
+    for depth in (1, 2):
+        for cand in here.glob("/".join(["*"] * depth) + "/course/stat764.py"):
+            return cand.parent.parent
     raise FileNotFoundError(
-        "Could not find the course repo. Open this notebook from inside your "
-        "clone of stat764-fall2026 (course/ or work/)."
+        "Could not find your clone of stat764-fall2026.\n"
+        f"  You are in: {here}\n"
+        "  In VS Code, use File > Open Folder and choose the stat764-fall2026\n"
+        "  folder itself -- not its parent, and not work/.\n"
+        "  (Running in Colab? That is fine -- load() falls back to GitHub.)"
     )
 
 
@@ -41,8 +52,23 @@ def data_path(name: str) -> pathlib.Path:
 
 
 def load(name: str, **kwargs) -> pd.DataFrame:
-    """Read a course dataset by filename: load('ames.csv')."""
-    return pd.read_csv(data_path(name), **kwargs)
+    """Read a course dataset by filename: load('ames.csv').
+
+    Reads the local copy in course/data/ when there is one. If the repo cannot
+    be found -- in Colab, or from a notebook saved outside the clone -- falls
+    back to reading the same file over the network, so the notebook still runs.
+    """
+    try:
+        return pd.read_csv(data_path(name), **kwargs)
+    except FileNotFoundError:
+        for candidate in (name, f"{name}.gz"):
+            try:
+                df = pd.read_csv(RAW + candidate, **kwargs)
+                print(f"  (no local copy — read {candidate} from GitHub)")
+                return df
+            except Exception:
+                continue
+        raise
 
 
 def diabetes(patient_level: bool = False) -> pd.DataFrame:
