@@ -7,10 +7,12 @@ Handed out as we go. **Do not edit files in this folder** — copy them to
 
 | # | Date | Notebook | Topic |
 |---:|---|---|---|
-| 1 | Tue Sep 8 | `m01/m01_predict_this.ipynb` | What statistical learning is — *runs in your browser, no install needed* |
-| 2 | Thu Sep 10 | `m02/m02_smallest_honest_pipeline.ipynb` | The smallest honest pipeline |
-| 3 | Tue Sep 15 | `m03/m03_generalization_resampling.ipynb` | Generalization and resampling |
-| 4 | Thu Sep 17 | `m04/m04_leakage_laboratory.ipynb` | The leakage laboratory |
+| 1 | Tue Sep 8 | `Day01_080926/day01_predict_this.ipynb` | What statistical learning is — *runs in your browser, no install needed* |
+| 2 | Thu Sep 10 | `Day02_100926/day02_smallest_honest_pipeline.ipynb` | The smallest honest pipeline |
+| 3 | Tue Sep 15 | `Day03_150926/day03_generalization_resampling.ipynb` | Generalization and resampling |
+| 4 | Thu Sep 17 | `Day04_170926/day04_leakage_laboratory.ipynb` | The leakage laboratory |
+| 5 | Tue Sep 22 | `Day05_220926/day05_regression_as_prediction.ipynb` | Regression as prediction |
+| 6 | Thu Sep 24 | `Day06_240926/day06_model_comparison_cv.ipynb` | Model comparison by cross-validation |
 
 ## Labs
 
@@ -21,6 +23,22 @@ the `.ipynb` to Canvas.
 |---|---|---|---|
 | 1 | Tue Sep 8 | Tue Sep 15 | `labs/lab01/lab01.ipynb` |
 | 2 | Tue Sep 15 | Tue Sep 22 | `labs/lab02/lab02.ipynb` |
+
+## Reference notebooks
+
+Not meetings, and nothing here is assessed. These are the longer arguments and
+derivations that do not fit in a twenty-minute concept block. Read one when the short
+version in class was not enough.
+
+| Notebook | What it is |
+|---|---|
+| `reference/ref_sklearn_structures.ipynb` | **How scikit-learn is put together** — estimators, the trailing-underscore convention, `Pipeline`, `ColumnTransformer`. Start here if the pipeline in Meeting 2 felt like syntax you copied rather than code you understood. |
+| `reference/ref_exploring_ames.ipynb` | **Exploring the Ames data** — a tool, not a reading. Almost every cell has a column name in it you are meant to change. Also: why you explore the *training* half. |
+| `reference/ref_day02_studio.ipynb` | A reference implementation of the Day 2 studio, with five things to check your own notebook against. |
+| `reference/ref_coefficients_are_not_effects.ipynb` | What a regression coefficient actually tells you — the full argument behind "this course mostly declines explanation". |
+| `reference/ref_boosting_from_scratch.ipynb` | Gradient boosting in six lines, checked against the library. Meeting 17 sends you here. |
+
+A studio reference appears here after that studio has run.
 
 ## Data
 

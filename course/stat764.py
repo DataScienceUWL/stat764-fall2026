@@ -9,6 +9,7 @@ Notebooks reach this module with a four-line bootstrap that walks up from wherev
 you opened them, so it works from `course/` and from your copy in `work/`.
 """
 
+import os
 import pathlib
 
 import pandas as pd
@@ -18,7 +19,22 @@ RAW = ("https://raw.githubusercontent.com/DataScienceUWL/stat764-fall2026/"
 
 
 def repo_root(start: pathlib.Path | None = None) -> pathlib.Path:
-    """The stat764-fall2026 directory, found by walking up from `start`."""
+    """The stat764-fall2026 directory, found by walking up from `start`.
+
+    Set the environment variable STAT764_REPO to your clone if you keep
+    notebooks somewhere the search below cannot reach. It wins over the search,
+    and it is an error for it to point somewhere that is not a clone -- an
+    environment variable that is quietly ignored is worse than no variable.
+    """
+    elsewhere = os.environ.get("STAT764_REPO")
+    if elsewhere:
+        p = pathlib.Path(elsewhere).expanduser()
+        if (p / "course" / "stat764.py").exists():
+            return p
+        raise FileNotFoundError(
+            f"STAT764_REPO is set to {p}\n"
+            "  but there is no course/stat764.py there. Fix it or unset it."
+        )
     here = (start or pathlib.Path.cwd()).resolve()
     for p in [here, *here.parents]:
         if (p / "course" / "stat764.py").exists():
@@ -33,7 +49,8 @@ def repo_root(start: pathlib.Path | None = None) -> pathlib.Path:
         f"  You are in: {here}\n"
         "  In VS Code, use File > Open Folder and choose the stat764-fall2026\n"
         "  folder itself -- not its parent, and not work/.\n"
-        "  (Running in Colab? That is fine -- load() falls back to GitHub.)"
+        "  (Running in Colab? That is fine -- load() falls back to GitHub.)\n"
+        "  Keeping notebooks elsewhere on purpose? Set STAT764_REPO to the clone."
     )
 
 
