@@ -7,12 +7,12 @@ Handed out as we go. **Do not edit files in this folder** — copy them to
 
 | # | Date | Notebook | Topic |
 |---:|---|---|---|
-| 1 | Tue Sep 8 | `Day01_080926/day01_predict_this.ipynb` | What statistical learning is — *runs in your browser, no install needed* |
-| 2 | Thu Sep 10 | `Day02_100926/day02_smallest_honest_pipeline.ipynb` | The smallest honest pipeline |
-| 3 | Tue Sep 15 | `Day03_150926/day03_generalization_resampling.ipynb` | Generalization and resampling |
-| 4 | Thu Sep 17 | `Day04_170926/day04_leakage_laboratory.ipynb` | The leakage laboratory |
-| 5 | Tue Sep 22 | `Day05_220926/day05_regression_as_prediction.ipynb` | Regression as prediction |
-| 6 | Thu Sep 24 | `Day06_240926/day06_model_comparison_cv.ipynb` | Model comparison by cross-validation |
+| 1 | Tue Sep 8 | `Day01_090826/day01_predict_this.ipynb` | What statistical learning is — *runs in your browser, no install needed* |
+| 2 | Thu Sep 10 | `Day02_091026/day02_smallest_honest_pipeline.ipynb` | The smallest honest pipeline |
+| 3 | Tue Sep 15 | `Day03_091526/day03_generalization_resampling.ipynb` | Generalization and resampling |
+| 4 | Thu Sep 17 | `Day04_091726/day04_leakage_laboratory.ipynb` | The leakage laboratory |
+| 5 | Tue Sep 22 | `Day05_092226/day05_regression_as_prediction.ipynb` | Regression as prediction |
+| 6 | Thu Sep 24 | `Day06_092426/day06_model_comparison_cv.ipynb` | Model comparison by cross-validation |
 
 ## Labs
 
