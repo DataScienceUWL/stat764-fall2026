@@ -34,6 +34,7 @@ version in class was not enough.
 |---|---|
 | `reference/ref_sklearn_structures.ipynb` | **How scikit-learn is put together** — estimators, the trailing-underscore convention, `Pipeline`, `ColumnTransformer`. Start here if the pipeline in Meeting 2 felt like syntax you copied rather than code you understood. |
 | `reference/ref_exploring_ames.ipynb` | **Exploring the Ames data** — a tool, not a reading. Almost every cell has a column name in it you are meant to change. Also: why you explore the *training* half. |
+| `reference/ref_day03_studio.ipynb` | A reference implementation of the Day 3 studio — two contender sets through identical code, showing why some teams could flip their worst model in seconds and others could not flip it in 300 tries. |
 | `reference/ref_day02_studio.ipynb` | A reference implementation of the Day 2 studio, with five things to check your own notebook against. |
 | `reference/ref_coefficients_are_not_effects.ipynb` | What a regression coefficient actually tells you — the full argument behind "this course mostly declines explanation". |
 | `reference/ref_boosting_from_scratch.ipynb` | Gradient boosting in six lines, checked against the library. Meeting 17 sends you here. |
