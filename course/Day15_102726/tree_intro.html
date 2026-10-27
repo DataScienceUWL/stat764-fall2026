@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Built from content/lessons/day15_tree_intro.html in the course repo. Open this file in a web browser. -->
+<title>Growing a Decision Tree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~68ch) on a pale chart-paper ground; figures widen to 1040px
+   and pair a drawing with its readout, stacking to one column on a phone. */
+:root {
+  --paper: #f1f5f4;
+  --surface: #ffffff;
+  --ink: #13242a;
+  --muted: #485b60;
+  --line: #c6d2d1;
+  --grid: #e2e9e8;
+  --back: #ad3822;          /* came back within 30 days */
+  --stay: #276a6f;          /* did not come back */
+  --accent: #1d4c87;        /* the thing you are steering: a selected question, a path */
+  --accent-soft: #e2ebf6;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --read: 68ch;
+  --wide: 1040px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+    --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+  --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px;
+       line-height: 1.6; margin: 0; }
+.page { padding-inline: 16px; padding-block: 40px 72px; }
+.col { max-width: var(--read); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 700; margin-top: 64px; }
+h3 { font-size: 1.25rem; font-weight: 700; margin-top: 40px; display: flex; gap: 12px; align-items: baseline; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+strong { font-weight: 700; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+           color: var(--muted); margin: 0 0 12px; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+.step { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em;
+        color: var(--accent); border: 1.5px solid var(--accent); border-radius: 999px; padding: 1px 9px;
+        white-space: nowrap; transform: translateY(-2px); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.part { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--muted); display: block; margin-bottom: 6px; font-weight: 500; }
+
+/* The one-sentence method: the page's thesis */
+.method { margin: 28px 0 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+          border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+.method div { padding: 14px 16px 14px 0; }
+.method div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.method b { display: block; font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 2px; }
+.method span { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 620px) {
+  .method { grid-template-columns: 1fr; }
+  .method div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* Figures */
+figure { margin: 28px auto; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 12px; max-width: var(--read); }
+svg { display: block; max-width: 100%; height: auto; }
+.scroll { overflow-x: auto; }
+.treebox { display: flex; justify-content: center; margin-bottom: 18px; }
+.treebox svg { flex: none; max-width: 100%; }
+.plotbox { display: flex; justify-content: center; }
+svg text { font-family: var(--font-body); fill: var(--ink); }
+svg .mono { font-family: var(--font-mono); }
+svg .muted { fill: var(--muted); }
+svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.axis { stroke: var(--line); stroke-width: 1; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+.pt-back { stroke: var(--back); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.pt-stay { fill: var(--stay); }
+.box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.box-shade { fill: var(--back); }
+.cutline { stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.side-no { fill: var(--stay); opacity: 0.08; }
+.side-yes { fill: var(--back); opacity: 0.08; }
+.node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+.edge { stroke: var(--ink); stroke-width: 1.3; fill: none; }
+.on .node, .node.on { stroke: var(--accent); stroke-width: 3; }
+.edge.on { stroke: var(--accent); stroke-width: 3; }
+.newpt { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.region-on { fill: none; stroke: var(--accent); stroke-width: 3; }
+.curve { stroke: var(--accent); stroke-width: 3; fill: none; }
+.dot-accent { fill: var(--accent); }
+.line-tree { stroke: var(--accent); stroke-width: 2.6; fill: none; }
+.line-logit { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
+.band { fill: var(--accent-soft); }
+.pt-num { fill: var(--ink); }
+.resid { stroke: var(--back); stroke-width: 1.6; }
+.meanline { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.box-num { fill: var(--accent); }
+.boundary { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.leafedge { fill: none; stroke: var(--line); stroke-width: 1; }
+
+/* Three boundaries side by side */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+.trio-title { margin: 0 0 6px; }
+.trio-note { margin: 6px 0 0; font-size: 0.92rem; color: var(--muted); }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; color: var(--muted); margin: 0 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Controls */
+.controls { display: grid; gap: 14px; margin-bottom: 14px; }
+label, .label { font-weight: 700; font-size: 0.95rem; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.seg { display: inline-flex; border: 1.5px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.92rem; padding: 6px 12px; border: 0; background: var(--surface);
+              color: var(--accent); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 700; }
+.btn { font: inherit; font-size: 0.92rem; font-weight: 700; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+       border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Readouts */
+.readout { display: grid; gap: 10px; }
+.sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.side { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.side .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.side b { display: block; }
+.calc { font-family: var(--font-mono); font-size: 0.9rem; background: var(--paper); border-radius: 6px; padding: 10px 12px;
+        line-height: 1.7; overflow-x: auto; }
+.calc .big { font-size: 1.05rem; font-weight: 500; color: var(--accent); }
+.say { font-size: 1rem; }
+
+/* Leaderboard of candidate questions */
+.board { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.board button { width: 100%; display: grid; grid-template-columns: minmax(0, 11.5em) minmax(0, 1fr) 3.6em; gap: 8px;
+                align-items: center; font: inherit; font-size: 0.85rem; text-align: left; color: var(--ink);
+                background: none; border: 1px solid transparent; border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+.board button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.board .bar { height: 10px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.board button[aria-pressed="true"] .bar { background: var(--accent); }
+.board .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+
+/* Real-data bars */
+.hbars { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 16em) minmax(0, 1fr) 4.4em; gap: 10px; align-items: center; font-size: 0.88rem; }
+.hbars .bar { height: 12px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.hbars li.win { font-weight: 700; }
+.hbars li.win .bar { background: var(--accent); }
+.hbars .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+@media (max-width: 560px) {
+  .hbars li { grid-template-columns: minmax(0, 1fr) 4em; }
+  .hbars li .bar { grid-column: 1 / -1; grid-row: 2; }
+  .board button { grid-template-columns: minmax(0, 1fr) 3.4em; }
+  .board .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* Stat strip, tables, code */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); margin: 24px 0; }
+.stats div { padding: 12px 12px 12px 0; }
+.stats b { display: block; font-family: var(--font-display); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--ink); font-size: 0.85rem; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px;
+      overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--surface); }
+.card .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.card b { font-family: var(--font-display); font-size: 1.2rem; display: block; margin-top: 2px; }
+details { margin-top: 10px; font-size: 0.92rem; }
+summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.foot { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); margin-top: 64px; padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  .board .bar, .hbars .bar { transition: width 0.25s ease; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="col">
+  <p class="eyebrow">STAT 764 · Meeting 15 · Trees</p>
+  <h1>Growing a decision tree</h1>
+  <p class="lede">A decision tree is a flowchart of yes/no questions that the computer writes from past
+  cases. This page builds one on 20 patients you can see one by one, then on 74,637 real hospital
+  stays, then for predicting a number instead of a yes or no. It ends with a guide to today’s
+  studio.</p>
+  <div class="method" role="list" aria-label="The whole method in three moves">
+    <div role="listitem"><b>Ask</b><span>Find the single yes/no question that best separates the patients who came back from those who did not.</span></div>
+    <div role="listitem"><b>Split</b><span>Divide the patients into the “yes” group and the “no” group.</span></div>
+    <div role="listitem"><b>Repeat</b><span>Do the same thing inside each group, separately, until a stopping rule says stop.</span></div>
+  </div>
+</header>
+
+<main>
+<!-- ============================ PART 1 ============================ -->
+<section class="col" aria-labelledby="p1">
+  <h2 id="p1"><span class="part">Part 1</span>Twenty patients you can see</h2>
+  <p>Here are 20 made-up hospital patients. For each we know two things: how many times they were in
+  the hospital in the past year (<strong>prior stays</strong>) and how long this stay lasted
+  (<strong>days in the hospital</strong>). We also know the outcome: did they <strong>come back</strong>
+  within 30 days? Seven of the 20 did.</p>
+  <p>The tree’s job is to sort these patients into groups that are as <em>alike</em> as possible: groups
+  where nearly everyone came back, or nearly no one did.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="legend" aria-hidden="true">
+    <span><svg width="14" height="14" viewBox="0 0 14 14"><path class="pt-back" d="M3 3L11 11M11 3L3 11"/></svg>came back</span>
+    <span><svg width="14" height="14" viewBox="0 0 14 14"><circle class="pt-stay" cx="7" cy="7" r="5"/></svg>did not come back</span>
+  </div>
+  <div class="split">
+    <div id="fig-toy" class="scroll"></div>
+    <div class="scroll">
+      <table>
+        <caption>Came back, by prior stays</caption>
+        <thead><tr><th scope="col">prior stays</th><th scope="col" class="n">patients</th><th scope="col" class="n">came back</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">0</th><td class="n">6</td><td class="n">0</td></tr>
+          <tr><th scope="row">1</th><td class="n">6</td><td class="n">1</td></tr>
+          <tr><th scope="row">2</th><td class="n">3</td><td class="n">2</td></tr>
+          <tr><th scope="row">3</th><td class="n">2</td><td class="n">1</td></tr>
+          <tr><th scope="row">4</th><td class="n">2</td><td class="n">2</td></tr>
+          <tr><th scope="row">5</th><td class="n">1</td><td class="n">1</td></tr>
+          <tr><th scope="row">all</th><td class="n">20</td><td class="n">7</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <figcaption>The 20 patients. Prior stays run across, days in the hospital up. Every patient is one mark.
+  The patients who came back sit mostly on the right, among those with more prior stays.</figcaption>
+</figure>
+
+<section class="col" aria-labelledby="s1">
+  <h3 id="s1"><span class="step">Step 1</span>How mixed is a group?</h3>
+  <p>The tree needs a number for how mixed a group is. The usual one is the <strong>Gini
+  impurity</strong>. If a share <em>p</em> of a group came back,</p>
+  <p class="calc" style="text-align:center"><span class="big">Gini = 2 · p · (1 − p)</span></p>
+  <p>It is <strong>0</strong> when the group is pure (no one came back, or everyone did) and largest,
+  <strong>0.5</strong>, when the group is half and half. Move the slider to see it.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="split">
+    <div>
+      <div class="controls">
+        <label for="gini-k">Of 10 patients, how many came back? <span id="gini-k-out" class="num"></span></label>
+        <input id="gini-k" type="range" min="0" max="10" step="1" value="3">
+      </div>
+      <div id="gini-people" aria-hidden="true"></div>
+      <p id="gini-say" class="calc" aria-live="polite"></p>
+    </div>
+    <div id="gini-curve"></div>
+  </div>
+  <figcaption>Gini impurity against the share who came back. It is a hill: zero at both ends, highest
+  in the middle.</figcaption>
+</figure>
+
+<section class="col">
+  <p>Our 20 patients: 7 came back, so <em>p</em> = 0.35 and the Gini is
+  2 × 0.35 × 0.65 = <span class="num">0.455</span>. Every question the tree asks will be judged by how
+  far it brings that number down.</p>
+
+  <h3 id="s2"><span class="step">Step 2</span>List every yes/no question</h3>
+  <p>A tree asks one kind of question: <em>is this column more than some cut?</em> For a column of
+  numbers, the cuts sit halfway between neighboring values in the data. Prior stays run from 0 to 5, so
+  there are 5 possible questions (<em>more than 0? more than 1? … more than 4?</em>). Days in the
+  hospital take 13 different values, so there are 12 more. That makes <strong>17 candidate
+  questions</strong>.</p>
+
+  <h3 id="s3"><span class="step">Step 3</span>Score every question</h3>
+  <p>A question splits the patients into a “no” side and a “yes” side. Work out each side’s Gini.
+  Then average the two, <strong>weighting each side by its share of the patients</strong>, so a big
+  group counts more than a small one. The drop from 0.455 is the question’s
+  <strong>reduction</strong> in impurity. Bigger is better.</p>
+  <p>Try any question below, or pick one from the list on the right.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="split">
+    <div>
+      <div class="controls">
+        <div class="row">
+          <span class="label" id="col-label">Ask about</span>
+          <div class="seg" role="group" aria-labelledby="col-label">
+            <button type="button" id="col-0" aria-pressed="true">prior stays</button>
+            <button type="button" id="col-1" aria-pressed="false">days in the hospital</button>
+          </div>
+        </div>
+        <label for="cut">Question: <span id="cut-q"></span></label>
+        <input id="cut" type="range" min="0" max="4" step="1" value="0">
+      </div>
+      <div id="fig-split" class="scroll"></div>
+    </div>
+    <div class="readout">
+      <div class="sides" id="split-sides"></div>
+      <div class="calc" id="split-calc" aria-live="polite"></div>
+      <div class="row"><button type="button" class="btn primary" id="find-best">Show the best question</button></div>
+      <div>
+        <p class="label" id="board-label" style="margin:6px 0">All 17 questions, by reduction</p>
+        <ol class="board" id="board" aria-labelledby="board-label"></ol>
+      </div>
+    </div>
+  </div>
+  <figcaption>The dashed line is the question. Patients left of or below it answer “no”, the others
+  “yes”. The list ranks all 17 questions by how much they reduce the impurity.</figcaption>
+</figure>
+
+<section class="col">
+  <h3 id="s4"><span class="step">Step 4</span>Keep the winner</h3>
+  <p>The best question is <strong>“more than 1 prior stay?”</strong> The 12 patients with 0 or 1 prior
+  stays include just 1 who came back (Gini 0.153). The 8 with more include 6 who came back (Gini 0.375).
+  Weighted, the impurity falls from 0.455 to 0.242, a reduction of 0.213. The runner-up, <em>more than 3
+  prior stays?</em>, manages 0.149. The winner becomes the first question of the tree, its <strong>root</strong>.</p>
+
+  <h3 id="s5"><span class="step">Step 5</span>Repeat inside each group, separately</h3>
+  <p>Now each group gets its own fresh search over all the questions, using <strong>only its own
+  patients</strong>. The two groups can end up asking different questions, or the same column at a
+  different cut. The first question never changes afterward: a tree never goes back to revise an
+  earlier choice. Step through it.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="row" style="margin-bottom:14px">
+    <button type="button" class="btn" id="grow-prev">Back</button>
+    <button type="button" class="btn primary" id="grow-next">Next split</button>
+    <span id="grow-status" class="say" aria-live="polite"></span>
+  </div>
+  <div id="grow-tree" class="scroll treebox"></div>
+  <div id="grow-plot" class="scroll plotbox"></div>
+  <figcaption>Top, the tree as a flowchart: each question sends “no” to the left and “yes” to the right.
+  Below, the same groups on the plot of patients: each box is a group, shaded darker the more of its
+  patients came back.</figcaption>
+</figure>
+
+<section class="col">
+  <p>After three questions there are four groups, called <strong>leaves</strong>. Among patients with 0 or 1
+  prior stays, the tree asks <em>more than 10 days?</em>; among those with more, it asks <em>more than 6
+  days?</em> The same column, a different cut on each side.</p>
+
+  <h3 id="s6"><span class="step">Step 6</span>Know when to stop</h3>
+  <p>Press <em>Next split</em> to the end and the tree keeps going until every group is pure, some of them
+  a single patient. That tree is right about every one of these 20 patients and has learned nothing that
+  carries over to new ones: it has <strong>memorized</strong> them. So we stop it early, with a
+  rule such as <em>at most this many questions in a row</em> (the <strong>depth</strong>) or <em>no group
+  smaller than this</em>. The right setting is chosen by cross-validation, like any other tuning
+  setting.</p>
+
+  <h3 id="s7"><span class="step">Step 7</span>Predict for a new patient</h3>
+  <p>A new patient answers the questions from the top until there are none left. The prediction is
+  <strong>the share of that leaf’s past patients who came back</strong>. Set up a new patient and watch
+  the path.</p>
+</section>
+
+<figure class="wide panel">
+  <div id="pred-tree" class="scroll treebox"></div>
+  <div class="split">
+    <div>
+      <div class="controls">
+        <label for="new-stays">Prior stays: <span id="new-stays-out" class="num"></span></label>
+        <input id="new-stays" type="range" min="0" max="5" step="1" value="3">
+        <label for="new-days">Days in the hospital: <span id="new-days-out" class="num"></span></label>
+        <input id="new-days" type="range" min="1" max="13" step="1" value="5">
+      </div>
+      <p id="pred-say" class="calc" aria-live="polite"></p>
+    </div>
+    <div id="pred-plot" class="scroll"></div>
+  </div>
+  <figcaption>The tree after three questions. Its four leaves can give only four different predictions:
+  0%, 33%, 50% and 100%. Every patient who lands in a leaf gets that leaf’s number.</figcaption>
+</figure>
+
+<section class="col">
+  <p class="note">A leaf’s share is a fact about past patients. Whether it works as a
+  <strong>probability</strong> for future ones (do patients told 20% come back about 20% of the time?) is a
+  separate check, called calibration. Shares from leaves of 3 or 4 patients are far too noisy to trust.</p>
+
+  <h3 id="boxes">Boxes against a line</h3>
+  <p>Where does a model switch from “won’t come back” to “will”? Shade every spot on the plot by the
+  model’s predicted chance, and draw a thick line where that chance reaches 50%. Here are three models fit to
+  the same 20 patients: the tree after three questions, the tree grown all the way, and a logistic
+  regression on the same two columns.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="legend" aria-hidden="true">
+    <span><svg width="22" height="14" viewBox="0 0 22 14"><rect width="22" height="14" class="box-shade" fill-opacity="0.35"/></svg>darker: higher predicted chance</span>
+    <span><svg width="22" height="14" viewBox="0 0 22 14"><line x1="1" y1="7" x2="21" y2="7" class="boundary"/></svg>where it reaches 50%</span>
+    <span><svg width="14" height="14" viewBox="0 0 14 14"><path class="pt-back" d="M3 3L11 11M11 3L3 11"/></svg>came back</span>
+    <span><svg width="14" height="14" viewBox="0 0 14 14"><circle class="pt-stay" cx="7" cy="7" r="5"/></svg>did not</span>
+  </div>
+  <div class="trio">
+    <div><p class="label trio-title">Tree after three questions</p><div id="bd-small"></div><p class="trio-note" id="bd-small-note"></p></div>
+    <div><p class="label trio-title">Tree grown all the way</p><div id="bd-full"></div><p class="trio-note" id="bd-full-note"></p></div>
+    <div><p class="label trio-title">Logistic regression</p><div id="bd-logit"></div><p class="trio-note" id="bd-logit-note"></p></div>
+  </div>
+  <figcaption>Each model’s predicted chance of coming back for every combination of prior stays and days, with
+  its 50% line. Under each plot: how many of the 20 patients it puts on the wrong side of its line.</figcaption>
+</figure>
+
+<section class="col">
+  <p><strong>What this shows.</strong> Both trees cut the plot into boxes, so their lines are made only of
+  vertical and horizontal pieces. The tree after three questions draws its line at <em>more than 1 prior
+  stay</em> and gets 3 of the 20 patients wrong. The tree grown all the way gets none wrong, by fencing off
+  single patients: a thin strip around the patient with 1 prior stay and 11 days, who came back, and a notch
+  around the two patients with 2 or 3 prior stays and 5 or 6 days, who did not. Each of those boxes rests on
+  one or two patients. Logistic regression draws one straight line, slanted because it weighs both columns at
+  once: in its fit, one more prior stay counts as much as about 6.4 more days in the hospital. It also gets 3
+  wrong.</p>
+</section>
+
+<!-- ============================ PART 2 ============================ -->
+<section class="col" aria-labelledby="p2">
+  <h2 id="p2"><span class="part">Part 2</span>The same steps on 74,637 real stays</h2>
+  <p>Meeting 9’s data: hospital stays of patients with diabetes from 130 US hospitals, and whether the
+  patient came back within 30 days. Each training stay has 20 columns: 8 counts (prior
+  stays, days in the hospital, medications, lab tests, procedures, diagnoses, outpatient and emergency
+  visits) and 12 categories (age band, admission type, where the patient was sent on discharge, medical
+  specialty, and others).</p>
+  <div class="stats">
+    <div><b class="num">74,637</b><span>training stays</span></div>
+    <div><b class="num">11.5%</b><span>came back (8,575)</span></div>
+    <div><b class="num">0.2034</b><span>Gini before any question</span></div>
+    <div><b class="num">420</b><span>candidate first questions</span></div>
+  </div>
+  <p><span class="step">Steps 1–2</span> The whole group is mixed but not evenly: only 11.5% came back, so
+  the Gini is 2 × 0.1149 × 0.8851 = 0.2034, well below the 0.5 of a half-and-half group. The 420 questions
+  are 308 cuts on the 8 count columns and one question for each of the 112 categories (<em>sent to a rehab
+  facility? age 70–80?</em>).</p>
+  <div class="note">
+  <p style="margin-top:0"><strong>How a category becomes a question.</strong> scikit-learn’s trees can only ask
+  <em>is this number at most a cut?</em> So each category column is first turned into one 0/1 column per
+  category (one-hot encoding), and a question about a category asks whether a patient is in that one
+  category or not. The 12 category columns become 112 such columns.</p>
+  <ul>
+    <li><strong>Codes are categories, not amounts.</strong> Discharge code 22 (sent to a rehab facility) is not
+    “more” than code 3, so code columns are treated as text and never cut like counts.</li>
+    <li><strong>Missing is its own category.</strong> <code>A1Cresult_nan</code> means no A1C result was recorded,
+    which can itself be informative.</li>
+    <li><strong>Rare categories are pooled.</strong> Categories with fewer than 20 training stays share one column
+    ending in <code>_infrequent_sklearn</code>.</li>
+    <li><strong>One category against the rest.</strong> Each question singles out one category. Separating several
+    takes several questions in a row.</li>
+  </ul>
+  </div>
+  <p><span class="step">Steps 3–4</span> Each question is scored exactly as in Part 1. Below is the best
+  question from each of the 20 columns, ranked by its reduction in impurity.</p>
+</section>
+
+<figure class="wide panel">
+  <p class="label" id="real-bars-label" style="margin-top:0">The best question in each column: reduction in Gini impurity</p>
+  <ol class="hbars" id="real-bars" aria-labelledby="real-bars-label"></ol>
+  <figcaption>One question stands out. “More than 1 prior stay?” lowers the impurity by 0.0040, three
+  times as much as the runner-up. Most columns barely help on their own. The reductions are tiny next to
+  Part 1’s because coming back is hard to predict from any single fact.</figcaption>
+</figure>
+
+<section class="col">
+  <p>The winner splits the 74,637 stays into 64,018 with 0 or 1 prior stays (9.7% came back) and 10,619
+  with 2 or more (22.5% came back). Its score, from the two sides’ Ginis:</p>
+  <p class="calc">(64,018 × 0.1745 + 10,619 × 0.3491) ÷ 74,637 = <span class="big">0.1993</span></p>
+  <p><span class="step">Step 5</span> Then each side gets its own search. Among the 64,018, the best question
+  is a category, <em>sent to a rehab facility?</em> At the top it ranked third. Among the 10,619 with 2 or
+  more prior stays, the best question is prior stays <em>again</em>, at a higher cut.</p>
+</section>
+
+<figure class="wide panel">
+  <div id="real-tree" class="scroll"></div>
+  <figcaption>The real tree, two questions deep. Each box gives the number of stays and the share who came
+  back; leaves are shaded darker the more came back. The four leaves run from 9.3% to 38.0%.</figcaption>
+</figure>
+
+<section class="col">
+  <p><span class="step">Step 6</span> Grown deeper, the tree first gets better on new patients, then worse.
+  With no limit it makes 11,560 groups, scores a perfect AUC of 1.000 on its own patients, and only 0.524
+  on new ones, barely better than a coin flip. Cross-validation on the training patients picks a depth
+  of 6.</p>
+</section>
+
+<figure class="wide panel">
+  <div id="depth-chart" class="scroll"></div>
+  <details>
+    <summary>The numbers behind the chart</summary>
+    <div class="scroll">
+    <table>
+      <thead><tr><th scope="col">depth</th><th scope="col" class="n">groups</th><th scope="col" class="n">AUC, its own patients</th><th scope="col" class="n">AUC, new patients</th></tr></thead>
+      <tbody id="depth-rows"></tbody>
+    </table>
+    </div>
+  </details>
+  <figcaption>AUC by depth on the training patients (dashed) and on new test patients (solid). The gap
+  between them is memorizing.</figcaption>
+</figure>
+
+<section class="col">
+  <p><span class="step">Step 7</span> A new patient answers the questions to a leaf. In the two-question tree
+  above, a patient with 3 prior stays answers <em>yes</em> to “more than 1?” and <em>no</em> to “more than
+  4?”, landing with 9,103 past stays: the tree says <strong>20.0%</strong>. Every patient in that leaf gets
+  exactly 20.0%, whatever else is true of them.</p>
+  <p>That is the price of a tree. The depth-6 tree gives the 24,706 test patients only <strong>44 different
+  probabilities</strong>. Logistic regression, a formula, gives nearly every patient their own.</p>
+</section>
+
+<figure class="wide panel">
+  <div id="stairs" class="scroll"></div>
+  <figcaption>Every test patient’s predicted chance of coming back, sorted from lowest to highest. The tree
+  (solid) moves in flat steps, one per leaf; logistic regression (dashed) rises smoothly. The top 0.5% of
+  patients are left off so the steps stay visible.</figcaption>
+</figure>
+
+<section class="col">
+  <div class="scroll">
+  <table>
+    <caption>How the tuned tree does against Meeting 9’s logistic regression, on 24,706 test stays</caption>
+    <thead><tr><th scope="col">model</th><th scope="col" class="n">AUC</th><th scope="col" class="n">Brier score</th><th scope="col" class="n">different probabilities</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">decision tree, depth 6</th><td class="n">0.643</td><td class="n">0.0957</td><td class="n">44</td></tr>
+      <tr><th scope="row">logistic regression</th><td class="n">0.655</td><td class="n">0.0952</td><td class="n">24,705</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The best single tree comes close but loses: a lower AUC, a slightly worse Brier score, and far coarser
+  predictions.</p>
+</section>
+
+<!-- ============================ PART 3 ============================ -->
+<section class="col" aria-labelledby="p3">
+  <h2 id="p3"><span class="part">Part 3</span>Trees that predict a number</h2>
+  <p>Everything so far predicted a yes/no outcome. A <strong>regression tree</strong> predicts a number
+  instead: how many days a stay will last, or what a house will sell for. It follows the same seven steps.
+  Only two things change: how it measures a mixed group, and what a leaf predicts.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><td></td><th scope="col">a yes/no outcome</th><th scope="col">a number</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">How mixed is a group?</th><td>Gini impurity, 2<em>p</em>(1 − <em>p</em>)</td>
+        <td>Its spread: the average squared distance from the group’s average, the group’s <strong>MSE</strong></td></tr>
+      <tr><th scope="row">A question’s score</th><td>The two sides’ Gini, weighted by size</td><td>The two sides’ MSE, weighted by size</td></tr>
+      <tr><th scope="row">A leaf predicts</th><td>The share of its cases who came back</td><td>The <strong>average</strong> of its cases</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The MSE is the one you already know: predict every patient in a group with the group’s average, then
+  average the squared errors. A group where everyone stayed the same number of days has an MSE of 0, the
+  counterpart of a pure group.</p>
+  <p>Here are 16 new made-up patients with one column, the number of <strong>procedures</strong> during the
+  stay, and a number to predict, <strong>days in the hospital</strong>. Together they average 6.3 days, with
+  an MSE of 12.46. Try a question.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="split">
+    <div>
+      <div class="controls">
+        <label for="reg-cut">Question: <span id="reg-q"></span></label>
+        <input id="reg-cut" type="range" min="0" max="5" step="1" value="1">
+      </div>
+      <div id="reg-plot" class="scroll"></div>
+    </div>
+    <div class="readout">
+      <div class="sides" id="reg-sides"></div>
+      <div class="calc" id="reg-calc" aria-live="polite"></div>
+      <div class="row"><button type="button" class="btn primary" id="reg-best">Show the best question</button></div>
+    </div>
+  </div>
+  <figcaption>The thick line on each side is that side’s average, its prediction. The thin lines are each
+  patient’s distance from it. Squared and averaged, those distances are the side’s MSE, so a good question
+  leaves short lines.</figcaption>
+</figure>
+
+<section class="col">
+  <p>The best question is <strong>“more than 3 procedures?”</strong> It leaves 11 patients averaging 4.2 days
+  (MSE 2.69) and 5 averaging 11.0 days (MSE 2.00). Weighted, the MSE falls from 12.46 to 2.48. Then, as
+  before, each side gets its own search. On the left, <em>more than 1 procedure?</em> separates stays of
+  about 3 days from stays of about 6. On the right, no question helps: every cut leaves both sides
+  averaging 11 days, a reduction of 0, so that group stays a leaf.</p>
+</section>
+
+<figure class="wide panel">
+  <div id="reg-tree" class="scroll treebox"></div>
+  <div class="split">
+    <div>
+      <div class="controls">
+        <label for="reg-new">A new patient’s procedures: <span id="reg-new-out" class="num"></span></label>
+        <input id="reg-new" type="range" min="0" max="6" step="1" value="3">
+      </div>
+      <p id="reg-say" class="calc" aria-live="polite"></p>
+    </div>
+    <div id="reg-fit" class="scroll"></div>
+  </div>
+  <figcaption>The regression tree two questions deep, with three leaves. Every patient in a leaf gets that
+  leaf’s average: 2.8, 5.8 or 11.0 days.</figcaption>
+</figure>
+
+<section class="col">
+  <p>In code the only change is the class: <code>DecisionTreeRegressor</code> in place of
+  <code>DecisionTreeClassifier</code>. It scores questions by squared error unless told otherwise, and takes
+  the same stopping rules.</p>
+
+  <h2 id="unstable">One tree is unstable</h2>
+  <p>Back to the readmission data. Grow the same two-question tree on two random samples of 1,000 training stays. Same kind of patients,
+  same method, and the first question is not even the same:</p>
+  <div class="cards">
+    <div class="card"><span class="tag">Sample 1 · first question</span><b>More than 3 prior stays?</b></div>
+    <div class="card"><span class="tag">Sample 2 · first question</span><b>Age 80–90?</b></div>
+  </div>
+  <p>Because every later question depends on the first, a small change in the data can change the whole
+  tree, and the story a reader would tell from it.</p>
+
+  <h2 id="summary">What one tree is good and bad at</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th scope="col">good at</th><th scope="col">weak at</th></tr></thead>
+    <tbody>
+      <tr><td>Reading like a flowchart you can explain to anyone</td><td><strong>Instability:</strong> a slightly different sample can change the first question and everything below it</td></tr>
+      <tr><td>Finding cut points and combinations (“0–1 prior stays <em>and</em> sent to rehab”) with no straight line assumed</td><td><strong>Coarse predictions:</strong> only as many values as it has leaves</td></tr>
+      <tr><td>Ignoring units: no scaling needed</td><td><strong>Memorizing</strong> when grown deep, and <strong>greedy</strong>: each question is best only for that moment</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2 id="code">In code</h2>
+<pre><code># X_train must be all numbers: one-hot encode the categories first
+from sklearn.tree import DecisionTreeClassifier, plot_tree   # DecisionTreeRegressor for a number
+tree = DecisionTreeClassifier(max_depth=6, random_state=0)   # step 6: the stopping rule
+tree.fit(X_train, y_train)                                   # steps 1-6, done for you
+tree.predict_proba(X_new)[:, 1]                              # step 7: each new patient's leaf share
+plot_tree(tree, feature_names=list(X_train.columns), filled=True)   # draw the flowchart</code></pre>
+
+  <h2 id="studio"><span class="part">Part 4</span>Your studio</h2>
+  <p>The studio is at the bottom of the Meeting 15 notebook. Each question there lists its steps, so you can
+  work from the notebook alone. This part says what each question practices and explains the tools it uses
+  that this page has not covered yet.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th scope="col">question</th><th scope="col">what you do</th><th scope="col">this page’s help</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · about 10 min</th><td>Score four candidate first questions by hand on ten patients, pick the best,
+        then check that a one-question tree (<code>max_depth=1</code>) agrees.</td><td>Part 1, Steps 1–4</td></tr>
+      <tr><th scope="row">2 · about 15 min</th><td>Choose <code>min_samples_leaf</code> by cross-validation, then compare the tuned
+        tree with Meeting 9’s logistic regression on the test patients.</td><td>Part 2, Steps 6–7, and the tools below</td></tr>
+      <tr><th scope="row">3 · about 10 min</th><td>Grow the same small tree on 20 random samples and count how often its
+        questions change. The tallies use the encoded names, such as <code>discharge_disposition_id_22</code>.</td><td>“One tree is unstable”, and “How a category becomes a question” in Part 2</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Question 1: how to call <code>split_gini</code></h3>
+  <p>For one question, count each side’s patients and how many of them came back, then call</p>
+  <p class="calc">split_gini(came back on one side, that side’s size, came back on the other side, its size)</p>
+  <p>The order of the two sides does not matter. The answer is the size-weighted Gini of Part 1, Step 3:
+  lower is better. The notebook works one example for you, on a question that is not one of the four.</p>
+
+  <h3>Folds split by patient</h3>
+  <p>Some patients were in the hospital several times. If one of a patient’s stays is in the fold being
+  scored while another is in the data the model was fit on, the model has partly seen that patient, and
+  the cross-validated AUC looks better than it will on new patients. <code>GroupKFold(5)</code> keeps all of a
+  patient’s stays in the same fold, and <code>groups=patients[train]</code> inside <code>.fit(...)</code> tells it
+  which stays belong to whom. Section 4 of the notebook does this for the depth; question 2 does the same
+  for <code>min_samples_leaf</code>.</p>
+
+  <h3><code>min_samples_leaf</code>, the other stopping rule</h3>
+  <p>It is the smallest group the tree is allowed to make. A question that would leave a side smaller than
+  this is never asked. The larger the setting, the fewer and bigger the leaves: each leaf’s share rests on
+  more patients, and the tree gives fewer different probabilities. Like the depth, it is chosen by
+  cross-validation.</p>
+
+  <h3>The calibration table, <code>by_decile</code></h3>
+  <p>It sorts the test patients by their predicted chance, splits them into about ten groups, and shows two
+  numbers for each group: <strong>said</strong>, the average prediction, and <strong>came back</strong>, the
+  share who actually did. When the two are close, the probabilities can be trusted. A tree gives only a few
+  different numbers, so some groups merge and you may see fewer than ten rows.</p>
+
+  <h3>A sample drawn with replacement</h3>
+  <p><code>rng.integers(0, len(train), 1_000)</code> picks 1,000 training rows at random, and the same row can be
+  picked twice. Each draw is a new sample of the kind you might have collected instead. Make
+  <code>rng</code> once, before the loop; made inside the loop, it draws the same sample every time.</p>
+
+  <h3>Stuck?</h3>
+  <div class="scroll">
+  <table>
+    <thead><tr><th scope="col">you see</th><th scope="col">what to do</th></tr></thead>
+    <tbody>
+      <tr><td><code>NameError</code> for <code>hand</code> or <code>first_questions</code></td><td>Run the studio setup cell, below the questions.</td></tr>
+      <tr><td><code>NameError</code> for <code>split_gini</code>, <code>tree_model</code>, <code>p_logit</code> or <code>X_train</code></td><td>Run the notebook from the top (Run All).</td></tr>
+      <tr><td><code>ValueError: The 'groups' parameter should not be None</code></td><td>Put <code>groups=patients[train]</code> inside <code>.fit(...)</code>.</td></tr>
+      <tr><td>Question 1’s tree splits on <code>came_back</code></td><td><code>came_back</code> is the answer, not a question: X is the three question columns only.</td></tr>
+      <tr><td>Question 3’s twenty trees are all identical</td><td>Make <code>rng</code> once, before the loop.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Write your guess before each question and keep it, answer each question’s sentence, and answer
+  the exit ticket. Upload the notebook to Canvas under “Studio notebook — Day 15” by <strong>Wednesday,
+  October 28, 3:40 pm</strong>.</p>
+
+  <h2 id="next">Next: a forest</h2>
+  <p>A <strong>random forest</strong> grows hundreds of trees, each on a different resampled set of patients,
+  and averages their predictions. The wobbles of single trees cancel out, and the averaged predictions are no
+  longer stuck on a few steps. That is Thursday.</p>
+
+  <p class="foot">Part 1’s 20 patients are made up. Part 2 uses the Diabetes 130-US Hospitals data (UCI),
+  without stays that ended in death or hospice, split by patient as in Meeting 9: 74,637 training stays
+  and 24,706 test stays. All Part 2 numbers come from the Meeting 15 notebook and its data.</p>
+</section>
+</main>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; };
+  const $ = (id) => document.getElementById(id);
+  const pct = (x) => `${Math.round(100 * x)}%`;
+  const f3 = (x) => x.toFixed(3);
+  const comma = (n) => n.toLocaleString("en-US");
+  const gini = (k, n) => (n ? 2 * (k / n) * (1 - k / n) : 0);
+  const shade = (share) => 0.42 * Math.sqrt(Math.max(0, share));
+
+  // ---------- Part 1: the 20 made-up patients: [prior stays, days in the hospital, came back] ----------
+  const TOY = [[0,2,0],[0,3,0],[0,5,0],[0,6,0],[0,9,0],[0,12,0],[1,1,0],[1,4,0],[1,7,0],[1,8,0],[1,11,1],[1,13,0],
+               [2,3,1],[2,6,0],[2,10,1],[3,5,0],[3,12,1],[4,4,1],[4,9,1],[5,7,1]];
+  const ALL = TOY.map((_, i) => i);
+  const backs = (idx) => idx.reduce((s, i) => s + TOY[i][2], 0);
+  const X_LO = -0.5, X_HI = 5.5, Y_LO = 0, Y_HI = 14;
+
+  function question(col, cut) {
+    const k = Math.floor(cut);
+    if (col === 0) return k === 0 ? "Any prior stay?" : `More than ${k} prior stay${k === 1 ? "" : "s"}?`;
+    return `More than ${k} day${k === 1 ? "" : "s"}?`;
+  }
+  function candidates(idx) {
+    const out = [];
+    for (const col of [0, 1]) {
+      const vals = [...new Set(idx.map((i) => TOY[i][col]))].sort((a, b) => a - b);
+      for (let j = 0; j < vals.length - 1; j++) {
+        const cut = (vals[j] + vals[j + 1]) / 2;
+        const L = idx.filter((i) => TOY[i][col] <= cut), R = idx.filter((i) => TOY[i][col] > cut);
+        const kL = backs(L), kR = backs(R);
+        const after = (L.length * gini(kL, L.length) + R.length * gini(kR, R.length)) / idx.length;
+        out.push({ col, cut, L, R, kL, kR, after });
+      }
+    }
+    return out;
+  }
+  const best = (idx) => candidates(idx).reduce((a, b) => (b.after < a.after - 1e-12 ? b : a));
+
+  // The full tree, grown until every leaf is pure. Steps reveal its splits in breadth-first order.
+  let nextId = 0;
+  function build(idx, box, depth) {
+    const node = { id: nextId++, idx, n: idx.length, k: backs(idx), box, depth };
+    if (node.k > 0 && node.k < node.n) {
+      const s = best(idx);
+      const [x0, x1, y0, y1] = box;
+      node.split = s;
+      node.q = question(s.col, s.cut);
+      node.left = build(s.L, s.col === 0 ? [x0, s.cut, y0, y1] : [x0, x1, y0, s.cut], depth + 1);
+      node.right = build(s.R, s.col === 0 ? [s.cut, x1, y0, y1] : [x0, x1, s.cut, y1], depth + 1);
+    }
+    return node;
+  }
+  const FULL = build(ALL, [X_LO, X_HI, Y_LO, Y_HI], 0);
+  const ORDER = [];
+  for (const q = [FULL]; q.length;) { const nd = q.shift(); if (nd.split) { ORDER.push(nd.id); q.push(nd.left, nd.right); } }
+
+  // ---------- Drawing: the patient plot ----------
+  function plot(host, opts = {}) {
+    const W = 460, H = 360, m = { l: 52, r: 14, t: 14, b: 50 };
+    const sx = (v) => m.l + ((v - X_LO) / (X_HI - X_LO)) * (W - m.l - m.r);
+    const sy = (v) => H - m.b - ((v - Y_LO) / (Y_HI - Y_LO)) * (H - m.t - m.b);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, role: "img", "aria-label": opts.label || "The 20 patients" });
+    for (let d = 0; d <= 14; d += 2) { el("line", { x1: m.l, x2: W - m.r, y1: sy(d), y2: sy(d), class: "gridline" }, svg); txt(svg, m.l - 8, sy(d) + 4, d, { "text-anchor": "end", "font-size": 12, class: "muted mono" }); }
+    for (let s = 0; s <= 5; s++) txt(svg, sx(s), H - m.b + 18, s, { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+    if (opts.boxes) for (const b of opts.boxes) {
+      const [x0, x1, y0, y1] = b.box;
+      const r = { x: sx(x0), y: sy(y1), width: sx(x1) - sx(x0), height: sy(y0) - sy(y1) };
+      el("rect", { ...r, class: "box-shade", "fill-opacity": shade(b.k / b.n) }, svg);
+      el("rect", { ...r, fill: "none", stroke: "currentColor", class: "axis", "stroke-width": 1.5, style: "stroke: var(--ink)" }, svg);
+      if (r.width > 34 && r.height > 22) txt(svg, r.x + r.width - 5, r.y + 15, `${b.k}/${b.n}`, { "text-anchor": "end", "font-size": 12, class: "mono", "font-weight": 500 });
+    }
+    if (opts.cut) {
+      const { col, cut } = opts.cut;
+      if (col === 0) {
+        el("rect", { x: sx(X_LO), y: sy(Y_HI), width: sx(cut) - sx(X_LO), height: sy(Y_LO) - sy(Y_HI), class: "side-no" }, svg);
+        el("rect", { x: sx(cut), y: sy(Y_HI), width: sx(X_HI) - sx(cut), height: sy(Y_LO) - sy(Y_HI), class: "side-yes" }, svg);
+        el("line", { x1: sx(cut), x2: sx(cut), y1: sy(Y_LO), y2: sy(Y_HI), class: "cutline" }, svg);
+      } else {
+        el("rect", { x: sx(X_LO), y: sy(cut), width: sx(X_HI) - sx(X_LO), height: sy(Y_LO) - sy(cut), class: "side-no" }, svg);
+        el("rect", { x: sx(X_LO), y: sy(Y_HI), width: sx(X_HI) - sx(X_LO), height: sy(cut) - sy(Y_HI), class: "side-yes" }, svg);
+        el("line", { x1: sx(X_LO), x2: sx(X_HI), y1: sy(cut), y2: sy(cut), class: "cutline" }, svg);
+      }
+    }
+    if (opts.region) { const [x0, x1, y0, y1] = opts.region; el("rect", { x: sx(x0) + 1.5, y: sy(y1) + 1.5, width: sx(x1) - sx(x0) - 3, height: sy(y0) - sy(y1) - 3, class: "region-on" }, svg); }
+    el("line", { x1: m.l, x2: W - m.r, y1: sy(Y_LO), y2: sy(Y_LO), class: "axis" }, svg);
+    el("line", { x1: m.l, x2: m.l, y1: sy(Y_LO), y2: sy(Y_HI), class: "axis" }, svg);
+    for (const [s, d, c] of TOY) {
+      const x = sx(s), y = sy(d);
+      if (c) el("path", { d: `M${x - 6} ${y - 6}L${x + 6} ${y + 6}M${x + 6} ${y - 6}L${x - 6} ${y + 6}`, class: "pt-back" }, svg);
+      else el("circle", { cx: x, cy: y, r: 6, class: "pt-stay" }, svg);
+    }
+    if (opts.newPoint) {
+      const [s, d] = opts.newPoint, x = sx(s), y = sy(d);
+      el("path", { d: `M${x} ${y - 11}L${x + 10} ${y}L${x} ${y + 11}L${x - 10} ${y}Z`, class: "newpt" }, svg);
+    }
+    txt(svg, (m.l + W - m.r) / 2, H - 10, "prior hospital stays (past year)", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    const yl = txt(svg, 14, (m.t + H - m.b) / 2, "days in the hospital", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    yl.setAttribute("transform", `rotate(-90 14 ${(m.t + H - m.b) / 2})`);
+    host.replaceChildren(svg);
+  }
+
+  // ---------- Drawing: a flowchart ----------
+  // node: { q (question, if it splits), n, k or share, left, right }. open(node) says whether to draw its split.
+  function flow(host, root, open, opts = {}) {
+    const W = opts.w || 170, H = 52, GX = 14, GY = 44;
+    let leafX = 0, maxD = 0; const nodes = [];
+    (function rec(nd, d) {
+      maxD = Math.max(maxD, d);
+      if (open(nd)) { const a = rec(nd.left, d + 1), b = rec(nd.right, d + 1); nd._x = (a + b) / 2; }
+      else nd._x = leafX++;
+      nd._d = d; nodes.push(nd); return nd._x;
+    })(root, 0);
+    const vw = leafX * (W + GX) - GX + 8, vh = (maxD + 1) * (H + GY) - GY + 8;
+    const px = (nd) => 4 + nd._x * (W + GX), py = (nd) => 4 + nd._d * (H + GY);
+    const svg = el("svg", { viewBox: `0 0 ${vw} ${vh}`, width: Math.min(vw, opts.maxw || 560), role: "img", "aria-label": opts.label || "The tree as a flowchart" });
+    const path = opts.path || new Set();
+    for (const nd of nodes) if (open(nd)) for (const [ch, word] of [[nd.left, "no"], [nd.right, "yes"]]) {
+      const x1 = px(nd) + W / 2, y1 = py(nd) + H, x2 = px(ch) + W / 2, y2 = py(ch);
+      el("line", { x1, y1, x2, y2, class: "edge" + (path.has(ch) ? " on" : "") }, svg);
+      txt(svg, (x1 + x2) / 2 + (word === "no" ? -7 : 7), (y1 + y2) / 2 - 5, word, { "text-anchor": word === "no" ? "end" : "start", "font-size": 12, "font-style": "italic", class: "muted" });
+    }
+    for (const nd of nodes) {
+      const share = nd.share ?? nd.k / nd.n, x = px(nd), y = py(nd), isLeaf = !open(nd);
+      const g = el("g", { class: path.has(nd) ? "on" : "" }, svg);
+      el("rect", { x, y, width: W, height: H, rx: 6, class: "node" }, g);
+      if (nd.mean !== undefined) {               // a regression tree: averages, not shares
+        if (isLeaf) el("rect", { x: x + 1, y: y + 1, width: W - 2, height: H - 2, rx: 5, class: "box-num", "fill-opacity": 0.08 + 0.3 * nd.mean / 14 }, g);
+        txt(g, x + W / 2, y + 22, isLeaf ? `${nd.mean.toFixed(1)} days` : nd.q, { "text-anchor": "middle", "font-size": isLeaf ? 13 : 12.5, "font-weight": 700 });
+        txt(g, x + W / 2, y + 40, isLeaf ? `average of ${nd.n} patients` : `${nd.n} patients · average ${nd.mean.toFixed(1)}`, { "text-anchor": "middle", "font-size": 12, class: "muted" });
+        continue;
+      }
+      if (isLeaf) el("rect", { x: x + 1, y: y + 1, width: W - 2, height: H - 2, rx: 5, class: "box-shade", "fill-opacity": shade(share) }, g);
+      const fmtN = opts.real ? comma(nd.n) : nd.n;
+      if (isLeaf) {
+        txt(g, x + W / 2, y + 22, `${opts.real ? (100 * share).toFixed(1) + "%" : pct(share)} came back`, { "text-anchor": "middle", "font-size": 13, "font-weight": 700 });
+        txt(g, x + W / 2, y + 40, opts.real ? `${fmtN} stays` : `${nd.k} of ${fmtN} patient${nd.n === 1 ? "" : "s"}`, { "text-anchor": "middle", "font-size": 12, class: "muted" });
+      } else {
+        txt(g, x + W / 2, y + 22, nd.q, { "text-anchor": "middle", "font-size": 12.5, "font-weight": 700 });
+        txt(g, x + W / 2, y + 40, opts.real ? `${fmtN} · ${(100 * share).toFixed(1)}%` : `${nd.k} of ${fmtN} came back`, { "text-anchor": "middle", "font-size": 12, class: "muted" });
+      }
+    }
+    host.replaceChildren(svg);
+  }
+
+  // ---------- The 20 patients on their own ----------
+  plot($("fig-toy"), { label: "Scatter plot of the 20 patients: prior stays across, days in the hospital up. Six of the seven who came back have 2 or more prior stays." });
+
+  // ---------- Step 1: Gini explorer ----------
+  (function () {
+    const k = $("gini-k");
+    const W = 420, H = 260, m = { l: 48, r: 14, t: 14, b: 44 };
+    const sx = (p) => m.l + p * (W - m.l - m.r), sy = (g) => H - m.b - (g / 0.55) * (H - m.t - m.b);
+    function draw() {
+      const kk = +k.value, p = kk / 10, g = gini(kk, 10);
+      $("gini-k-out").textContent = `${kk} of 10`;
+      const people = el("svg", { viewBox: "0 0 300 34", width: 300 });
+      for (let i = 0; i < 10; i++) {
+        const x = 15 + i * 30, y = 17;
+        if (i < kk) el("path", { d: `M${x - 8} ${y - 8}L${x + 8} ${y + 8}M${x + 8} ${y - 8}L${x - 8} ${y + 8}`, class: "pt-back" }, people);
+        else el("circle", { cx: x, cy: y, r: 8, class: "pt-stay" }, people);
+      }
+      $("gini-people").replaceChildren(people);
+      $("gini-say").textContent = `p = ${p.toFixed(1)} · Gini = 2 × ${p.toFixed(1)} × ${(1 - p).toFixed(1)} = ${g.toFixed(2)}` +
+        (kk === 0 || kk === 10 ? " · pure" : kk === 5 ? " · as mixed as it gets" : "");
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, role: "img", "aria-label": `Gini curve. At p = ${p.toFixed(1)} the Gini is ${g.toFixed(2)}.` });
+      for (const v of [0, 0.1, 0.2, 0.3, 0.4, 0.5]) { el("line", { x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v), class: "gridline" }, svg); txt(svg, m.l - 8, sy(v) + 4, v.toFixed(1), { "text-anchor": "end", "font-size": 12, class: "muted mono" }); }
+      for (const v of [0, 0.25, 0.5, 0.75, 1]) txt(svg, sx(v), H - m.b + 18, v, { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+      let d = ""; for (let i = 0; i <= 100; i++) { const pp = i / 100; d += `${i ? "L" : "M"}${sx(pp).toFixed(1)} ${sy(2 * pp * (1 - pp)).toFixed(1)}`; }
+      el("path", { d, class: "curve" }, svg);
+      el("line", { x1: sx(p), x2: sx(p), y1: sy(0), y2: sy(g), class: "cutline", "stroke-width": 1.5 }, svg);
+      el("circle", { cx: sx(p), cy: sy(g), r: 7, class: "dot-accent" }, svg);
+      const right = p <= 0.5, ly = g < 0.1 ? sy(g) - 12 : sy(g) + 22;
+      txt(svg, sx(p) + (right ? 12 : -12), ly, g.toFixed(2), { "text-anchor": right ? "start" : "end", "font-size": 14, "font-weight": 700, class: "mono" });
+      txt(svg, (m.l + W - m.r) / 2, H - 8, "share who came back, p", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+      const yl = txt(svg, 14, (m.t + H - m.b) / 2, "Gini impurity", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+      yl.setAttribute("transform", `rotate(-90 14 ${(m.t + H - m.b) / 2})`);
+      $("gini-curve").replaceChildren(svg);
+    }
+    k.addEventListener("input", draw); draw();
+  })();
+
+  // ---------- Step 3: score any question ----------
+  (function () {
+    const all = candidates(ALL), before = gini(backs(ALL), ALL.length);
+    const byCol = [all.filter((c) => c.col === 0), all.filter((c) => c.col === 1)];
+    const ranked = [...all].sort((a, b) => a.after - b.after);
+    const top = before - ranked[0].after;
+    let col = 0, cur = byCol[0][0];
+    const slider = $("cut"), board = $("board");
+    ranked.forEach((c) => {
+      const li = document.createElement("li"), b = document.createElement("button");
+      b.type = "button"; c.btn = b;
+      b.innerHTML = `<span></span><span class="bar"></span><span class="v"></span>`;
+      b.children[0].textContent = question(c.col, c.cut);
+      b.children[1].style.width = `${(100 * (before - c.after)) / top}%`;
+      b.children[2].textContent = f3(before - c.after);
+      b.setAttribute("aria-label", `${question(c.col, c.cut)} reduction ${f3(before - c.after)}`);
+      b.addEventListener("click", () => select(c));
+      li.appendChild(b); board.appendChild(li);
+    });
+    function select(c) {
+      cur = c; col = c.col;
+      $("col-0").setAttribute("aria-pressed", col === 0); $("col-1").setAttribute("aria-pressed", col === 1);
+      slider.max = byCol[col].length - 1; slider.value = byCol[col].indexOf(c);
+      draw();
+    }
+    function sideCard(tag, n, k) {
+      return `<div class="side"><span class="tag">${tag}</span><b>${n} patients, ${k} came back</b>` +
+             `<span class="num">${pct(k / n)} · Gini ${f3(gini(k, n))}</span></div>`;
+    }
+    function draw() {
+      const c = cur, q = question(c.col, c.cut), red = before - c.after;
+      $("cut-q").textContent = q;
+      slider.setAttribute("aria-valuetext", q);
+      plot($("fig-split"), { cut: c, label: `The 20 patients split by the question ${q}` });
+      $("split-sides").innerHTML = sideCard("no", c.L.length, c.kL) + sideCard("yes", c.R.length, c.kR);
+      $("split-calc").innerHTML =
+        `after = ${c.L.length}/20 × ${f3(gini(c.kL, c.L.length))} + ${c.R.length}/20 × ${f3(gini(c.kR, c.R.length))} = ${f3(c.after)}<br>` +
+        `<span class="big">reduction = ${f3(before)} − ${f3(c.after)} = ${f3(red)}</span>` +
+        (c === ranked[0] ? "<br>the best of all 17" : `<br>rank ${ranked.indexOf(c) + 1} of 17`);
+      for (const r of ranked) r.btn.setAttribute("aria-pressed", r === c);
+    }
+    slider.addEventListener("input", () => { cur = byCol[col][+slider.value]; draw(); });
+    for (const k of [0, 1]) $(`col-${k}`).addEventListener("click", () => { if (col !== k) select(byCol[k][Math.floor(byCol[k].length / 2)]); });
+    $("find-best").addEventListener("click", () => select(ranked[0]));
+    select(byCol[0][2]);
+  })();
+
+  // ---------- Steps 5-6: grow it ----------
+  (function () {
+    const STEPS = [0, 1, 2, 3, ORDER.length];
+    let s = 0;
+    const leavesOf = (nd, open, out = []) => { if (open(nd)) { leavesOf(nd.left, open, out); leavesOf(nd.right, open, out); } else out.push(nd); return out; };
+    function draw() {
+      const shown = new Set(ORDER.slice(0, STEPS[s])), open = (nd) => shown.has(nd.id);
+      const leaves = leavesOf(FULL, open);
+      plot($("grow-plot"), { boxes: leaves, label: `The patients divided into ${leaves.length} group${leaves.length > 1 ? "s" : ""}` });
+      flow($("grow-tree"), FULL, open, { label: `The tree after ${STEPS[s]} split${STEPS[s] === 1 ? "" : "s"}`, maxw: 1000 });
+      const msg = [
+        "No questions yet: one group of 20, 7 came back.",
+        "Split 1, the root: more than 1 prior stay?",
+        "Split 2, inside the 0–1 stays group only: more than 10 days?",
+        "Split 3, inside the 2+ stays group only: more than 6 days? Four leaves.",
+        `Grown all the way: ${leaves.length} leaves, every one pure. It has memorized these 20 patients.`,
+      ][s];
+      $("grow-status").textContent = msg;
+      $("grow-prev").disabled = s === 0; $("grow-next").disabled = s === STEPS.length - 1;
+      $("grow-next").textContent = s === STEPS.length - 2 ? "Grow it all the way" : "Next split";
+    }
+    $("grow-prev").addEventListener("click", () => { if (s > 0) { s--; draw(); } });
+    $("grow-next").addEventListener("click", () => { if (s < STEPS.length - 1) { s++; draw(); } });
+    draw();
+  })();
+
+  // ---------- Step 7: predict ----------
+  (function () {
+    const shown = new Set(ORDER.slice(0, 3)), open = (nd) => shown.has(nd.id);
+    function draw() {
+      const st = +$("new-stays").value, dy = +$("new-days").value;
+      $("new-stays-out").textContent = st; $("new-days-out").textContent = dy;
+      const path = new Set([FULL]); const steps = [];
+      let nd = FULL;
+      while (open(nd)) {
+        const v = nd.split.col === 0 ? st : dy, yes = v > nd.split.cut;
+        steps.push(`${nd.q} ${yes ? "yes" : "no"}`);
+        nd = yes ? nd.right : nd.left; path.add(nd);
+      }
+      flow($("pred-tree"), FULL, open, { path, maxw: 1000, label: `The tree with this patient's path highlighted, ending in a leaf where ${nd.k} of ${nd.n} came back` });
+      plot($("pred-plot"), { boxes: [], region: nd.box, newPoint: [st, dy], label: "The new patient on the plot, with the leaf's region outlined" });
+      $("pred-say").textContent = `${steps.join(" → ")} → a leaf of ${nd.n} past patients, ${nd.k} came back. Prediction: ${pct(nd.k / nd.n)}.`;
+    }
+    for (const id of ["new-stays", "new-days"]) $(id).addEventListener("input", draw);
+    draw();
+  })();
+
+  // ---------- Part 1: boxes against a line ----------
+  (function () {
+    // Plain logistic regression (no penalty) fit to the same 20 patients by maximum likelihood.
+    const B0 = -5.5452, B_STAYS = 1.7130, B_DAYS = 0.2666;
+    const plogit = (st, dy) => 1 / (1 + Math.exp(-(B0 + B_STAYS * st + B_DAYS * dy)));
+    const leavesAfter = (k) => {
+      const shown = new Set(ORDER.slice(0, k)), out = [];
+      (function rec(nd) { if (shown.has(nd.id)) { rec(nd.left); rec(nd.right); } else out.push(nd); })(FULL);
+      return out;
+    };
+    const yes = (lf) => lf.k / lf.n >= 0.5;
+    function panel(hostId, kind) {
+      const W = 340, H = 300, m = { l: 44, r: 10, t: 10, b: 44 };
+      const sx = (v) => m.l + ((v - X_LO) / (X_HI - X_LO)) * (W - m.l - m.r);
+      const sy = (v) => H - m.b - ((v - Y_LO) / (Y_HI - Y_LO)) * (H - m.t - m.b);
+      const names = { small: "the tree after three questions", full: "the tree grown all the way", logit: "logistic regression" };
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W });
+      let wrong;
+      if (kind === "logit") {
+        // The chance changes only across the 50% line, so one linear gradient drawn across it shades the plot exactly.
+        const pw = W - m.l - m.r, ph = H - m.t - m.b, kx = pw / (X_HI - X_LO), ky = ph / (Y_HI - Y_LO);
+        const gx = B_STAYS / kx, gy = -B_DAYS / ky, gn = Math.hypot(gx, gy), ux = gx / gn, uy = gy / gn;
+        const cx = m.l + pw / 2, cy = m.t + ph / 2, T = Math.hypot(pw, ph) / 2;
+        const Lc = B0 + B_STAYS * (X_LO + pw / 2 / kx) + B_DAYS * (Y_LO + ph / 2 / ky);
+        const grad = el("linearGradient", { id: "logit-shade", gradientUnits: "userSpaceOnUse",
+          x1: cx - T * ux, y1: cy - T * uy, x2: cx + T * ux, y2: cy + T * uy }, el("defs", {}, svg));
+        for (let k = 0; k <= 40; k++) {
+          const pr = 1 / (1 + Math.exp(-(Lc + (-T + (2 * T * k) / 40) * gn)));
+          el("stop", { offset: k / 40, style: `stop-color: var(--back); stop-opacity: ${shade(pr).toFixed(3)}` }, grad);
+        }
+        el("rect", { x: m.l, y: m.t, width: pw, height: ph, fill: "url(#logit-shade)" }, svg);
+        // The 50% line: B0 + B_STAYS * stays + B_DAYS * days = 0, from the top edge to the bottom edge.
+        const sAt = (d) => (-B0 - B_DAYS * d) / B_STAYS;
+        el("line", { x1: sx(sAt(Y_HI)), y1: sy(Y_HI), x2: sx(sAt(Y_LO)), y2: sy(Y_LO), class: "boundary" }, svg);
+        wrong = TOY.filter(([st, d, c]) => (plogit(st, d) >= 0.5) !== (c === 1)).length;
+      } else {
+        const leaves = leavesAfter(kind === "small" ? 3 : ORDER.length);
+        for (const lf of leaves) {
+          const [x0, x1, y0, y1] = lf.box, r = { x: sx(x0), y: sy(y1), width: sx(x1) - sx(x0), height: sy(y0) - sy(y1) };
+          el("rect", { ...r, class: "box-shade", "fill-opacity": shade(lf.k / lf.n) }, svg);
+          el("rect", { ...r, class: "leafedge" }, svg);
+        }
+        // The 50% line: every stretch of edge shared by a "yes" leaf and a "no" leaf.
+        const near = (a, b) => Math.abs(a - b) < 1e-9;
+        for (let i = 0; i < leaves.length; i++) for (let j = i + 1; j < leaves.length; j++) {
+          const A = leaves[i], B = leaves[j];
+          if (yes(A) === yes(B)) continue;
+          const [a0, a1, ay0, ay1] = A.box, [b0, b1, by0, by1] = B.box;
+          if (near(a1, b0) || near(b1, a0)) {
+            const x = near(a1, b0) ? a1 : a0, lo = Math.max(ay0, by0), hi = Math.min(ay1, by1);
+            if (hi > lo) el("line", { x1: sx(x), x2: sx(x), y1: sy(lo), y2: sy(hi), class: "boundary" }, svg);
+          }
+          if (near(ay1, by0) || near(by1, ay0)) {
+            const yv = near(ay1, by0) ? ay1 : ay0, lo = Math.max(a0, b0), hi = Math.min(a1, b1);
+            if (hi > lo) el("line", { x1: sx(lo), x2: sx(hi), y1: sy(yv), y2: sy(yv), class: "boundary" }, svg);
+          }
+        }
+        wrong = leaves.reduce((s, lf) => s + (yes(lf) ? lf.n - lf.k : lf.k), 0);
+      }
+      el("line", { x1: m.l, x2: W - m.r, y1: sy(Y_LO), y2: sy(Y_LO), class: "axis" }, svg);
+      el("line", { x1: m.l, x2: m.l, y1: sy(Y_LO), y2: sy(Y_HI), class: "axis" }, svg);
+      for (let d = 0; d <= 14; d += 2) txt(svg, m.l - 7, sy(d) + 4, d, { "text-anchor": "end", "font-size": 12, class: "muted mono" });
+      for (let st = 0; st <= 5; st++) txt(svg, sx(st), H - m.b + 17, st, { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+      for (const [st, d, c] of TOY) {
+        const x = sx(st), y = sy(d);
+        if (c) el("path", { d: `M${x - 5.5} ${y - 5.5}L${x + 5.5} ${y + 5.5}M${x + 5.5} ${y - 5.5}L${x - 5.5} ${y + 5.5}`, class: "pt-back" }, svg);
+        else el("circle", { cx: x, cy: y, r: 5.5, class: "pt-stay" }, svg);
+      }
+      txt(svg, (m.l + W - m.r) / 2, H - 8, "prior stays", { "text-anchor": "middle", "font-size": 12.5, class: "muted" });
+      const yl = txt(svg, 13, (m.t + H - m.b) / 2, "days in the hospital", { "text-anchor": "middle", "font-size": 12.5, class: "muted" });
+      yl.setAttribute("transform", `rotate(-90 13 ${(m.t + H - m.b) / 2})`);
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", `The 20 patients shaded by ${names[kind]}'s predicted chance of coming back, with its 50% line. ${wrong} of 20 patients are on the wrong side.`);
+      $(hostId).replaceChildren(svg);
+      $(`${hostId}-note`).textContent = `${wrong} of 20 patients on the wrong side`;
+    }
+    panel("bd-small", "small"); panel("bd-full", "full"); panel("bd-logit", "logit");
+  })();
+
+  // ---------- Part 2: the best question in each column (reduction in Gini, training data) ----------
+  const COLS = [
+    ["Prior stays: more than 1?", 0.004048], ["Sent home on discharge?", 0.001303], ["Emergency visits: any?", 0.000834],
+    ["Diagnoses: more than 7?", 0.000501], ["Days in the hospital: more than 3?", 0.000409], ["Medications: more than 16?", 0.000344],
+    ["On insulin?", 0.000253], ["Outpatient visits: any?", 0.000239], ["On diabetes medication?", 0.000125],
+    ["Lab tests: more than 40?", 0.000121], ["Specialty: cardiology?", 0.000120], ["Came through the emergency room?", 0.000120],
+    ["Age 20–30?", 0.000077], ["A1C test done?", 0.000074], ["Medications changed?", 0.000072],
+    ["Emergency admission?", 0.000057], ["Procedures: more than 4?", 0.000041], ["Race not recorded?", 0.000040],
+    ["Glucose over 300?", 0.000031], ["Female?", 0.000005]];
+  for (const [i, [q, r]] of COLS.entries()) {
+    const li = document.createElement("li"); if (i === 0) li.className = "win";
+    li.innerHTML = `<span></span><span class="bar"></span><span class="v"></span>`;
+    li.children[0].textContent = q; li.children[1].style.width = `${(100 * r) / COLS[0][1]}%`;
+    li.children[2].textContent = r.toFixed(4);
+    $("real-bars").appendChild(li);
+  }
+
+  // ---------- Part 2: the real tree, two questions deep ----------
+  const leaf = (n, share) => ({ n, share });
+  const REAL = { q: "More than 1 prior stay?", n: 74637, share: 8575 / 74637,
+    left: { q: "Sent to rehab?", n: 64018, share: 6182 / 64018, left: leaf(62729, 5826 / 62729), right: leaf(1289, 356 / 1289) },
+    right: { q: "More than 4 prior stays?", n: 10619, share: 2393 / 10619, left: leaf(9103, 1817 / 9103), right: leaf(1516, 576 / 1516) } };
+  flow($("real-tree"), REAL, (nd) => !!nd.q, { real: true, w: 176, maxw: 760,
+    label: "The real tree. Root: more than 1 prior stay, 74,637 stays, 11.5% came back. No: sent to rehab? No gives 62,729 stays at 9.3%, yes 1,289 at 27.6%. Yes: more than 4 prior stays? No gives 9,103 at 20.0%, yes 1,516 at 38.0%." });
+
+  // ---------- Part 2: AUC by depth ----------
+  (function () {
+    const D = [["1", 2, 0.577, 0.567], ["2", 4, 0.594, 0.581], ["4", 16, 0.648, 0.636], ["6", 62, 0.663, 0.643],
+               ["8", 180, 0.676, 0.636], ["12", 830, 0.718, 0.614], ["20", 3908, 0.867, 0.533], ["no limit", 11560, 1.0, 0.524]];
+    $("depth-rows").innerHTML = D.map(([d, g, a, b]) => `<tr><th scope="row">${d}</th><td class="n">${comma(g)}</td><td class="n">${a.toFixed(3)}</td><td class="n">${b.toFixed(3)}</td></tr>`).join("");
+    const W = 720, H = 330, m = { l: 52, r: 150, t: 16, b: 52 };
+    const sx = (i) => m.l + (i / (D.length - 1)) * (W - m.l - m.r), sy = (v) => H - m.b - ((v - 0.5) / 0.5) * (H - m.t - m.b);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, role: "img", "aria-label": "Line chart of AUC by tree depth. On its own patients AUC climbs from 0.577 to 1.000. On new patients it rises to 0.643 at depth 6, then falls to 0.524 with no limit." });
+    el("rect", { x: sx(3) - 22, y: m.t, width: 44, height: H - m.t - m.b, class: "band" }, svg);
+    txt(svg, sx(3), m.t + 14, "picked by", { "text-anchor": "middle", "font-size": 11.5, class: "muted" });
+    txt(svg, sx(3), m.t + 28, "cross-validation", { "text-anchor": "middle", "font-size": 11.5, class: "muted" });
+    for (const v of [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]) { el("line", { x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v), class: "gridline" }, svg); txt(svg, m.l - 8, sy(v) + 4, v.toFixed(1), { "text-anchor": "end", "font-size": 12, class: "muted mono" }); }
+    D.forEach(([d], i) => txt(svg, sx(i), H - m.b + 18, d, { "text-anchor": "middle", "font-size": 12, class: "muted mono" }));
+    txt(svg, (m.l + W - m.r) / 2, H - 10, "depth: questions in a row", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    const yl = txt(svg, 14, (m.t + H - m.b) / 2, "AUC", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    yl.setAttribute("transform", `rotate(-90 14 ${(m.t + H - m.b) / 2})`);
+    const line = (j) => D.map((r, i) => `${i ? "L" : "M"}${sx(i)} ${sy(r[j])}`).join("");
+    el("path", { d: line(2), class: "line-logit" }, svg);
+    el("path", { d: line(3), class: "line-tree" }, svg);
+    D.forEach((r, i) => el("circle", { cx: sx(i), cy: sy(r[3]), r: i === 3 ? 6 : 3.5, class: "dot-accent" }, svg));
+    txt(svg, sx(3), sy(0.643) + 22, "0.643", { "text-anchor": "middle", "font-size": 13, "font-weight": 700, class: "mono" });
+    txt(svg, sx(7) + 10, sy(1.0) + 4, "its own patients", { "font-size": 13, class: "muted" });
+    txt(svg, sx(7) + 10, sy(0.524) + 4, "new patients", { "font-size": 13, "font-weight": 700 });
+    $("depth-chart").replaceChildren(svg);
+  })();
+
+  // ---------- Part 2: the stair steps (test predictions, sorted; 200 evenly spaced patients up to 99.5%) ----------
+  (function () {
+    const TREE = [0.0,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0524,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0713,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0954,0.0961,0.0961,0.0961,0.0961,0.0961,0.0961,0.0961,0.0961,0.1009,0.1009,0.1044,0.1044,0.1044,0.1044,0.1044,0.1044,0.1044,0.1044,0.1044,0.1044,0.1044,0.1044,0.1044,0.1044,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1272,0.1411,0.1411,0.1411,0.1411,0.1411,0.1411,0.1411,0.1411,0.1411,0.1411,0.1411,0.1411,0.1411,0.1411,0.1411,0.1545,0.1574,0.1574,0.1574,0.1574,0.1574,0.1673,0.1765,0.1765,0.1765,0.1765,0.1765,0.1765,0.1765,0.1765,0.1765,0.1765,0.1765,0.1765,0.1765,0.18,0.1991,0.1991,0.2143,0.2179,0.2283,0.2283,0.2283,0.2283,0.2283,0.2283,0.2283,0.2283,0.2283,0.2538,0.3193,0.3846,0.4165,0.5172];
+    const LOGIT = [0.0208,0.035,0.0395,0.0429,0.0453,0.0482,0.0498,0.0513,0.0526,0.0537,0.0547,0.0558,0.0568,0.0575,0.0583,0.0589,0.0596,0.0603,0.0609,0.0615,0.0622,0.0628,0.0633,0.0639,0.0644,0.0649,0.0653,0.0658,0.0663,0.0667,0.0672,0.0676,0.0681,0.0684,0.0689,0.0694,0.0698,0.0701,0.0706,0.071,0.0715,0.0718,0.0723,0.0726,0.073,0.0734,0.0738,0.0741,0.0746,0.0749,0.0752,0.0756,0.076,0.0764,0.0768,0.0772,0.0776,0.0779,0.0783,0.0786,0.0791,0.0794,0.0798,0.0802,0.0805,0.0809,0.0814,0.0817,0.0821,0.0825,0.0829,0.0832,0.0836,0.084,0.0844,0.0848,0.0852,0.0856,0.086,0.0864,0.0868,0.0872,0.0877,0.0881,0.0885,0.0889,0.0893,0.0897,0.0901,0.0906,0.091,0.0915,0.0919,0.0923,0.0928,0.0933,0.0938,0.0942,0.0947,0.0952,0.0956,0.096,0.0965,0.097,0.0976,0.0981,0.0986,0.0991,0.0995,0.1001,0.1007,0.1013,0.1019,0.1025,0.103,0.1035,0.1041,0.1047,0.1055,0.106,0.1067,0.1073,0.1081,0.1088,0.1096,0.1102,0.1109,0.1115,0.1121,0.1128,0.1135,0.1142,0.115,0.1157,0.1164,0.1172,0.118,0.1187,0.1194,0.1202,0.1209,0.1217,0.1225,0.1234,0.1243,0.1252,0.1259,0.127,0.1279,0.1287,0.1296,0.1306,0.1317,0.1329,0.1339,0.1351,0.1361,0.1374,0.1386,0.14,0.1414,0.1429,0.1443,0.1458,0.1473,0.1487,0.1502,0.1519,0.1534,0.1552,0.157,0.1591,0.1617,0.1642,0.1668,0.1696,0.1726,0.1758,0.1787,0.1823,0.1856,0.189,0.1927,0.1983,0.2029,0.2082,0.2141,0.2201,0.2268,0.2346,0.2431,0.253,0.2633,0.2721,0.2849,0.2979,0.3182,0.3446,0.3864,0.4663];
+    const W = 720, H = 330, m = { l: 56, r: 170, t: 16, b: 52 }, n = TREE.length;
+    const sx = (i) => m.l + (i / (n - 1)) * (W - m.l - m.r), sy = (v) => H - m.b - (v / 0.55) * (H - m.t - m.b);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, role: "img", "aria-label": "Sorted predicted probabilities for the test patients. The tree's predictions rise in a few flat steps; logistic regression's rise smoothly." });
+    for (const v of [0, 0.1, 0.2, 0.3, 0.4, 0.5]) { el("line", { x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v), class: "gridline" }, svg); txt(svg, m.l - 8, sy(v) + 4, `${Math.round(v * 100)}%`, { "text-anchor": "end", "font-size": 12, class: "muted mono" }); }
+    for (const v of [0, 25, 50, 75, 99.5]) txt(svg, sx((v / 99.5) * (n - 1)), H - m.b + 18, `${v}%`, { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+    txt(svg, (m.l + W - m.r) / 2, H - 10, "test patients, sorted from lowest to highest prediction", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    const yl = txt(svg, 14, (m.t + H - m.b) / 2, "predicted chance of coming back", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    yl.setAttribute("transform", `rotate(-90 14 ${(m.t + H - m.b) / 2})`);
+    el("path", { d: LOGIT.map((v, i) => `${i ? "L" : "M"}${sx(i).toFixed(1)} ${sy(v).toFixed(1)}`).join(""), class: "line-logit" }, svg);
+    let d = `M${sx(0)} ${sy(TREE[0])}`;
+    for (let i = 1; i < n; i++) d += `H${sx(i).toFixed(1)}V${sy(TREE[i]).toFixed(1)}`;
+    el("path", { d, class: "line-tree" }, svg);
+    txt(svg, sx(n - 1) + 10, sy(TREE[n - 1]) + 4, "tree: 44 values", { "font-size": 13, "font-weight": 700 });
+    txt(svg, sx(n - 1) + 10, sy(LOGIT[n - 1]) + 4, "logistic regression", { "font-size": 13, class: "muted" });
+    $("stairs").replaceChildren(svg);
+  })();
+
+  // ---------- Part 3: a regression tree on 16 made-up patients: [procedures, days in the hospital] ----------
+  const REG = [[0,2],[0,3],[0,3],[1,2],[1,4],[1,3],[2,5],[2,6],[3,6],[3,7],[3,5],[4,10],[4,12],[5,11],[6,9],[6,13]];
+  const RALL = REG.map((_, i) => i), RX_LO = -0.5, RX_HI = 6.5;
+  const avg = (idx) => idx.reduce((s, i) => s + REG[i][1], 0) / idx.length;
+  const mse = (idx) => { const m = avg(idx); return idx.reduce((s, i) => s + (REG[i][1] - m) ** 2, 0) / idx.length; };
+  const procQ = (cut) => { const k = Math.floor(cut); return k === 0 ? "Any procedure?" : `More than ${k} procedure${k === 1 ? "" : "s"}?`; };
+  function regCands(idx) {
+    const vals = [...new Set(idx.map((i) => REG[i][0]))].sort((a, b) => a - b), out = [];
+    for (let j = 0; j < vals.length - 1; j++) {
+      const cut = (vals[j] + vals[j + 1]) / 2;
+      const L = idx.filter((i) => REG[i][0] <= cut), R = idx.filter((i) => REG[i][0] > cut);
+      out.push({ cut, L, R, after: (L.length * mse(L) + R.length * mse(R)) / idx.length });
+    }
+    return out;
+  }
+  // Grow two questions deep, splitting only when a question lowers the MSE.
+  function buildReg(idx, lo, hi, depth) {
+    const node = { idx, n: idx.length, mean: avg(idx), lo, hi };
+    const c = depth < 2 ? regCands(idx) : [];
+    if (c.length) {
+      const b = c.reduce((a, x) => (x.after < a.after - 1e-12 ? x : a));
+      if (mse(idx) - b.after > 1e-9) {
+        node.cut = b.cut; node.q = procQ(b.cut);
+        node.left = buildReg(b.L, lo, b.cut, depth + 1); node.right = buildReg(b.R, b.cut, hi, depth + 1);
+      }
+    }
+    return node;
+  }
+  const RTREE = buildReg(RALL, RX_LO, RX_HI, 0);
+  // Patients with the same number of procedures sit side by side, so none hide behind another.
+  const JX = REG.map(([x], i) => { const same = RALL.filter((j) => REG[j][0] === x); return x + (same.indexOf(i) - (same.length - 1) / 2) * 0.16; });
+
+  function plotReg(host, opts = {}) {
+    const W = 460, H = 330, m = { l: 52, r: 14, t: 14, b: 50 };
+    const sx = (v) => m.l + ((v - RX_LO) / (RX_HI - RX_LO)) * (W - m.l - m.r);
+    const sy = (v) => H - m.b - (v / 14) * (H - m.t - m.b);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, role: "img", "aria-label": opts.label || "The 16 patients" });
+    for (let d = 0; d <= 14; d += 2) { el("line", { x1: m.l, x2: W - m.r, y1: sy(d), y2: sy(d), class: "gridline" }, svg); txt(svg, m.l - 8, sy(d) + 4, d, { "text-anchor": "end", "font-size": 12, class: "muted mono" }); }
+    for (let s = 0; s <= 6; s++) txt(svg, sx(s), H - m.b + 18, s, { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+    if (opts.cut !== undefined) {
+      el("rect", { x: sx(RX_LO), y: sy(14), width: sx(opts.cut) - sx(RX_LO), height: sy(0) - sy(14), class: "side-no" }, svg);
+      el("rect", { x: sx(opts.cut), y: sy(14), width: sx(RX_HI) - sx(opts.cut), height: sy(0) - sy(14), class: "side-yes" }, svg);
+      el("line", { x1: sx(opts.cut), x2: sx(opts.cut), y1: sy(0), y2: sy(14), class: "cutline" }, svg);
+    }
+    for (const g of opts.groups || []) {
+      if (opts.resid) for (const i of g.idx) el("line", { x1: sx(JX[i]), x2: sx(JX[i]), y1: sy(REG[i][1]), y2: sy(g.mean), class: "resid" }, svg);
+      el("line", { x1: sx(g.lo) + 4, x2: sx(g.hi) - 4, y1: sy(g.mean), y2: sy(g.mean), class: "meanline" }, svg);
+      txt(svg, sx(g.hi) - 6, sy(g.mean) - 9, `${g.mean.toFixed(1)}`, { "text-anchor": "end", "font-size": 12.5, "font-weight": 700, class: "mono halo" });
+    }
+    el("line", { x1: m.l, x2: W - m.r, y1: sy(0), y2: sy(0), class: "axis" }, svg);
+    el("line", { x1: m.l, x2: m.l, y1: sy(0), y2: sy(14), class: "axis" }, svg);
+    for (const i of RALL) el("circle", { cx: sx(JX[i]), cy: sy(REG[i][1]), r: 5.5, class: "pt-num" }, svg);
+    if (opts.newPoint) {
+      const [x, v] = opts.newPoint, X = sx(x), Y = sy(v);
+      el("path", { d: `M${X} ${Y - 11}L${X + 10} ${Y}L${X} ${Y + 11}L${X - 10} ${Y}Z`, class: "newpt" }, svg);
+    }
+    txt(svg, (m.l + W - m.r) / 2, H - 10, "procedures during the stay", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    const yl = txt(svg, 14, (m.t + H - m.b) / 2, "days in the hospital", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    yl.setAttribute("transform", `rotate(-90 14 ${(m.t + H - m.b) / 2})`);
+    host.replaceChildren(svg);
+  }
+
+  // Score any question
+  (function () {
+    const cands = regCands(RALL), before = mse(RALL);
+    const ranked = [...cands].sort((a, b) => a.after - b.after);
+    const slider = $("reg-cut");
+    slider.max = cands.length - 1;
+    const f2 = (x) => x.toFixed(2);
+    const card = (tag, idx) => `<div class="side"><span class="tag">${tag}</span><b>${idx.length} patients, average ${avg(idx).toFixed(1)} days</b><span class="num">MSE ${f2(mse(idx))}</span></div>`;
+    function draw() {
+      const c = cands[+slider.value], q = procQ(c.cut);
+      $("reg-q").textContent = q; slider.setAttribute("aria-valuetext", q);
+      plotReg($("reg-plot"), { cut: c.cut, resid: true, groups: [{ idx: c.L, mean: avg(c.L), lo: RX_LO, hi: c.cut }, { idx: c.R, mean: avg(c.R), lo: c.cut, hi: RX_HI }],
+        label: `The 16 patients split by the question ${q}, with each side's average` });
+      $("reg-sides").innerHTML = card("no", c.L) + card("yes", c.R);
+      $("reg-calc").innerHTML =
+        `after = ${c.L.length}/16 × ${mse(c.L).toFixed(3)} + ${c.R.length}/16 × ${mse(c.R).toFixed(3)} = ${c.after.toFixed(3)}<br>` +
+        `<span class="big">reduction = ${before.toFixed(3)} − ${c.after.toFixed(3)} = ${(before - c.after).toFixed(3)}</span><br>` +
+        (c === ranked[0] ? `the best of all ${cands.length}` : `rank ${ranked.indexOf(c) + 1} of ${cands.length}`);
+    }
+    slider.addEventListener("input", draw);
+    $("reg-best").addEventListener("click", () => { slider.value = cands.indexOf(ranked[0]); draw(); });
+    draw();
+  })();
+
+  // The grown regression tree and a new patient
+  (function () {
+    const open = (nd) => nd.cut !== undefined;
+    const leaves = []; (function rec(nd) { if (open(nd)) { rec(nd.left); rec(nd.right); } else leaves.push(nd); })(RTREE);
+    function draw() {
+      const x = +$("reg-new").value; $("reg-new-out").textContent = x;
+      const path = new Set([RTREE]), steps = []; let nd = RTREE;
+      while (open(nd)) { const yes = x > nd.cut; steps.push(`${nd.q} ${yes ? "yes" : "no"}`); nd = yes ? nd.right : nd.left; path.add(nd); }
+      flow($("reg-tree"), RTREE, open, { path, maxw: 1000, label: `The regression tree. This patient lands in a leaf averaging ${nd.mean.toFixed(1)} days.` });
+      plotReg($("reg-fit"), { groups: leaves, newPoint: [x, nd.mean], label: "The 16 patients with the tree's three leaf averages drawn as flat lines, and the new patient's prediction" });
+      $("reg-say").textContent = `${steps.join(" → ")} → a leaf of ${nd.n} past patients averaging ${nd.mean.toFixed(1)} days. Prediction: ${nd.mean.toFixed(1)} days.`;
+    }
+    $("reg-new").addEventListener("input", draw); draw();
+  })();
+})();
+</script>
+</body>
+</html>
