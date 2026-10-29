@@ -1,0 +1,1050 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Built from content/lessons/day16_forest_intro.html in the course repo. Open this file in a web browser. -->
+<title>Growing a Forest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the tree page's system (one reading column, figures widen to 1040px), so the two pages read as a set. */
+:root {
+  --paper: #f1f5f4;
+  --surface: #ffffff;
+  --ink: #13242a;
+  --muted: #485b60;
+  --line: #c6d2d1;
+  --grid: #e2e9e8;
+  --back: #ad3822;          /* came back within 30 days */
+  --stay: #276a6f;          /* did not come back */
+  --accent: #1d4c87;        /* the thing you are steering: a selected question, a path */
+  --accent-soft: #e2ebf6;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --read: 68ch;
+  --wide: 1040px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+    --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+  --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px;
+       line-height: 1.6; margin: 0; }
+.page { padding-inline: 16px; padding-block: 40px 72px; }
+.col { max-width: var(--read); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 700; margin-top: 64px; }
+h3 { font-size: 1.25rem; font-weight: 700; margin-top: 40px; display: flex; gap: 12px; align-items: baseline; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+strong { font-weight: 700; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+           color: var(--muted); margin: 0 0 12px; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+.step { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em;
+        color: var(--accent); border: 1.5px solid var(--accent); border-radius: 999px; padding: 1px 9px;
+        white-space: nowrap; transform: translateY(-2px); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.part { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--muted); display: block; margin-bottom: 6px; font-weight: 500; }
+
+/* The one-sentence method: the page's thesis */
+.method { margin: 28px 0 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+          border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+.method div { padding: 14px 16px 14px 0; }
+.method div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.method b { display: block; font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 2px; }
+.method span { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 620px) {
+  .method { grid-template-columns: 1fr; }
+  .method div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* Figures */
+figure { margin: 28px auto; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 12px; max-width: var(--read); }
+svg { display: block; max-width: 100%; height: auto; }
+.scroll { overflow-x: auto; }
+.treebox { display: flex; justify-content: center; margin-bottom: 18px; }
+.treebox svg { flex: none; max-width: 100%; }
+.plotbox { display: flex; justify-content: center; }
+svg text { font-family: var(--font-body); fill: var(--ink); }
+svg .mono { font-family: var(--font-mono); }
+svg .muted { fill: var(--muted); }
+svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.axis { stroke: var(--line); stroke-width: 1; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+.pt-back { stroke: var(--back); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.pt-stay { fill: var(--stay); }
+.box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.box-shade { fill: var(--back); }
+.cutline { stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.side-no { fill: var(--stay); opacity: 0.08; }
+.side-yes { fill: var(--back); opacity: 0.08; }
+.node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+.edge { stroke: var(--ink); stroke-width: 1.3; fill: none; }
+.on .node, .node.on { stroke: var(--accent); stroke-width: 3; }
+.edge.on { stroke: var(--accent); stroke-width: 3; }
+.newpt { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.region-on { fill: none; stroke: var(--accent); stroke-width: 3; }
+.curve { stroke: var(--accent); stroke-width: 3; fill: none; }
+.dot-accent { fill: var(--accent); }
+.line-tree { stroke: var(--accent); stroke-width: 2.6; fill: none; }
+.line-logit { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
+.band { fill: var(--accent-soft); }
+.pt-num { fill: var(--ink); }
+.resid { stroke: var(--back); stroke-width: 1.6; }
+.meanline { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.box-num { fill: var(--accent); }
+.boundary { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.leafedge { fill: none; stroke: var(--line); stroke-width: 1; }
+
+/* Three boundaries side by side */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+.trio-title { margin: 0 0 6px; }
+.trio-note { margin: 6px 0 0; font-size: 0.92rem; color: var(--muted); }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; color: var(--muted); margin: 0 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Controls */
+.controls { display: grid; gap: 14px; margin-bottom: 14px; }
+label, .label { font-weight: 700; font-size: 0.95rem; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.seg { display: inline-flex; border: 1.5px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.92rem; padding: 6px 12px; border: 0; background: var(--surface);
+              color: var(--accent); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 700; }
+.btn { font: inherit; font-size: 0.92rem; font-weight: 700; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+       border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Readouts */
+.readout { display: grid; gap: 10px; }
+.sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.side { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.side .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.side b { display: block; }
+.calc { font-family: var(--font-mono); font-size: 0.9rem; background: var(--paper); border-radius: 6px; padding: 10px 12px;
+        line-height: 1.7; overflow-x: auto; }
+.calc .big { font-size: 1.05rem; font-weight: 500; color: var(--accent); }
+.say { font-size: 1rem; }
+
+/* Leaderboard of candidate questions */
+.board { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.board button { width: 100%; display: grid; grid-template-columns: minmax(0, 11.5em) minmax(0, 1fr) 3.6em; gap: 8px;
+                align-items: center; font: inherit; font-size: 0.85rem; text-align: left; color: var(--ink);
+                background: none; border: 1px solid transparent; border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+.board button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.board .bar { height: 10px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.board button[aria-pressed="true"] .bar { background: var(--accent); }
+.board .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+
+/* Real-data bars */
+.hbars { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 16em) minmax(0, 1fr) 4.4em; gap: 10px; align-items: center; font-size: 0.88rem; }
+.hbars .bar { height: 12px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.hbars li.win { font-weight: 700; }
+.hbars li.win .bar { background: var(--accent); }
+.hbars .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+@media (max-width: 560px) {
+  .hbars li { grid-template-columns: minmax(0, 1fr) 4em; }
+  .hbars li .bar { grid-column: 1 / -1; grid-row: 2; }
+  .board button { grid-template-columns: minmax(0, 1fr) 3.4em; }
+  .board .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* Stat strip, tables, code */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); margin: 24px 0; }
+.stats div { padding: 12px 12px 12px 0; }
+.stats b { display: block; font-family: var(--font-display); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--ink); font-size: 0.85rem; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px;
+      overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--surface); }
+.card .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.card b { font-family: var(--font-display); font-size: 1.2rem; display: block; margin-top: 2px; }
+details { margin-top: 10px; font-size: 0.92rem; }
+summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.foot { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); margin-top: 64px; padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  .board .bar, .hbars .bar { transition: width 0.25s ease; }
+}
+
+/* Forest page additions */
+.box-note { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 18px 6px; margin: 22px 0 8px; }
+.box-note h4 { font-family: var(--font-display); font-size: 1.1rem; margin: 12px 0 4px; }
+.chips { display: grid; gap: 6px; }
+.chiprow { display: grid; grid-template-columns: 12em minmax(0, 1fr); gap: 10px; align-items: start; }
+.chiprow > span { font-size: 0.85rem; color: var(--muted); padding-top: 2px; }
+.chiprow ul { list-style: none; display: flex; flex-wrap: wrap; gap: 3px; margin: 0; padding: 0; }
+.chip { font-family: var(--font-mono); font-size: 0.72rem; padding: 1px 6px; border: 1px solid var(--line); border-radius: 4px;
+        color: var(--muted); background: var(--paper); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
+@media (max-width: 620px) { .chiprow { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.ghost { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.tally { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.tally li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; font-size: 0.95rem; }
+.tick-tree { stroke: var(--back); stroke-width: 1.4; stroke-opacity: 0.55; }
+.seg-main { fill: var(--accent); }
+.dot-muted { fill: var(--muted); }
+.dot-tree { fill: var(--muted); fill-opacity: 0.45; }
+.hidden-line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ibar { display: inline-block; width: 7em; height: 10px; background: var(--grid); border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.ibar > span { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+.seg-other { fill: var(--muted); }
+.seg-gap { stroke: var(--surface); stroke-width: 2; }
+svg .on-seg { fill: var(--surface); font-weight: 700; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+select { font: inherit; font-size: 0.95rem; padding: 5px 8px; border: 1.5px solid var(--accent); border-radius: 6px;
+         background: var(--surface); color: var(--ink); max-width: 100%; }
+select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="col">
+  <p class="eyebrow">STAT 764 · Meeting 16 · Forests</p>
+  <h1>Growing a forest</h1>
+  <p class="lede">On Tuesday a single tree was easy to read and hard to trust: change the sample a little and its
+  questions change. Today’s fix sounds too simple to work. Grow many trees, each on a slightly different sample of
+  the same data, and average what they say.</p>
+  <div class="method" role="list" aria-label="The whole method in three moves">
+    <div role="listitem"><b>Resample</b><span>Draw a new sample of the training cases, the same size, with replacement.</span></div>
+    <div role="listitem"><b>Grow</b><span>Grow a full tree on that sample. A random forest also limits each split to a few random columns.</span></div>
+    <div role="listitem"><b>Average</b><span>Repeat a few hundred times, and predict with the average of all the trees.</span></div>
+  </div>
+</header>
+
+<main>
+<!-- ============================ PART 1 ============================ -->
+<section class="col" aria-labelledby="p1">
+  <h2 id="p1"><span class="part">Part 1</span>The same twenty patients</h2>
+  <p>These are Tuesday’s 20 made-up patients: prior hospital stays, days in the hospital, and whether they came back
+  within 30 days. Seven of the 20 did. On Tuesday one tree, grown all the way, put every one of them on the right
+  side by fencing off single patients. That tree had memorized them. Here we grow hundreds of trees instead.</p>
+
+  <h3 id="s1"><span class="step">Step 1</span>A bootstrap sample</h3>
+  <p>A <strong>bootstrap sample</strong> draws 20 patients from the 20, <em>with replacement</em>: after each draw the
+  patient goes back in, so some are drawn twice or three times and some not at all. It is a new data set of the
+  same size that the original could plausibly have been. Grow a tree on it, then draw again.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="row" style="margin-bottom:12px">
+    <button type="button" class="btn primary" id="boot-next">Draw another sample</button>
+    <span id="boot-say" class="say" aria-live="polite"></span>
+  </div>
+  <div class="split">
+    <div>
+      <div class="legend" aria-hidden="true">
+        <span><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" class="ghost"/></svg>left out of this sample</span>
+        <span><b class="num">×2</b>&nbsp;drawn twice</span>
+      </div>
+      <div id="boot-plot" class="scroll"></div>
+    </div>
+    <div>
+      <p class="label" style="margin:0 0 6px">First questions, over every sample you have drawn</p>
+      <ul id="boot-tally" class="tally"></ul>
+    </div>
+  </div>
+  <p class="label" style="margin:16px 0 6px">The tree grown on this sample</p>
+  <div id="boot-tree" class="scroll treebox"></div>
+  <figcaption>Each sample leaves some patients out and counts others twice, so each tree learns from a slightly
+  different 20. Keep drawing: the first question is usually the same, and the questions below it often are not.</figcaption>
+</figure>
+
+<section class="col">
+  <h3 id="s2"><span class="step">Step 2</span>Average the trees: bagging</h3>
+  <p>Each tree’s mistakes are partly the luck of its sample. Predicting with the <strong>average</strong> of many trees
+  cancels much of that luck and keeps what the trees agree on. Growing trees on bootstrap samples and averaging them is
+  called <strong>bagging</strong>, short for <em>bootstrap aggregating</em>. Move the slider and watch the map settle.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="split">
+    <div>
+      <div class="controls">
+        <label for="bag-n">Trees in the average: <span id="bag-n-out" class="num"></span></label>
+        <input id="bag-n" type="range" min="0" max="7" step="1" value="0">
+        <label for="bag-who">Follow one patient</label>
+        <select id="bag-who"></select>
+      </div>
+      <div id="bag-strip" class="scroll"></div>
+      <p id="bag-say" class="calc" aria-live="polite"></p>
+    </div>
+    <div id="bag-map" class="scroll"></div>
+  </div>
+  <figcaption>Right: the average prediction of the first <em>N</em> bagged trees for every combination of prior stays
+  and days, darker for a higher chance of coming back; the outlined box is the patient you are following. Left: that
+  patient’s prediction from each tree (thin ticks) and from their average (the diamond).</figcaption>
+</figure>
+
+<section class="col">
+  <p>One tree gives each patient either 0% or 100%: its leaves are pure. The average of many gives shades in between,
+  and the map stops jumping once there are a few dozen trees. Nothing about any single tree improved. The average did.</p>
+
+  <h3 id="s3"><span class="step">Step 3</span>Make the trees disagree: a random forest</h3>
+  <p>Averaging cancels mistakes best when the trees make <strong>different</strong> mistakes. Bagged trees all see every
+  column, so they tend to ask the same strong first question and make similar mistakes. A <strong>random
+  forest</strong> changes one thing: at every split, a tree may only choose among a <strong>random few of the
+  columns</strong>. With our two columns, that means one column picked at random at each split. Each tree gets a little
+  worse, and the trees become much less alike.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="duo">
+    <div><p class="label trio-title">Bagging: both columns at every split</p><div id="rf-bag"></div><div class="trio-note" id="rf-bag-note"></div></div>
+    <div><p class="label trio-title">Random forest: one random column at every split</p><div id="rf-rf"></div><div class="trio-note" id="rf-rf-note"></div></div>
+  </div>
+  <figcaption>Each map is the average of 200 trees grown on the same 200 bootstrap samples; only the columns each split
+  may consider differ. Under each: how often a tree’s first question is about prior stays, and how alike two trees’
+  maps are. That number is the average correlation between two trees’ maps over the plot (1 would mean identical
+  trees): a picture of how similar the trees look, not the correlation that sets a forest’s variance in theory,
+  which is measured across many different training sets.</figcaption>
+</figure>
+
+<section class="col">
+  <div class="box-note">
+  <h4>How a forest picks its columns</h4>
+  <ul>
+    <li><strong>A fresh draw at every split.</strong> Each time a tree is about to split a group, it draws a random
+    handful of the columns, runs Tuesday’s search (every cut, weighted Gini) on those columns only, and makes the best
+    split it finds. The next split, even in the same tree, draws again, so one tree mixes many different draws.</li>
+    <li><strong>How many: <code>max_features</code>.</strong> scikit-learn’s default for classification is the square
+    root of the number of columns, rounded down. A third of the columns is a common choice for regression. All of the
+    columns (<code>max_features=None</code> or <code>1.0</code>) is bagging.</li>
+    <li><strong>If no drawn column can split the group,</strong> the tree keeps drawing until one can.</li>
+  </ul>
+  <p>With our two columns, √2 rounds down to 1: one random column at each split, which is what the right-hand map
+  used. Part 2 shows what the same rule does with 105 columns.</p>
+  </div>
+
+  <h3 id="s4"><span class="step">Step 4</span>Out-of-bag: a test set that comes free</h3>
+  <p>A bootstrap sample of 20 leaves out about a third of the patients: on average (1 − 1/20)<sup>20</sup> ≈ 36%, and
+  (1 − 1/<em>n</em>)<sup><em>n</em></sup> ≈ 1/<em>e</em> ≈ 37% for any large <em>n</em>. So every patient was
+  <strong>not</strong> seen by about a third of the trees. Predict each patient with <strong>only those trees</strong>,
+  and you have an honest prediction for every training patient without setting any data aside: the
+  <strong>out-of-bag</strong> prediction.</p>
+</section>
+
+<figure class="wide panel">
+  <p class="calc" id="oob-say" style="margin-top:0"></p>
+  <div class="scroll">
+  <table>
+    <caption>The random forest of 200 trees, patient by patient</caption>
+    <thead><tr><th scope="col">patient</th><th scope="col" class="n">prior stays</th><th scope="col" class="n">days</th><th scope="col">came back</th>
+      <th scope="col" class="n">trees that never saw them</th><th scope="col" class="n">out-of-bag prediction</th><th scope="col" class="n">all 200 trees</th></tr></thead>
+    <tbody id="oob-rows"></tbody>
+  </table>
+  </div>
+  <figcaption>“All 200 trees” includes the trees that learned from the patient, so it flatters the forest. The
+  out-of-bag column uses only the trees that never saw the patient. A ✗ marks a patient on the wrong side of 50%.</figcaption>
+</figure>
+
+<section class="col">
+  <h3 id="s5"><span class="step">Step 5</span>Which columns does a forest use?</h3>
+  <p>A forest of 200 trees cannot be read like one flowchart. Two numbers summarize which columns it leans on:</p>
+  <ul>
+    <li><strong>Impurity importance</strong> (<code>feature_importances_</code>): how much each column’s splits lowered
+    the Gini impurity, added up over every split of every tree, on the <strong>training</strong> data. It is free, and
+    biased: a count with hundreds of different values offers far more places to split than a yes/no column, so it
+    wins splits by luck as well as by signal.</li>
+    <li><strong>Permutation importance</strong>: shuffle one column among <strong>held-out</strong> patients, which
+    breaks its link to the outcome, and measure how much the AUC drops. Slower, and measured where it counts.</li>
+  </ul>
+  <p>To see the difference, give every patient one more column of pure noise: the numbers 1 to 20 in random order, like
+  a record number, which says nothing about coming back. Grow a random forest of 200 trees on the three columns, and
+  compute both kinds of importance.</p>
+</section>
+
+<figure class="wide panel">
+  <p id="imp-say" class="calc" style="margin-top:0"></p>
+  <div class="scroll">
+  <table>
+    <caption>Importance on the 20 patients, with a column of pure noise added</caption>
+    <thead><tr><th scope="col">column</th><th scope="col">impurity importance (share of all the splitting, on the training data)</th>
+      <th scope="col">permutation importance (drop in out-of-bag AUC when the column is shuffled)</th></tr></thead>
+    <tbody id="imp-rows"></tbody>
+  </table>
+  </div>
+  <figcaption>The forest is grown like Step 3’s, now choosing one random column of the three at each split. Permutation
+  importance shuffles one column among the 20 patients, re-scores every patient with only the trees that never saw it,
+  and repeats 200 times; the average drop in AUC is the importance. Below zero means shuffling helped: the column was
+  only adding noise.</figcaption>
+</figure>
+
+<section class="col">
+  <p><strong>What this shows.</strong> Impurity importance hands the noise column about as much credit as days in the
+  hospital. With 20 different values it offers 19 places to cut, and fully grown trees use them to finish purifying their
+  small leaves. Permutation importance, measured on patients each tree never saw, gives the noise column less than
+  nothing and shows prior stays doing nearly all the work.</p>
+  <p class="note">Neither says what would happen to a patient if you <strong>changed</strong> that column. Importance
+  describes what the model uses to predict, not what causes a readmission. Studio question 3 puts both kinds to the
+  test.</p>
+</section>
+
+<!-- ============================ PART 2 ============================ -->
+<section class="col" aria-labelledby="p2">
+  <h2 id="p2"><span class="part">Part 2</span>The same steps on the readmission data</h2>
+  <p>Meeting 16’s notebook repeats each step on the readmission data. To keep every cell fast in class, its models learn
+  from a random 15,000 of the training patients, and they are scored on the same test patients as Meetings 9–15.</p>
+  <div class="stats">
+    <div><b class="num">21,352</b><span>training stays (15,000 patients)</span></div>
+    <div><b class="num">24,706</b><span>test stays</span></div>
+    <div><b class="num">11.1%</b><span>of test stays came back</span></div>
+    <div><b class="num">200</b><span>trees per forest</span></div>
+  </div>
+  <p><span class="step">Step 1</span> Twenty bootstrap trees all ask the same first question, about prior stays. Below
+  it they disagree: one test patient’s predicted chance ranges from 0.000 to 0.295 across the twenty trees, and a
+  typical patient’s prediction has a standard deviation of 0.087 from tree to tree.</p>
+</section>
+
+<figure class="wide panel">
+  <div id="real-six" class="scroll"></div>
+  <figcaption>Six test patients. Each dot is one of the twenty bootstrap trees’ predicted chance that the patient comes
+  back; the diamond is the average of the twenty. The dashed line is the 11% of test stays that came back. One tree’s
+  answer for a patient depends heavily on its sample; the average pools the luck of all twenty.</figcaption>
+</figure>
+
+<section class="col">
+  <p><span class="step">Step 2</span> Averaging bootstrap trees ranks the test patients better and better. The chart
+  takes the 200 trees of Step 3’s two forests and averages the first 1, 2, 5, … 200 of them. The forest’s trees, which may
+  use only a random few of the columns at each split, average to a better ranking at every size:</p>
+</section>
+
+<figure class="wide panel">
+  <div id="real-avg" class="scroll"></div>
+  <details>
+    <summary>The numbers behind the chart</summary>
+    <div class="scroll">
+    <table>
+      <thead><tr><th scope="col">trees averaged</th><th scope="col" class="n">every column (bagging)</th><th scope="col" class="n">random columns (forest)</th></tr></thead>
+      <tbody id="real-avg-rows"></tbody>
+    </table>
+    </div>
+  </details>
+  <figcaption>Test AUC of the average of the first 1 to 200 trees of Step 3’s two forests. Every tree is grown deep
+  (leaves of at least 5 stays) on its own bootstrap sample; the forest’s trees may use only a random √p of the columns at
+  each split. At 200 trees the lines reach Step 3’s 0.629 and 0.651. One deep tree alone is weak (0.539 and 0.551):
+  the averaging does the work. The notebook’s Section 2 averages twenty shallower trees (leaves of at least 50) and
+  climbs from 0.588 to 0.636.</figcaption>
+</figure>
+
+<section class="col">
+  <p><span class="step">Step 3</span> With 200 trees each: bagging reaches a test AUC of <strong>0.629</strong>, the
+  random forest <strong>0.651</strong>. The first questions show why.</p>
+</section>
+
+<figure class="wide panel">
+  <div id="real-first" class="scroll"></div>
+  <figcaption>The first question of each of the 200 trees. Every bagged tree opens with prior stays, so the trees are
+  alike and so are their mistakes. The forest’s trees open with prior stays only 24 times; discharge to a rehab
+  facility (18) and emergency visits (15) come next, and the other 143 trees open with dozens of other questions.</figcaption>
+</figure>
+
+<section class="col">
+  <p><strong>Why only 24?</strong> After one-hot encoding, the training sample has <strong>105 columns</strong>: the 8
+  counts and 97 category columns. The forest’s default lets each split consider √105, rounded down: <strong>10</strong>
+  of them. Prior stays is one column of 105, so it is in a given split’s draw only 10/105 = <strong>9.5%</strong> of
+  the time. At the root of 200 trees, about <strong>19</strong> would even have it to choose. When it is drawn it
+  usually wins; when it is not, the tree opens with the best of what it drew. Twenty-four is within ordinary luck of
+  19. Draw a few splits’ columns yourself:</p>
+</section>
+
+<figure class="wide panel">
+  <div class="row" style="margin-bottom:10px">
+    <button type="button" class="btn primary" id="draw-cols">Draw a split’s 10 columns</button>
+    <span id="draw-tally" class="say" aria-live="polite"></span>
+  </div>
+  <p id="draw-say" class="calc" style="margin-top:0"></p>
+  <div id="chips" class="chips" aria-hidden="true"></div>
+  <figcaption>The 105 columns the forest sees, grouped by the variable they came from. Lit: the 10 drawn for one split.
+  Medical specialty alone is 30 columns, one for each category common enough to keep.</figcaption>
+</figure>
+
+<section class="col">
+  <p class="note"><strong>The one-hot wrinkle.</strong> The forest draws encoded columns, not variables. Medical
+  specialty’s 30 columns put at least one of them in about <strong>97%</strong> of draws, but each asks a narrow
+  question (“cardiology or not?”) and rarely wins a split. How often a variable is considered depends on how many
+  categories it has, not on how useful it is.</p>
+  <p><span class="step">Step 4</span> One bootstrap sample of the training stays leaves out <strong>36.6%</strong> of
+  them. Predicting each training stay with only the trees that never saw it gives an out-of-bag AUC of
+  <strong>0.650</strong>, against <strong>0.651</strong> on the held-out test patients. The free estimate and the
+  held-out one agree.</p>
+  <p class="note">One caution the notebook raises: a bootstrap sample draws <strong>stays</strong>, not patients, so a
+  patient with three stays can be in a tree’s sample for one stay and out of it for another. Studio question 2 checks
+  whether that matters here.</p>
+
+  <p><span class="step">Step 5</span> The forest’s impurity importance, with each one-hot column added back into the
+  column it came from (the notebook’s Section 5):</p>
+</section>
+
+<figure class="wide panel">
+  <p class="label" id="real-imp-label" style="margin-top:0">Impurity importance, top 10 of the 20 original columns</p>
+  <ol class="hbars" aria-labelledby="real-imp-label">
+    <li><span>prior stays</span><span class="bar" style="width:100.0%"></span><span class="v">0.110</span></li>
+    <li><span>lab tests</span><span class="bar" style="width:99.5%"></span><span class="v">0.109</span></li>
+    <li><span>medications</span><span class="bar" style="width:85.0%"></span><span class="v">0.093</span></li>
+    <li><span>discharged to</span><span class="bar" style="width:75.0%"></span><span class="v">0.082</span></li>
+    <li><span>age</span><span class="bar" style="width:64.8%"></span><span class="v">0.071</span></li>
+    <li><span>days in the hospital</span><span class="bar" style="width:62.6%"></span><span class="v">0.069</span></li>
+    <li><span>medical specialty</span><span class="bar" style="width:59.8%"></span><span class="v">0.066</span></li>
+    <li><span>diagnoses</span><span class="bar" style="width:42.3%"></span><span class="v">0.046</span></li>
+    <li><span>procedures</span><span class="bar" style="width:42.3%"></span><span class="v">0.046</span></li>
+    <li><span>insulin</span><span class="bar" style="width:41.5%"></span><span class="v">0.046</span></li>
+  </ol>
+  <figcaption>Shares of all the trees’ splitting on the training stays; all 20 columns add to 1. Prior stays and lab
+  tests nearly tie at the top.</figcaption>
+</figure>
+
+<section class="col">
+  <p>Before trusting that near-tie, remember the noise column in Part 1. Studio question 3 computes the permutation
+  importance of these columns on held-out patients and checks an AI-written paragraph about this chart against it.</p>
+
+  <h3 id="code">See it in Scikit-Learn</h3>
+  <p>Thursday’s forest, written out with every setting this page has been about. <code>make_pipe</code> is the
+  notebook’s preprocessing (fill and scale the counts, one-hot the categories) with the model at the end.</p>
+<pre><code>from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score
+
+forest = make_pipe(RandomForestClassifier(
+    n_estimators=200,       # Step 2: how many trees to average
+    bootstrap=True,         # Step 1: each tree gets its own bootstrap sample of rows (the default)
+    max_features="sqrt",    # Step 3: each split may use a random sqrt(p) of the columns: 10 of 105 here
+                            #   max_features=None lets every split use every column: that is bagging
+    min_samples_leaf=5,     # how far each tree grows: no leaf smaller than 5 (Part 1 grows all the way: 1)
+    oob_score=True,         # Step 4: keep each row's out-of-bag prediction
+    n_jobs=-1,              # the trees are independent, so they grow in parallel on every core
+    random_state=0,         # the same samples and draws, so the same forest, every run
+)).fit(X_fit, y_fit)
+
+model = forest["model"]                                # the fitted forest inside the pipeline
+p_test = forest.predict_proba(X_test)[:, 1]            # each test patient: the average of the 200 trees' leaf shares
+oob = model.oob_decision_function_[:, 1]               # each training stay, from only the trees that never saw it
+print(roc_auc_score(y_fit, oob))                       # out-of-bag AUC: 0.650 (test AUC: 0.651)
+print(model.oob_score_)                                # 0.8845: accuracy at a 50% cutoff, not AUC
+print(model.estimators_[0].max_features_)              # 10 columns considered at every split
+tree_17 = model.estimators_[17]                        # any one of the 200, a DecisionTreeClassifier
+importance = model.feature_importances_                # Step 5: impurity importance, one per encoded column</code></pre>
+
+  <div class="scroll">
+  <table>
+    <caption>The settings that make it a forest</caption>
+    <thead><tr><th scope="col">setting</th><th scope="col">what it controls</th><th scope="col">on this page</th></tr></thead>
+    <tbody>
+      <tr><th scope="row"><code>n_estimators</code></th><td>How many trees are averaged. More never hurts accuracy; it only costs time.</td><td>Step 2’s slider</td></tr>
+      <tr><th scope="row"><code>bootstrap</code>, <code>max_samples</code></th><td>Whether each tree gets a bootstrap sample of rows, and how big (default: as many rows as the data has).</td><td>Step 1</td></tr>
+      <tr><th scope="row"><code>max_features</code></th><td>How many columns each split may consider. <code>"sqrt"</code> is the default for classification; <code>None</code> or <code>1.0</code> is bagging. The forest’s main tuning setting.</td><td>Step 3 and the column draw in Part 2</td></tr>
+      <tr><th scope="row"><code>min_samples_leaf</code>, <code>max_depth</code></th><td>How far each tree grows. Forests usually grow trees deep and let the averaging handle the variance.</td><td>Part 1’s trees grow all the way</td></tr>
+      <tr><th scope="row"><code>oob_score</code></th><td>Whether to keep the out-of-bag predictions. Read them from <code>oob_decision_function_</code>; <code>oob_score_</code> is accuracy.</td><td>Step 4</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- ============================ PART 3 ============================ -->
+  <h2 id="studio"><span class="part">Part 3</span>Your studio</h2>
+  <p>The studio is at the bottom of the Meeting 16 notebook, and each question lists its steps. All three questions
+  count; whatever you do not finish in class, finish before the deadline.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th scope="col">question</th><th scope="col">what you do</th><th scope="col">this page’s help</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · about 15 min</th><td>One table, five models on the test patients: a tree, bagging, the forest,
+        and logistic regression fit on the same sample and on all the training stays.</td><td>Steps 2–3</td></tr>
+      <tr><th scope="row">2 · about 15 min</th><td>The forest’s out-of-bag AUC against five-fold cross-validation grouped by
+        patient, and against the test AUC.</td><td>Step 4, and the caution above</td></tr>
+      <tr><th scope="row">3 · about 15 min</th><td>An AI-written paragraph about the forest’s importance plot: mark the
+        doubtful claims, then check them with permutation importance and a near-copy of one column.</td><td>Step 5</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>The tools the studio uses</h3>
+  <ul>
+    <li><strong><code>scores(probs)</code></strong> takes a model’s predicted chances for the test patients and returns
+    the AUC, the Brier score, the average predicted chance, and the calibration slope (1 means the spread of the
+    probabilities is right; below 1, too extreme; above 1, too timid).</li>
+    <li><strong>Cross-validation grouped by patient</strong>: <code>cv=GroupKFold(5)</code> with
+    <code>groups=groups_fit</code>, so all of a patient’s stays fall in the same fold.</li>
+    <li><strong>Out-of-bag predictions</strong> belong to the <em>training</em> stays, so score them against
+    <code>y_fit</code>. The forest’s <code>oob_score_</code> is accuracy, not AUC.</li>
+    <li><strong>Permutation importance</strong> on the whole pipeline gives one number per <em>original</em> column, in
+    the order <code>NUM + CAT</code>.</li>
+  </ul>
+
+  <h3>Stuck?</h3>
+  <div class="scroll">
+  <table>
+    <thead><tr><th scope="col">you see</th><th scope="col">what to do</th></tr></thead>
+    <tbody>
+      <tr><td><code>NameError</code> for <code>forest</code>, <code>bagged</code>, <code>scores</code> or <code>X_fit2</code></td><td>Run the notebook from the top (Run All), including the studio setup cell.</td></tr>
+      <tr><td>Question 1: a forest AUC far above 0.651</td><td>You scored the training sample. Score <code>X_test</code> against <code>y_test</code>.</td></tr>
+      <tr><td>Question 2: an “out-of-bag AUC” near 0.88</td><td>That is <code>oob_score_</code>, which is accuracy. Compute the AUC from the out-of-bag probabilities and <code>y_fit</code>.</td></tr>
+      <tr><td><code>ValueError</code> about 24,706 and 21,352 samples</td><td>Out-of-bag probabilities go with <code>y_fit</code>, not <code>y_test</code>.</td></tr>
+      <tr><td>Question 3: a shape or index error</td><td>Permutation importance has one value per original column, <code>NUM + CAT</code> (or <code>NUM2 + CAT</code> with the near-copy).</td></tr>
+      <tr><td>Question 3(c): importances did not change</td><td>Fit <code>make_pipe2(...)</code> on <code>X_fit2</code>, not the old <code>forest</code>.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Write your guess before each question and keep it, answer each question’s sentence, and answer the
+  exit ticket. Upload the notebook to Canvas under “Studio notebook — Day 16” by <strong>Friday, October 30,
+  3:40 pm</strong>.</p>
+
+  <h2 id="next">Next: boosting</h2>
+  <p>A forest grows its trees independently and averages them. On Tuesday, <strong>boosting</strong> grows them one after
+  another, each new tree fitted to the mistakes of the ones before.</p>
+
+  <p class="foot">Part 1’s 20 patients are made up, and every forest in Part 1 is grown in your browser from fixed random
+  seeds, so the numbers are the same each time you open the page. Part 2’s numbers come from the Meeting 16 notebook (Step 2’s chart averages the trees of its Section 3 forests, 1 to 200 at a time):
+  the Diabetes 130-US Hospitals data (UCI), split by patient as in Meeting 9.</p>
+</section>
+</main>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; };
+  const $ = (id) => document.getElementById(id);
+  const pct = (x) => `${Math.round(100 * x)}%`;
+  const gini = (k, n) => (n ? 2 * (k / n) * (1 - k / n) : 0);
+  const shade = (share) => 0.42 * Math.sqrt(Math.max(0, share));
+
+  // Tuesday's 20 made-up patients: [prior stays, days in the hospital, came back]
+  const TOY = [[0,2,0],[0,3,0],[0,5,0],[0,6,0],[0,9,0],[0,12,0],[1,1,0],[1,4,0],[1,7,0],[1,8,0],[1,11,1],[1,13,0],
+               [2,3,1],[2,6,0],[2,10,1],[3,5,0],[3,12,1],[4,4,1],[4,9,1],[5,7,1]];
+  const N = TOY.length, X_LO = -0.5, X_HI = 5.5, Y_LO = 0, Y_HI = 14;
+
+  // A small seeded random-number generator, so every visitor sees the same forests.
+  function mulberry32(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+  function question(col, cut) {
+    const k = Math.floor(cut);
+    if (col === 0) return k === 0 ? "Any prior stay?" : `More than ${k} prior stay${k === 1 ? "" : "s"}?`;
+    return `More than ${k} day${k === 1 ? "" : "s"}?`;
+  }
+  const backs = (idx) => idx.reduce((s, i) => s + TOY[i][2], 0);
+
+  // The best cut among the given columns, by weighted Gini; repeats in idx count as repeats.
+  function bestCut(idx, cols) {
+    let best = null;
+    for (const col of cols) {
+      const vals = [...new Set(idx.map((i) => TOY[i][col]))].sort((a, b) => a - b);
+      for (let j = 0; j < vals.length - 1; j++) {
+        const cut = (vals[j] + vals[j + 1]) / 2;
+        const L = idx.filter((i) => TOY[i][col] <= cut), R = idx.filter((i) => TOY[i][col] > cut);
+        const after = (L.length * gini(backs(L), L.length) + R.length * gini(backs(R), R.length)) / idx.length;
+        if (!best || after < best.after - 1e-12) best = { col, cut, L, R, after };
+      }
+    }
+    return best;
+  }
+
+  // Grow a tree all the way (until every leaf is pure). mtry = 2: both columns at every split (bagging);
+  // mtry = 1: one column drawn at random at every split (a random forest). Like scikit-learn, if the
+  // drawn column cannot split the group, the other one is tried.
+  function grow(idx, rng, mtry, box = [X_LO, X_HI, Y_LO, Y_HI]) {
+    const nd = { n: idx.length, k: backs(idx), box };
+    if (nd.k === 0 || nd.k === nd.n) return nd;
+    let cols = [0, 1];
+    if (mtry === 1) cols = [rng() < 0.5 ? 0 : 1];
+    let s = bestCut(idx, cols);
+    if (!s && mtry === 1) s = bestCut(idx, [1 - cols[0]]);
+    if (!s) return nd;
+    const [x0, x1, y0, y1] = box;
+    nd.split = s; nd.q = question(s.col, s.cut);
+    nd.left = grow(s.L, rng, mtry, s.col === 0 ? [x0, s.cut, y0, y1] : [x0, x1, y0, s.cut]);
+    nd.right = grow(s.R, rng, mtry, s.col === 0 ? [s.cut, x1, y0, y1] : [x0, x1, s.cut, y1]);
+    return nd;
+  }
+  const predict = (nd, st, dy) => { while (nd.split) nd = (nd.split.col === 0 ? st : dy) > nd.split.cut ? nd.right : nd.left; return nd.k / nd.n; };
+  const leavesOf = (nd, out = []) => { if (nd.split) { leavesOf(nd.left, out); leavesOf(nd.right, out); } else out.push(nd); return out; };
+  const bootstrap = (seed) => { const r = mulberry32(seed); return Array.from({ length: N }, () => Math.floor(r() * N)); };
+
+  // 200 bootstrap samples; on each, a bagged tree and a random-forest tree.
+  const B = 200, BAG = [], RF = [], INBAG = [];
+  for (let b = 0; b < B; b++) {
+    const idx = bootstrap(1000 + b);
+    INBAG.push(new Set(idx));
+    BAG.push(grow(idx, null, 2));
+    RF.push(grow(idx, mulberry32(5000 + b), 1));
+  }
+
+  // The plot is cut into half-unit cells: every cut a tree can make (halfway between two whole numbers) falls on a cell
+  // edge, so each tree's prediction is constant inside a cell.
+  const CELLS = [];
+  for (let x = X_LO; x < X_HI - 1e-9; x += 0.5) for (let y = Y_LO; y < Y_HI - 1e-9; y += 0.5) CELLS.push([x, x + 0.5, y, y + 0.5]);
+  const cellPred = (tree) => CELLS.map(([x0, x1, y0, y1]) => predict(tree, (x0 + x1) / 2, (y0 + y1) / 2));
+  const BAG_CELLS = BAG.map(cellPred), RF_CELLS = RF.map(cellPred);
+  const average = (rows, n) => rows[0].map((_, c) => { let s = 0; for (let t = 0; t < n; t++) s += rows[t][c]; return s / n; });
+
+  // ---------- Drawing: the patient plot ----------
+  function plot(host, opts = {}) {
+    const W = 460, H = 360, m = { l: 52, r: 14, t: 14, b: 50 };
+    const sx = (v) => m.l + ((v - X_LO) / (X_HI - X_LO)) * (W - m.l - m.r);
+    const sy = (v) => H - m.b - ((v - Y_LO) / (Y_HI - Y_LO)) * (H - m.t - m.b);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, role: "img", "aria-label": opts.label || "The 20 patients" });
+    if (opts.cells) opts.cells.forEach(([x0, x1, y0, y1], c) => {
+      el("rect", { x: sx(x0), y: sy(y1), width: sx(x1) - sx(x0), height: sy(y0) - sy(y1), class: "box-shade",
+                   "fill-opacity": shade(opts.values[c]), "shape-rendering": "crispEdges" }, svg);
+    });
+    for (let d = 0; d <= 14; d += 2) { el("line", { x1: m.l, x2: W - m.r, y1: sy(d), y2: sy(d), class: "gridline", "stroke-opacity": opts.cells ? 0.5 : 1 }, svg); txt(svg, m.l - 8, sy(d) + 4, d, { "text-anchor": "end", "font-size": 12, class: "muted mono" }); }
+    for (let s = 0; s <= 5; s++) txt(svg, sx(s), H - m.b + 18, s, { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+    if (opts.boxes) for (const b of opts.boxes) {
+      const [x0, x1, y0, y1] = b.box, r = { x: sx(x0), y: sy(y1), width: sx(x1) - sx(x0), height: sy(y0) - sy(y1) };
+      el("rect", { ...r, class: "box-shade", "fill-opacity": shade(b.k / b.n) }, svg);
+      el("rect", { ...r, class: "leafedge" }, svg);
+    }
+    el("line", { x1: m.l, x2: W - m.r, y1: sy(Y_LO), y2: sy(Y_LO), class: "axis" }, svg);
+    el("line", { x1: m.l, x2: m.l, y1: sy(Y_LO), y2: sy(Y_HI), class: "axis" }, svg);
+    TOY.forEach(([s, d, c], i) => {
+      const x = sx(s), y = sy(d), count = opts.counts ? opts.counts[i] : 1;
+      if (count === 0) { el("circle", { cx: x, cy: y, r: 6.5, class: "ghost" }, svg); return; }
+      if (c) el("path", { d: `M${x - 6} ${y - 6}L${x + 6} ${y + 6}M${x + 6} ${y - 6}L${x - 6} ${y + 6}`, class: "pt-back" }, svg);
+      else el("circle", { cx: x, cy: y, r: 6, class: "pt-stay" }, svg);
+      if (count > 1) txt(svg, x + 9, y - 6, `×${count}`, { "font-size": 11.5, "font-weight": 700, class: "mono halo" });
+    });
+    if (opts.focus !== undefined) {
+      const [s, d] = TOY[opts.focus];
+      el("rect", { x: sx(s - 0.5) + 1.5, y: sy(d + 0.5) + 1.5, width: sx(s + 0.5) - sx(s - 0.5) - 3, height: sy(d - 0.5) - sy(d + 0.5) - 3, class: "region-on" }, svg);
+    }
+    txt(svg, (m.l + W - m.r) / 2, H - 10, "prior hospital stays (past year)", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    const yl = txt(svg, 14, (m.t + H - m.b) / 2, "days in the hospital", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    yl.setAttribute("transform", `rotate(-90 14 ${(m.t + H - m.b) / 2})`);
+    host.replaceChildren(svg);
+    return svg;
+  }
+
+  // ---------- Drawing: a flowchart (leaves show their share of the sample) ----------
+  function flow(host, root, label) {
+    const W = 150, H = 50, GX = 10, GY = 38;
+    let leafX = 0, maxD = 0; const nodes = [];
+    (function rec(nd, d) {
+      maxD = Math.max(maxD, d);
+      if (nd.split) { const a = rec(nd.left, d + 1), b = rec(nd.right, d + 1); nd._x = (a + b) / 2; } else nd._x = leafX++;
+      nd._d = d; nodes.push(nd); return nd._x;
+    })(root, 0);
+    const vw = leafX * (W + GX) - GX + 8, vh = (maxD + 1) * (H + GY) - GY + 8;
+    const px = (nd) => 4 + nd._x * (W + GX), py = (nd) => 4 + nd._d * (H + GY);
+    const svg = el("svg", { viewBox: `0 0 ${vw} ${vh}`, width: Math.min(vw, 1000), role: "img", "aria-label": label });
+    for (const nd of nodes) if (nd.split) for (const [ch, word] of [[nd.left, "no"], [nd.right, "yes"]]) {
+      const x1 = px(nd) + W / 2, y1 = py(nd) + H, x2 = px(ch) + W / 2, y2 = py(ch);
+      el("line", { x1, y1, x2, y2, class: "edge" }, svg);
+      txt(svg, (x1 + x2) / 2 + (word === "no" ? -7 : 7), (y1 + y2) / 2 - 5, word, { "text-anchor": word === "no" ? "end" : "start", "font-size": 12, "font-style": "italic", class: "muted" });
+    }
+    for (const nd of nodes) {
+      const x = px(nd), y = py(nd);
+      el("rect", { x, y, width: W, height: H, rx: 6, class: "node" }, svg);
+      if (!nd.split) el("rect", { x: x + 1, y: y + 1, width: W - 2, height: H - 2, rx: 5, class: "box-shade", "fill-opacity": shade(nd.k / nd.n) }, svg);
+      txt(svg, x + W / 2, y + 21, nd.split ? nd.q : `${pct(nd.k / nd.n)} came back`, { "text-anchor": "middle", "font-size": 12.5, "font-weight": 700 });
+      txt(svg, x + W / 2, y + 39, `${nd.k} of ${nd.n} in the sample`, { "text-anchor": "middle", "font-size": 11.5, class: "muted" });
+    }
+    host.replaceChildren(svg);
+  }
+
+  // ---------- Step 1: one bootstrap sample at a time ----------
+  (function () {
+    let draw = 0; const tally = new Map();
+    function show() {
+      const idx = bootstrap(1000 + draw), counts = Array(N).fill(0);
+      idx.forEach((i) => counts[i]++);
+      const tree = grow(idx, null, 2), out = counts.filter((c) => c === 0).length;
+      tally.set(tree.q, (tally.get(tree.q) || 0) + 1);
+      plot($("boot-plot"), { counts, boxes: leavesOf(tree), label: `Bootstrap sample ${draw + 1}: ${N - out} different patients, ${out} left out, with its tree's groups` });
+      flow($("boot-tree"), tree, `The tree grown on sample ${draw + 1}. Its first question: ${tree.q}`);
+      $("boot-say").textContent = `Sample ${draw + 1}: ${N - out} different patients, ${out} left out. First question: ${tree.q}`;
+      $("boot-tally").innerHTML = [...tally.entries()].sort((a, b) => b[1] - a[1])
+        .map(([q, c]) => `<li><span>${q}</span><b class="num">${c}</b></li>`).join("");
+    }
+    $("boot-next").addEventListener("click", () => { draw++; show(); });
+    show();
+  })();
+
+  // ---------- Step 2: bagging, tree by tree ----------
+  (function () {
+    const STEPS = [1, 2, 5, 10, 25, 50, 100, 200];
+    const who = $("bag-who");
+    TOY.forEach(([s, d, c], i) => { const o = document.createElement("option"); o.value = i;
+      o.textContent = `${s} prior stay${s === 1 ? "" : "s"}, ${d} days, ${c ? "came back" : "did not come back"}`; who.appendChild(o); });
+    who.value = 13;                                              // 2 stays, 6 days, did not come back
+    function strip(i, n) {
+      const W = 420, H = 92, m = { l: 14, r: 14 }, sx = (v) => m.l + v * (W - m.l - m.r);
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, role: "img" });
+      el("line", { x1: sx(0), x2: sx(1), y1: 46, y2: 46, class: "axis" }, svg);
+      for (const v of [0, 0.25, 0.5, 0.75, 1]) { el("line", { x1: sx(v), x2: sx(v), y1: 42, y2: 50, class: "axis" }, svg);
+        txt(svg, sx(v), 68, `${v * 100}%`, { "text-anchor": "middle", "font-size": 12, class: "muted mono" }); }
+      const preds = []; for (let t = 0; t < n; t++) preds.push(predict(BAG[t], TOY[i][0], TOY[i][1]));
+      const jit = mulberry32(7);
+      preds.forEach((p) => el("line", { x1: sx(p) + (jit() - 0.5) * 6, x2: sx(p) + (jit() - 0.5) * 6, y1: 22, y2: 40, class: "tick-tree" }, svg));
+      const avg = preds.reduce((a, b) => a + b, 0) / n, X = sx(avg);
+      el("path", { d: `M${X} ${30}L${X + 9} ${40}L${X} ${50}L${X - 9} ${40}Z`, class: "newpt" }, svg);
+      txt(svg, W / 2, 86, "predicted chance of coming back for this patient", { "text-anchor": "middle", "font-size": 12, class: "muted" });
+      svg.setAttribute("aria-label", `This patient's prediction from each of ${n} trees, and their average, ${pct(avg)}`);
+      $("bag-strip").replaceChildren(svg);
+      return { preds, avg };
+    }
+    function draw() {
+      const n = STEPS[+$("bag-n").value], i = +who.value;
+      $("bag-n-out").textContent = n; $("bag-n").setAttribute("aria-valuetext", `${n} trees`);
+      const values = average(BAG_CELLS, n);
+      plot($("bag-map"), { cells: CELLS, values, focus: i, label: `The average prediction of ${n} bagged trees across the plot` });
+      const { preds, avg } = strip(i, n);
+      const zeros = preds.filter((p) => p === 0).length, ones = preds.filter((p) => p === 1).length;
+      const distinct = new Set(values.map((v) => v.toFixed(4))).size;
+      $("bag-say").textContent = n === 1
+        ? `One tree says ${pct(preds[0])} for this patient: a single tree's leaves are pure, so it can only say 0% or 100% here. The map has ${distinct} different values.`
+        : `Of ${n} trees, ${zeros} say 0% and ${ones} say 100%${n - zeros - ones ? `, ${n - zeros - ones} something between` : ""}. Their average: ${pct(avg)}. The map now has ${distinct} different values.`;
+    }
+    $("bag-n").addEventListener("input", draw); who.addEventListener("change", draw);
+    draw();
+  })();
+
+  // ---------- Step 3: bagging against a random forest ----------
+  (function () {
+    function corr(a, b) {
+      const n = a.length, ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n;
+      let sab = 0, saa = 0, sbb = 0;
+      for (let i = 0; i < n; i++) { const x = a[i] - ma, y = b[i] - mb; sab += x * y; saa += x * x; sbb += y * y; }
+      return saa > 0 && sbb > 0 ? sab / Math.sqrt(saa * sbb) : null;
+    }
+    function typicalCorr(rows) {
+      let s = 0, k = 0;
+      for (let i = 0; i < rows.length; i++) for (let j = i + 1; j < rows.length; j++) { const r = corr(rows[i], rows[j]); if (r !== null) { s += r; k++; } }
+      return s / k;
+    }
+    for (const [id, trees, cells, name] of [["rf-bag", BAG, BAG_CELLS, "bagging"], ["rf-rf", RF, RF_CELLS, "the random forest"]]) {
+      const stays = trees.filter((t) => t.split && t.split.col === 0).length;
+      const r = typicalCorr(cells);
+      plot($(id), { cells: CELLS, values: average(cells, B), label: `The average of 200 trees for ${name}` });
+      $(`${id}-note`).innerHTML = `First question about prior stays: <b class="num">${stays} of ${B}</b> trees<br>` +
+        `How alike two trees’ maps are (typical correlation): <b class="num">${r.toFixed(2)}</b>`;
+    }
+  })();
+
+  // ---------- Step 4: out-of-bag, patient by patient (the random forest) ----------
+  (function () {
+    let rightAll = 0, rightOob = 0, totalOut = 0;
+    const rows = TOY.map(([s, d, c], i) => {
+      const out = RF.filter((_, t) => !INBAG[t].has(i));
+      totalOut += out.length;
+      const oob = out.reduce((a, t) => a + predict(t, s, d), 0) / out.length;
+      const all = RF.reduce((a, t) => a + predict(t, s, d), 0) / B;
+      const okAll = (all >= 0.5) === (c === 1), okOob = (oob >= 0.5) === (c === 1);
+      rightAll += okAll; rightOob += okOob;
+      return `<tr><th scope="row">${i + 1}</th><td class="n">${s}</td><td class="n">${d}</td><td>${c ? "yes" : "no"}</td>` +
+             `<td class="n">${out.length}</td><td class="n">${pct(oob)}${okOob ? "" : " ✗"}</td><td class="n">${pct(all)}${okAll ? "" : " ✗"}</td></tr>`;
+    });
+    $("oob-rows").innerHTML = rows.join("");
+    $("oob-say").innerHTML = `Each patient was left out of <b>${Math.round(totalOut / N)}</b> of the 200 samples on average ` +
+      `(${pct(totalOut / N / B)}). Scored by all 200 trees, the forest puts <b>${rightAll} of 20</b> patients on the right side ` +
+      `of 50%. Scored out-of-bag, only by trees that never saw them: <b>${rightOob} of 20</b>. The simplest rule, “nobody comes back”, ` +
+      `gets ${N - TOY.filter((t) => t[2]).length} of 20. With only 20 patients there is little for any model to learn, and the out-of-bag ` +
+      `number is honest enough to say so; the 20 of 20 is the forest remembering patients it has seen.`;
+  })();
+
+  // ---------- Step 5: both importances on the 20 patients, with a column of pure noise added ----------
+  (function () {
+    // The noise column: the numbers 1 to 20 in a random order, one per patient, like a record number.
+    const NOISE = Array.from({ length: N }, (_, i) => i + 1), rn = mulberry32(99);
+    for (let i = N - 1; i > 0; i--) { const j = Math.floor(rn() * (i + 1)); [NOISE[i], NOISE[j]] = [NOISE[j], NOISE[i]]; }
+    const F = TOY.map(([s, d], i) => [s, d, NOISE[i]]), Y = TOY.map((t) => t[2]), NAMES = ["prior stays", "days in the hospital", "noise (a random number)"];
+    const cut = (idx, col) => {
+      let b = null; const vals = [...new Set(idx.map((i) => F[i][col]))].sort((a, c) => a - c);
+      for (let j = 0; j < vals.length - 1; j++) {
+        const c = (vals[j] + vals[j + 1]) / 2, L = idx.filter((i) => F[i][col] <= c), R = idx.filter((i) => F[i][col] > c);
+        const kL = L.reduce((a, i) => a + Y[i], 0), kR = R.reduce((a, i) => a + Y[i], 0);
+        const after = (L.length * gini(kL, L.length) + R.length * gini(kR, R.length)) / idx.length;
+        if (!b || after < b.after - 1e-12) b = { col, cut: c, L, R, after };
+      }
+      return b;
+    };
+    // Grow all the way; one random column per split (sqrt of 3, rounded down), drawing another if it cannot split.
+    // Every split adds its share of the sample times its drop in Gini to its column's impurity importance.
+    function growImp(idx, rng, imp, total) {
+      const n = idx.length, k = idx.reduce((a, i) => a + Y[i], 0), nd = { n, k };
+      if (k === 0 || k === n) return nd;
+      const order = [0, 1, 2]; for (let i = 2; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+      let s = null; for (const c of order) { s = cut(idx, c); if (s) break; }
+      if (!s) return nd;
+      imp[s.col] += (n / total) * (gini(k, n) - s.after);
+      nd.s = s; nd.left = growImp(s.L, rng, imp, total); nd.right = growImp(s.R, rng, imp, total);
+      return nd;
+    }
+    const pred = (nd, row) => { while (nd.s) nd = row[nd.s.col] > nd.s.cut ? nd.right : nd.left; return nd.k / nd.n; };
+    const trees = [], inbag = [], impurity = [0, 0, 0];
+    for (let b = 0; b < 200; b++) {
+      const idx = bootstrap(1000 + b), imp = [0, 0, 0];
+      trees.push(growImp(idx, mulberry32(7000 + b), imp, idx.length)); inbag.push(new Set(idx));
+      const tot = imp[0] + imp[1] + imp[2]; if (tot > 0) imp.forEach((v, j) => (impurity[j] += v / tot / 200));
+    }
+    const auc = (sc) => { let s = 0, np = 0, nn = 0;
+      for (let i = 0; i < N; i++) if (Y[i]) { np++; for (let j = 0; j < N; j++) if (!Y[j]) s += sc[i] > sc[j] ? 1 : sc[i] === sc[j] ? 0.5 : 0; }
+      nn = N - np; return s / (np * nn); };
+    const oob = (rows) => rows.map((row, i) => { let t = 0, c = 0; trees.forEach((tr, b) => { if (!inbag[b].has(i)) { t += pred(tr, row); c++; } }); return t / c; });
+    const base = auc(oob(F));
+    // Permutation importance: shuffle one column among the 20 patients, re-score out-of-bag, 200 times; the average drop.
+    const rp = mulberry32(123), perm = [0, 0, 0];
+    for (let col = 0; col < 3; col++) for (let r = 0; r < 200; r++) {
+      const order = [...Array(N).keys()]; for (let i = N - 1; i > 0; i--) { const j = Math.floor(rp() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+      perm[col] += (base - auc(oob(F.map((row, i) => row.map((v, c) => (c === col ? F[order[i]][c] : v)))))) / 200;
+    }
+    const maxI = Math.max(...impurity), maxP = Math.max(...perm.map((v) => Math.abs(v)));
+    $("imp-rows").innerHTML = NAMES.map((name, j) =>
+      `<tr><th scope="row">${name}</th>` +
+      `<td><span class="ibar"><span style="width:${(100 * impurity[j]) / maxI}%"></span></span> <span class="num">${pct(impurity[j])}</span></td>` +
+      `<td><span class="ibar"><span style="width:${(100 * Math.max(0, perm[j])) / maxP}%"></span></span> <span class="num">${perm[j] >= 0 ? "" : "−"}${Math.abs(perm[j]).toFixed(3)}</span></td></tr>`).join("");
+    $("imp-say").innerHTML = `Out-of-bag, this forest’s AUC on the 20 patients is <b>${base.toFixed(3)}</b>. The noise column collects ` +
+      `<b>${pct(impurity[2])}</b> of the impurity importance; shuffling it changes the out-of-bag AUC by <b>${perm[2].toFixed(3).replace("-", "−")}</b>.`;
+  })();
+
+  // ---------- Part 2, Step 1: six test patients, twenty trees each (the notebook's Section 1 trees) ----------
+  (function () {
+    const SIX = [[0.0, 0.0128, 0.026, 0.0241, 0.0, 0.2951, 0.0, 0.1296, 0.0, 0.0957, 0.0682, 0.1373, 0.0303, 0.2027, 0.0, 0.0119, 0.1146, 0.2099, 0.0, 0.02], [0.0556, 0.0294, 0.0568, 0.2687, 0.1461, 0.2951, 0.0685, 0.0563, 0.0, 0.0351, 0.0833, 0.2308, 0.0, 0.2131, 0.0952, 0.0526, 0.0588, 0.0, 0.0417, 0.0404], [0.087, 0.0, 0.0, 0.0, 0.1013, 0.0, 0.1143, 0.1404, 0.1852, 0.1296, 0.1304, 0.0, 0.0, 0.0952, 0.0132, 0.2456, 0.0, 0.1746, 0.2264, 0.0167], [0.1364, 0.0116, 0.1429, 0.0385, 0.0, 0.0341, 0.0312, 0.0, 0.1148, 0.0, 0.0, 0.0706, 0.1222, 0.0606, 0.1744, 0.0, 0.0538, 0.0959, 0.0513, 0.0755], [0.0, 0.0377, 0.0962, 0.197, 0.1034, 0.1923, 0.1127, 0.1765, 0.0, 0.0179, 0.25, 0.1525, 0.1549, 0.0, 0.0674, 0.0385, 0.0, 0.0385, 0.0, 0.0577], [0.0182, 0.0, 0.0, 0.087, 0.0521, 0.1356, 0.1029, 0.1509, 0.1923, 0.0122, 0.0472, 0.0, 0.0851, 0.1127, 0.0192, 0.0, 0.0, 0.01, 0.1, 0.0182]];
+    const CAME = [0, 0, 1, 0, 0, 0];
+    const W = 720, rowH = 40, m = { l: 210, r: 30, t: 14, b: 50 }, H = m.t + rowH * SIX.length + m.b;
+    const sx = (v) => m.l + (v / 0.4) * (W - m.l - m.r);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, role: "img",
+      "aria-label": "Six test patients, twenty tree predictions each. Patient 1's run from 0 to 0.295; the averages are between 0.057 and 0.091." });
+    for (const v of [0, 0.1, 0.2, 0.3, 0.4]) {
+      el("line", { x1: sx(v), x2: sx(v), y1: m.t, y2: m.t + rowH * SIX.length, class: "gridline" }, svg);
+      txt(svg, sx(v), m.t + rowH * SIX.length + 18, `${Math.round(v * 100)}%`, { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+    }
+    el("line", { x1: sx(0.111), x2: sx(0.111), y1: m.t - 4, y2: m.t + rowH * SIX.length, class: "hidden-line" }, svg);
+    txt(svg, (m.l + W - m.r) / 2, H - 10, "predicted chance of coming back", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    const jit = mulberry32(3);
+    SIX.forEach((ps, i) => {
+      const y = m.t + rowH * i + rowH / 2;
+      txt(svg, m.l - 14, y + 5, `patient ${i + 1} · ${CAME[i] ? "came back" : "did not come back"}`, { "text-anchor": "end", "font-size": 13 });
+      ps.forEach((v) => el("circle", { cx: sx(v), cy: y + (jit() - 0.5) * 14, r: 4.5, class: "dot-tree" }, svg));
+      const avg = ps.reduce((a, b) => a + b, 0) / ps.length, X = sx(avg);
+      el("path", { d: `M${X} ${y - 10}L${X + 8} ${y}L${X} ${y + 10}L${X - 8} ${y}Z`, class: "newpt" }, svg);
+    });
+    $("real-six").replaceChildren(svg);
+  })();
+
+  // ---------- Part 2: averaging trees on the readmission data, bagging against a forest ----------
+  (function () {
+    // Test AUC of the average of the first n trees of the notebook's Section 3 forests (200 trees, min_samples_leaf=5).
+    const D = [[1, 0.539, 0.551], [2, 0.561, 0.573], [5, 0.579, 0.601], [10, 0.601, 0.618],
+               [20, 0.614, 0.633], [50, 0.624, 0.646], [100, 0.630, 0.649], [200, 0.629, 0.651]];
+    $("real-avg-rows").innerHTML = D.map(([n, b, f]) => `<tr><th scope="row">${n}</th><td class="n">${b.toFixed(3)}</td><td class="n">${f.toFixed(3)}</td></tr>`).join("");
+    const W = 760, H = 310, m = { l: 56, r: 250, t: 20, b: 52 };
+    const sx = (n) => m.l + (Math.log(n) / Math.log(200)) * (W - m.l - m.r), sy = (v) => H - m.b - ((v - 0.53) / 0.13) * (H - m.t - m.b);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, role: "img",
+      "aria-label": "Test AUC of the average of the first n trees of the two forests. Bagging: 0.539 for one tree, 0.614 for 20, 0.629 for 200. Random forest: 0.551, 0.633, 0.651." });
+    for (const v of [0.54, 0.58, 0.62, 0.66]) { el("line", { x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v), class: "gridline" }, svg); txt(svg, m.l - 8, sy(v) + 4, v.toFixed(2), { "text-anchor": "end", "font-size": 12, class: "muted mono" }); }
+    D.forEach(([n]) => txt(svg, sx(n), H - m.b + 18, n, { "text-anchor": "middle", "font-size": 12, class: "muted mono" }));
+    txt(svg, (m.l + W - m.r) / 2, H - 10, "trees in the average", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    const yl = txt(svg, 14, (m.t + H - m.b) / 2, "test AUC", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    yl.setAttribute("transform", `rotate(-90 14 ${(m.t + H - m.b) / 2})`);
+    const line = (j) => D.map((r, i) => `${i ? "L" : "M"}${sx(r[0]).toFixed(1)} ${sy(r[j]).toFixed(1)}`).join("");
+    el("path", { d: line(1), class: "line-logit" }, svg);
+    el("path", { d: line(2), class: "line-tree" }, svg);
+    D.forEach((r) => { el("circle", { cx: sx(r[0]), cy: sy(r[1]), r: 3.5, class: "dot-muted" }, svg); el("circle", { cx: sx(r[0]), cy: sy(r[2]), r: 4.5, class: "dot-accent" }, svg); });
+    const last = D[D.length - 1];
+    txt(svg, sx(200) + 10, sy(last[2]) - 2, `random columns (forest) ${last[2].toFixed(3)}`, { "font-size": 13, "font-weight": 700 });
+    txt(svg, sx(200) + 10, sy(last[1]) + 14, `every column (bagging) ${last[1].toFixed(3)}`, { "font-size": 13, class: "muted" });
+    $("real-avg").replaceChildren(svg);
+  })();
+
+  // ---------- Part 2: draw one split's columns from the 105 the forest sees ----------
+  (function () {
+    // [variable, column] for each of the 105 columns after one-hot encoding (Meeting 16's training sample).
+    const COLS = [["counts", "days in hospital"], ["counts", "lab tests"], ["counts", "procedures"], ["counts", "medications"], ["counts", "outpatient visits"], ["counts", "emergency visits"], ["counts", "prior stays"], ["counts", "diagnoses"], ["age", "[0-10)"], ["age", "[10-20)"], ["age", "[20-30)"], ["age", "[30-40)"], ["age", "[40-50)"], ["age", "[50-60)"], ["age", "[60-70)"], ["age", "[70-80)"], ["age", "[80-90)"], ["age", "[90-100)"], ["gender", "Female"], ["gender", "Male"], ["gender", "rare (pooled)"], ["race", "AfricanAmerican"], ["race", "Asian"], ["race", "Caucasian"], ["race", "Hispanic"], ["race", "Other"], ["race", "not recorded"], ["admission type", "1"], ["admission type", "2"], ["admission type", "3"], ["admission type", "5"], ["admission type", "6"], ["admission type", "8"], ["admission type", "rare (pooled)"], ["discharged to", "1"], ["discharged to", "18"], ["discharged to", "2"], ["discharged to", "22"], ["discharged to", "23"], ["discharged to", "25"], ["discharged to", "28"], ["discharged to", "3"], ["discharged to", "4"], ["discharged to", "5"], ["discharged to", "6"], ["discharged to", "7"], ["discharged to", "8"], ["discharged to", "rare (pooled)"], ["admission source", "1"], ["admission source", "17"], ["admission source", "2"], ["admission source", "20"], ["admission source", "3"], ["admission source", "4"], ["admission source", "5"], ["admission source", "6"], ["admission source", "7"], ["admission source", "9"], ["admission source", "rare (pooled)"], ["A1C result", ">7"], ["A1C result", ">8"], ["A1C result", "Norm"], ["A1C result", "not recorded"], ["glucose test", ">200"], ["glucose test", ">300"], ["glucose test", "Norm"], ["glucose test", "not recorded"], ["insulin", "Down"], ["insulin", "No"], ["insulin", "Steady"], ["insulin", "Up"], ["medications changed", "Ch"], ["medications changed", "No"], ["diabetes medication", "No"], ["diabetes medication", "Yes"], ["medical specialty", "Cardiology"], ["medical specialty", "Emergency/Trauma"], ["medical specialty", "Endocrinology"], ["medical specialty", "Family/GeneralPractice"], ["medical specialty", "Gastroenterology"], ["medical specialty", "Hematology"], ["medical specialty", "Hematology/Oncology"], ["medical specialty", "InternalMedicine"], ["medical specialty", "Nephrology"], ["medical specialty", "Neurology"], ["medical specialty", "ObstetricsandGynecology"], ["medical specialty", "Oncology"], ["medical specialty", "Orthopedics"], ["medical specialty", "Orthopedics-Reconstructive"], ["medical specialty", "Otolaryngology"], ["medical specialty", "Pediatrics"], ["medical specialty", "Pediatrics-CriticalCare"], ["medical specialty", "Pediatrics-Endocrinology"], ["medical specialty", "PhysicalMedicineandRehabilitation"], ["medical specialty", "Psychiatry"], ["medical specialty", "Pulmonology"], ["medical specialty", "Radiologist"], ["medical specialty", "Surgery-Cardiovascular/Thoracic"], ["medical specialty", "Surgery-General"], ["medical specialty", "Surgery-Neuro"], ["medical specialty", "Surgery-Thoracic"], ["medical specialty", "Surgery-Vascular"], ["medical specialty", "Urology"], ["medical specialty", "not recorded"], ["medical specialty", "rare (pooled)"]];
+    const K = Math.floor(Math.sqrt(COLS.length));                // scikit-learn's "sqrt": 10 of 105
+    const groups = [...new Set(COLS.map((c) => c[0]))];
+    const host = $("chips"), chipEls = [];
+    for (const g of groups) {
+      const row = document.createElement("div"); row.className = "chiprow";
+      const n = COLS.filter((c) => c[0] === g).length;
+      row.innerHTML = `<span>${g} (${n})</span><ul></ul>`;
+      COLS.forEach((c, i) => { if (c[0] !== g) return; const li = document.createElement("li"); li.className = "chip"; li.textContent = c[1]; row.querySelector("ul").appendChild(li); chipEls[i] = li; });
+      host.appendChild(row);
+    }
+    let draws = 0, withStays = 0, withSpec = 0;
+    const stays = COLS.findIndex((c) => c[1] === "prior stays");
+    function draw(rand) {
+      const idx = [...COLS.keys()];
+      for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+      const picked = idx.slice(0, K);
+      chipEls.forEach((el, i) => el.classList.toggle("on", picked.includes(i)));
+      draws++; if (picked.includes(stays)) withStays++; if (picked.some((i) => COLS[i][0] === "medical specialty")) withSpec++;
+      const listed = picked.map((i) => COLS[i][0] === "counts" ? COLS[i][1] : `${COLS[i][0]}: ${COLS[i][1]}`);
+      $("draw-say").textContent = `This split may use: ${listed.join(" · ")}. ` +
+        (picked.includes(stays) ? "Prior stays is in the draw, so it will probably win." : "No prior stays this time: the split uses the best of these.");
+      $("draw-tally").textContent = `${draws} draw${draws === 1 ? "" : "s"} so far · prior stays available in ${withStays} (${pct(withStays / draws)}; ` +
+        `the long-run rate is 9.5%) · a medical-specialty column in ${withSpec} (${pct(withSpec / draws)}; long run 97%)`;
+    }
+    draw(mulberry32(42));
+    $("draw-cols").addEventListener("click", () => draw(Math.random));
+  })();
+
+  // ---------- Part 2: first questions of 200 bagged trees and 200 forest trees ----------
+  (function () {
+    const rows = [["Bagging", [["prior stays", 200]]], ["Random forest", [["prior stays", 24], ["sent to rehab", 18], ["emergency visits", 15], ["dozens of other questions", 143]]]];
+    const W = 720, H = 170, m = { l: 130, r: 20, t: 16 }, bw = W - m.l - m.r, sx = (n) => (n / 200) * bw;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, role: "img",
+      "aria-label": "First questions of 200 trees. Bagging: prior stays 200. Random forest: prior stays 24, sent to rehab 18, emergency visits 15, other questions 143." });
+    rows.forEach(([name, parts], r) => {
+      const y = m.t + r * 72;
+      txt(svg, m.l - 12, y + 24, name, { "text-anchor": "end", "font-size": 14, "font-weight": 700 });
+      let x = m.l; const small = [];
+      parts.forEach(([label, n], j) => {
+        el("rect", { x, y: y + 8, width: sx(n), height: 26, class: j === 0 ? "seg-main" : "seg-other",
+                     "fill-opacity": j === 0 ? 1 : [0, 0.75, 0.5, 0.25][j] }, svg);
+        el("line", { x1: x + sx(n), x2: x + sx(n), y1: y + 8, y2: y + 34, class: "seg-gap" }, svg);
+        if (sx(n) >= `${label} · ${n}`.length * 7 + 12) txt(svg, x + 6, y + 26, `${label} · ${n}`, { "font-size": 12, class: j === 0 ? "on-seg" : "" });
+        else small.push(`${label} · ${n}`);
+        x += sx(n);
+      });
+      if (small.length) txt(svg, m.l, y + 52, small.join("  ·  "), { "font-size": 12, class: "muted" });
+    });
+    $("real-first").replaceChildren(svg);
+  })();
+})();
+</script>
+</body>
+</html>
