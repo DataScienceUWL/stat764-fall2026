@@ -828,6 +828,9 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
 
 <section class="col">
   <h3 id="test">One score on the test patients</h3>
+  <p>Why 0.1 and not 0.03, whose held-out AUC was higher? By 0.001, far less than the luck of which patients were held
+  out, and 0.03 needs over three times as many rounds. So keep scikit-learn’s default rate and let the held-out patients
+  choose the rounds: 34.</p>
   <p>Refit at the chosen setting, a learning rate of 0.1 for 34 rounds, on all 21,352 training stays, and score the
   24,706 test stays once:</p>
   <div class="scroll">
