@@ -233,6 +233,23 @@ svg .on-seg { fill: var(--surface); font-weight: 700; }
 select { font: inherit; font-size: 0.95rem; padding: 5px 8px; border: 1.5px solid var(--accent); border-radius: 6px;
          background: var(--surface); color: var(--ink); max-width: 100%; }
 select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* Pulling it together (added Nov 2) */
+.keep { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; margin: 14px 0 4px; }
+.keep b { display: block; font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+.chain th[scope="row"] { font-family: var(--font-display); font-size: 1.02rem; white-space: nowrap; }
+.chain .mtg { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; color: var(--muted); }
+.chain tr.later th, .chain tr.later td { color: var(--muted); font-style: italic; }
+.verdicts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+@media (max-width: 760px) { .verdicts { grid-template-columns: minmax(0, 1fr); } }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: 6px; padding: 2px 14px 8px; font-size: 0.93rem; }
+.verdict.yes { border-top-color: var(--stay); }
+.verdict.no { border-top-color: var(--back); }
+.verdict .v-tag { font-family: var(--font-mono); font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; margin: 10px 0 0; }
+.verdict.yes .v-tag { color: var(--stay); }
+.verdict.no .v-tag { color: var(--back); }
+.verdict .v-num { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; margin: 2px 0 0; }
+.verdict .v-what { color: var(--muted); margin: 0 0 6px; font-size: 0.88rem; }
 </style>
 </head>
 <body>
@@ -624,6 +641,53 @@ importance = model.feature_importances_                # Step 5: impurity import
   <p class="note">Write your guess before each question and keep it, answer each question’s sentence, and answer the
   exit ticket. Upload the notebook to Canvas under “Studio notebook — Day 16” by <strong>Friday, October 30,
   3:40 pm</strong>.</p>
+
+  <!-- ============================ PULLING IT TOGETHER ============================ -->
+  <h2 id="together"><span class="part">After the studio</span>Pulling it together</h2>
+  <div class="keep"><b>Keep this</b>A forest wins by averaging trees that make different mistakes, and it scores itself
+  for free. But its importance plot says what the model split on, not what drives readmission.</div>
+
+  <h3>The chain, so far</h3>
+  <p>Meeting 15’s tree and today’s forests are one argument: each method fixes the last one’s problem and brings one of
+  its own.</p>
+  <div class="scroll">
+  <table class="chain">
+    <caption>What each method fixes, the evidence from class, and what is still wrong</caption>
+    <thead><tr><th scope="col">method</th><th scope="col">what it fixes</th><th scope="col">the evidence</th>
+      <th scope="col">what is still wrong</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">One tree<span class="mtg">Meeting 15</span></th><td>Rules anyone can read.</td><td>AUC
+        <span class="num">0.640</span> against logistic regression’s <span class="num">0.655</span>.</td><td><strong>Unstable:</strong>
+        refit on 20 samples of 1,000 patients, its second questions came in 19 versions.</td></tr>
+      <tr><th scope="row">Bagging<span class="mtg">Meeting 16</span></th><td>Instability: average trees grown on
+        bootstrap samples.</td><td>One tree <span class="num">0.599</span> → bagging <span class="num">0.630</span>.</td>
+        <td><strong>The trees are alike:</strong> all 200 open with prior stays, so their mistakes do not cancel.</td></tr>
+      <tr><th scope="row">Random forest<span class="mtg">Meeting 16</span></th><td>Look-alike trees: each split sees a
+        few random columns.</td><td><span class="num">0.651</span>, tying logistic regression (<span class="num">0.649</span>);
+        out-of-bag <span class="num">0.650</span> for free.</td><td><strong>Can’t predict past what it saw</strong> (2012’s
+        riders), and its importance plot is easy to misread.</td></tr>
+      <tr class="later"><th scope="row">Boosting<span class="mtg">Meeting 17 · next</span></th><td colspan="3">Another way
+        to combine trees: one after another, each fixing the last one’s mistakes.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Three numbers: which are evidence about new patients?</h3>
+  <p>The course’s question, asked of this meeting: <em>when is a number you computed actually evidence about the
+  future?</em></p>
+  <div class="verdicts">
+    <div class="verdict yes"><p class="v-tag">Evidence ✓</p><p class="v-num">0.650</p><p class="v-what">the out-of-bag
+      AUC</p><p>Every stay is scored by trees that never saw it. It agreed with grouped cross-validation (0.654) and with
+      the test patients (0.651).</p></div>
+    <div class="verdict no"><p class="v-tag">Not evidence ✗</p><p class="v-num">0.109</p><p class="v-what">lab tests’
+      impurity importance, 2nd of 20</p><p>Counted on the training splits. Shuffled on held-out patients, lab tests was
+      worth 0.005 AUC, and discharge, ranked 4th, the most (0.063).</p></div>
+    <div class="verdict no"><p class="v-tag">Not evidence ✗</p><p class="v-num">47.4%</p><p class="v-what">the share of
+      2012’s hours inside the forest’s 90% range</p><p>Learned on 2011. Riders rose from 144 to 235 an hour, so 2012 was
+      not drawn like 2011, which the promise needs (Meeting 14).</p></div>
+  </div>
+  <p class="note">One rule runs through all three: a number tells you about new cases only if it was measured on cases
+  the model did not learn from, drawn the way the new ones will be.</p>
 
   <h2 id="next">Next: boosting</h2>
   <p>A forest grows its trees independently and averages them. On Tuesday, <strong>boosting</strong> grows them one after

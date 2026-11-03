@@ -1,0 +1,1364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Built from content/lessons/pages/day17_boosting.html in the course repo by tools/build_page.py. Open this file in a web browser. -->
+<title>Boosting, Tree by Tree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* STAT 764 daily pages: the shared theme.
+   Inlined into every page by tools/build_page.py, so each page stays one self-contained file.
+   Edit here, then rebuild the pages; never edit a built page's <style> by hand. */
+
+/* Layout: the tree and forest pages' system (one reading column, figures widen to 1040px), so the three read as a set. */
+:root {
+  --paper: #f1f5f4;
+  --surface: #ffffff;
+  --ink: #13242a;
+  --muted: #485b60;
+  --line: #c6d2d1;
+  --grid: #e2e9e8;
+  --back: #ad3822;          /* came back within 30 days */
+  --stay: #276a6f;          /* did not come back */
+  --accent: #1d4c87;        /* the thing you are steering: a selected question, a path */
+  --accent-soft: #e2ebf6;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --read: 68ch;
+  --wide: 1040px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+    --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+  --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px;
+       line-height: 1.6; margin: 0; }
+.page { padding-inline: 16px; padding-block: 40px 72px; }
+.col { max-width: var(--read); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 700; margin-top: 64px; }
+h3 { font-size: 1.25rem; font-weight: 700; margin-top: 40px; display: flex; gap: 12px; align-items: baseline; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+strong { font-weight: 700; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+           color: var(--muted); margin: 0 0 12px; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+.step { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em;
+        color: var(--accent); border: 1.5px solid var(--accent); border-radius: 999px; padding: 1px 9px;
+        white-space: nowrap; transform: translateY(-2px); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.part { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--muted); display: block; margin-bottom: 6px; font-weight: 500; }
+
+/* Figures */
+figure { margin: 28px auto; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 12px; max-width: var(--read); }
+svg { display: block; max-width: 100%; height: auto; }
+.scroll { overflow-x: auto; }
+.treebox { display: flex; justify-content: center; margin-bottom: 18px; }
+.treebox svg { flex: none; max-width: 100%; }
+.plotbox { display: flex; justify-content: center; }
+svg text { font-family: var(--font-body); fill: var(--ink); }
+svg .mono { font-family: var(--font-mono); }
+svg .muted { fill: var(--muted); }
+svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.axis { stroke: var(--line); stroke-width: 1; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; color: var(--muted); margin: 0 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Controls */
+.controls { display: grid; gap: 14px; margin-bottom: 14px; }
+label, .label { font-weight: 700; font-size: 0.95rem; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.seg { display: inline-flex; border: 1.5px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.92rem; padding: 6px 12px; border: 0; background: var(--surface);
+              color: var(--accent); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 700; }
+.btn { font: inherit; font-size: 0.92rem; font-weight: 700; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+       border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Readouts */
+.readout { display: grid; gap: 10px; }
+.sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.side { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.side .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.side b { display: block; }
+.calc { font-family: var(--font-mono); font-size: 0.9rem; background: var(--paper); border-radius: 6px; padding: 10px 12px;
+        line-height: 1.7; overflow-x: auto; }
+.calc .big { font-size: 1.05rem; font-weight: 500; color: var(--accent); }
+.say { font-size: 1rem; }
+
+/* Stat strip, tables, code */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); margin: 24px 0; }
+.stats div { padding: 12px 12px 12px 0; }
+.stats b { display: block; font-family: var(--font-display); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--ink); font-size: 0.85rem; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px;
+      overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--surface); }
+.card .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.card b { font-family: var(--font-display); font-size: 1.2rem; display: block; margin-top: 2px; }
+details { margin-top: 10px; font-size: 0.92rem; }
+summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.foot { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); margin-top: 64px; padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  .board .bar, .hbars .bar { transition: width 0.25s ease; }
+}
+/* The one-sentence method: the page's thesis */
+.method { margin: 28px 0 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+          border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+.method div { padding: 14px 16px 14px 0; }
+.method div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.method b { display: block; font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 2px; }
+.method span { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 620px) {
+  .method { grid-template-columns: 1fr; }
+  .method div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* Forest page additions */
+.box-note { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 18px 6px; margin: 22px 0 8px; }
+.box-note h4 { font-family: var(--font-display); font-size: 1.1rem; margin: 12px 0 4px; }
+
+/* Boosting page additions */
+.line-model { stroke: var(--accent); stroke-width: 3; fill: none; stroke-linejoin: round; }
+.line-stump { stroke: var(--accent); stroke-width: 3; fill: none; stroke-dasharray: 7 4; }
+.line-truth { stroke: var(--muted); stroke-width: 1.6; fill: none; stroke-dasharray: 2 4; }
+.line-train { stroke: var(--stay); stroke-width: 2.4; fill: none; stroke-dasharray: 6 4; }
+.line-new { stroke: var(--back); stroke-width: 2.8; fill: none; }
+.line-other { stroke: var(--muted); stroke-width: 1.6; fill: none; opacity: 0.7; }
+.line-floor { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.zero { stroke: var(--ink); stroke-width: 1; opacity: 0.5; }
+.pt { fill: var(--ink); }
+.pt-res { fill: var(--back); }
+.stick { stroke: var(--back); stroke-width: 1.4; opacity: 0.8; }
+.now-line { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.dot-new { fill: var(--back); stroke: var(--surface); stroke-width: 1.5; }
+.dot-train { fill: var(--stay); stroke: var(--surface); stroke-width: 1.5; }
+.dot-best { fill: var(--surface); stroke: var(--back); stroke-width: 2.4; }
+.dot-acc { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.sw { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; }
+.sw.model { border-color: var(--accent); }
+.sw.stump { border-top-style: dashed; border-color: var(--accent); }
+.sw.truth { border-top: 2px dotted var(--muted); }
+.sw.train { border-top-style: dashed; border-color: var(--stay); }
+.sw.new { border-color: var(--back); }
+.sw.other { border-top-width: 2px; border-color: var(--muted); }
+.dotsw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.dotsw.res { background: var(--back); }
+tr.is-on th, tr.is-on td { background: var(--accent-soft); font-weight: 700; }
+
+/* Where we are: the course's question, the six units, and last time / today / coming up */
+.where { margin-top: 40px; }
+.spine { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); padding: 14px 0 16px; margin-top: 14px; }
+.spine .q { font-family: var(--font-display); font-size: clamp(1.25rem, 2.6vw, 1.55rem); font-weight: 700; line-height: 1.25; margin: 4px 0 0; }
+.units { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.units li { border-top: 4px solid var(--line); padding: 6px 4px 0 0; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
+.units li b { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; }
+.units li.done { border-top-color: var(--stay); }
+.units li.now { border-top-color: var(--accent); color: var(--ink); font-weight: 700; }
+.units li.now b { color: var(--accent); }
+@media (max-width: 760px) { .units { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.trip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+@media (max-width: 900px) { .trip { grid-template-columns: minmax(0, 1fr); } }
+.trip article { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 16px 10px; }
+.trip article.today { border: 2px solid var(--accent); }
+.trip h3 { margin-top: 12px; font-size: 1.15rem; display: block; }
+.trip .tag { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 0; }
+.trip ul { padding-left: 18px; margin: 8px 0; }
+.trip li { margin: 6px 0; font-size: 0.95rem; }
+.trip p { font-size: 0.95rem; }
+.keep { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; margin: 10px 0 4px; }
+.keep b { display: block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+.dot-muted { fill: var(--muted); }
+
+/* Connecting the dots */
+.recall { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; align-items: start; }
+@media (max-width: 900px) { .recall { grid-template-columns: minmax(0, 1fr); } }
+.recall details { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; margin: 0; font-size: 0.95rem; }
+.recall summary { color: var(--ink); line-height: 1.4; }
+.recall summary::marker { color: var(--accent); }
+.recall details[open] { border-color: var(--accent); }
+.chain caption { font-weight: 700; }
+.chain th[scope="row"] { font-family: var(--font-display); font-size: 1.05rem; white-space: nowrap; }
+.chain .mtg { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0.03em; }
+.chain tr.now th, .chain tr.now td { background: var(--accent-soft); }
+.chain tr.now .mtg { color: var(--accent); }
+.chain tr.later th, .chain tr.later td { color: var(--muted); font-style: italic; }
+.verdicts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+@media (max-width: 900px) { .verdicts { grid-template-columns: minmax(0, 1fr); } }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: 6px; padding: 2px 14px 8px; font-size: 0.95rem; }
+.verdict.yes { border-top-color: var(--stay); }
+.verdict.no { border-top-color: var(--back); }
+.verdict .v-tag { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; margin: 10px 0 0; }
+.verdict.yes .v-tag { color: var(--stay); }
+.verdict.no .v-tag { color: var(--back); }
+.verdict .v-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin: 2px 0 0; font-variant-numeric: tabular-nums; }
+.verdict .v-what { color: var(--muted); margin: 0 0 6px; font-size: 0.9rem; }
+
+/* ---------- Components from the tree and forest pages (Meetings 15-16) ---------- */
+.pt-back { stroke: var(--back); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.pt-stay { fill: var(--stay); }
+.box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.box-shade { fill: var(--back); }
+.cutline { stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.side-no { fill: var(--stay); opacity: 0.08; }
+.side-yes { fill: var(--back); opacity: 0.08; }
+.node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+.edge { stroke: var(--ink); stroke-width: 1.3; fill: none; }
+.on .node, .node.on { stroke: var(--accent); stroke-width: 3; }
+.edge.on { stroke: var(--accent); stroke-width: 3; }
+.newpt { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.region-on { fill: none; stroke: var(--accent); stroke-width: 3; }
+.curve { stroke: var(--accent); stroke-width: 3; fill: none; }
+.dot-accent { fill: var(--accent); }
+.line-tree { stroke: var(--accent); stroke-width: 2.6; fill: none; }
+.line-logit { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
+.band { fill: var(--accent-soft); }
+.pt-num { fill: var(--ink); }
+.resid { stroke: var(--back); stroke-width: 1.6; }
+.meanline { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.box-num { fill: var(--accent); }
+.boundary { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.leafedge { fill: none; stroke: var(--line); stroke-width: 1; }
+
+/* Three boundaries side by side */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+.trio-title { margin: 0 0 6px; }
+.trio-note { margin: 6px 0 0; font-size: 0.92rem; color: var(--muted); }
+/* Leaderboard of candidate questions */
+.board { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.board button { width: 100%; display: grid; grid-template-columns: minmax(0, 11.5em) minmax(0, 1fr) 3.6em; gap: 8px;
+                align-items: center; font: inherit; font-size: 0.85rem; text-align: left; color: var(--ink);
+                background: none; border: 1px solid transparent; border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+.board button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.board .bar { height: 10px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.board button[aria-pressed="true"] .bar { background: var(--accent); }
+.board .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+
+/* Real-data bars */
+.hbars { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 16em) minmax(0, 1fr) 4.4em; gap: 10px; align-items: center; font-size: 0.88rem; }
+.hbars .bar { height: 12px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.hbars li.win { font-weight: 700; }
+.hbars li.win .bar { background: var(--accent); }
+.hbars .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+@media (max-width: 560px) {
+  .hbars li { grid-template-columns: minmax(0, 1fr) 4em; }
+  .hbars li .bar { grid-column: 1 / -1; grid-row: 2; }
+  .board button { grid-template-columns: minmax(0, 1fr) 3.4em; }
+  .board .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+.chips { display: grid; gap: 6px; }
+.chiprow { display: grid; grid-template-columns: 12em minmax(0, 1fr); gap: 10px; align-items: start; }
+.chiprow > span { font-size: 0.85rem; color: var(--muted); padding-top: 2px; }
+.chiprow ul { list-style: none; display: flex; flex-wrap: wrap; gap: 3px; margin: 0; padding: 0; }
+.chip { font-family: var(--font-mono); font-size: 0.72rem; padding: 1px 6px; border: 1px solid var(--line); border-radius: 4px;
+        color: var(--muted); background: var(--paper); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
+@media (max-width: 620px) { .chiprow { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.ghost { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.tally { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.tally li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; font-size: 0.95rem; }
+.tick-tree { stroke: var(--back); stroke-width: 1.4; stroke-opacity: 0.55; }
+.seg-main { fill: var(--accent); }
+.dot-muted { fill: var(--muted); }
+.dot-tree { fill: var(--muted); fill-opacity: 0.45; }
+.hidden-line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ibar { display: inline-block; width: 7em; height: 10px; background: var(--grid); border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.ibar > span { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+.seg-other { fill: var(--muted); }
+.seg-gap { stroke: var(--surface); stroke-width: 2; }
+svg .on-seg { fill: var(--surface); font-weight: 700; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+select { font: inherit; font-size: 0.95rem; padding: 5px 8px; border: 1.5px solid var(--accent); border-radius: 6px;
+         background: var(--surface); color: var(--ink); max-width: 100%; }
+select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- The template's frame: contents bar and section labels ---------- */
+.toc { max-width: var(--wide); margin: 30px auto 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
+       font-size: 0.9rem; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.toc .toc-label { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase;
+                  color: var(--muted); margin-right: 4px; }
+.toc a { text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+         border-radius: 999px; padding: 3px 11px; }
+.toc a b { font-family: var(--font-mono); font-weight: 500; color: var(--accent); margin-right: 5px; }
+.toc a:hover { border-color: var(--accent); color: var(--accent); }
+.toc a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+main h2[id] { scroll-margin-top: 18px; }
+main h2 .part { margin-bottom: 6px; }
+
+/* The "Today's topic" banner: where the review ends and the new material begins */
+.topic { max-width: var(--wide); margin: 80px auto 0; padding: 18px 0 20px; border-top: 4px solid var(--ink);
+         border-bottom: 1px solid var(--line); }
+.topic h2 { font-size: clamp(2.4rem, 6vw, 3.4rem); margin-top: 0; letter-spacing: -0.02em; }
+.topic h2 .part { font-size: 0.85rem; margin-bottom: 8px; }
+.topic .topic-q { font-family: var(--font-display); font-size: clamp(1.15rem, 2.4vw, 1.4rem); color: var(--muted);
+                  margin: 8px 0 16px; max-width: 46ch; }
+.topic-parts { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .topic-parts { grid-template-columns: minmax(0, 1fr); } }
+.topic-parts a { display: block; text-decoration: none; color: var(--ink); background: var(--surface);
+                 border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 8px 12px; }
+.topic-parts a b { display: block; font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500;
+                   letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.topic-parts a:hover { border-color: var(--accent); }
+.topic-parts a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* A ledger: a model's stored lines, with the one a case uses marked (boosting's Step 3) */
+.ledger { max-height: 380px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+.ledger:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ledger table { font-size: 0.86rem; }
+.ledger thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.ledger td.pick { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.ledger td.n, .ledger th.n { white-space: nowrap; }
+.ledger tr.start th, .ledger tr.start td { font-style: italic; color: var(--muted); }
+/* A tree written as nested questions, with one case's path in bold */
+.tree-list, .tree-list ul { list-style: none; margin: 0; padding: 0; }
+.tree-list ul { padding-left: 20px; margin-left: 8px; border-left: 1px dashed var(--line); }
+.tree-list li { margin: 5px 0; }
+.tree-list .ans { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); margin-right: 8px;
+                  border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+.tree-list .q { font-weight: 500; }
+.tree-list .leaf { font-family: var(--font-mono); font-size: 0.9rem; }
+.tree-list .cnt { color: var(--muted); font-size: 0.86rem; }
+.tree-list li.on > .q, .tree-list li.on > .leaf, .tree-list li.on > .ans { font-weight: 700; color: var(--accent); border-color: var(--accent); }
+.tree-list .here { color: var(--accent); font-size: 0.86rem; }
+tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
+
+
+</style>
+</head>
+<body>
+<div class="page">
+<header class="col">
+  <p class="eyebrow">STAT 764 · Meeting 17 · Boosting</p>
+  <h1>Small trees, one after another</h1>
+  <p class="lede">A forest grows hundreds of deep trees side by side and averages what they say. Boosting grows small
+  trees one at a time, and fits each new tree to the mistakes the trees before it still make.</p>
+  <div class="method" role="list" aria-label="The whole method in three moves">
+    <div role="listitem"><b>Start</b><span>Predict the same number for everyone: the average.</span></div>
+    <div role="listitem"><b>Fit the mistakes</b><span>Fit a small tree to what is still wrong for each case: the residuals.</span></div>
+    <div role="listitem"><b>Add a little</b><span>Add a fraction of that tree to the model (the learning rate), then repeat.</span></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="On this page"><span class="toc-label">On this page</span><a href="#where"><b>1</b>Where we are</a><a href="#dots"><b>2</b>Connecting the dots</a><a href="#topic"><b>3</b>Today: Boosting</a><a href="#p1"><b>4</b>Part 1 · Made-up patients</a><a href="#p2"><b>5</b>Part 2 · The real data</a><a href="#studio"><b>6</b>Part 3 · Your studio</a><a href="#next"><b>7</b>Next</a></nav>
+
+<main>
+<!-- ============================ WHERE WE ARE ============================ -->
+<section class="wide where" aria-labelledby="where">
+  <h2 id="where" data-toc="Where we are"><span class="part">Start here</span>Where we are</h2>
+  <div class="spine">
+    <p class="eyebrow" style="margin:0">The question the whole course is asking</p>
+    <p class="q">When is a number you computed actually evidence about the future?</p>
+    <ol class="units" aria-label="The six units of the course">
+      <li class="done"><b>Meetings 1–6</b>Can you trust your own number?</li>
+      <li class="done"><b>Meetings 7–8</b>Making models behave</li>
+      <li class="done"><b>Meetings 9–14</b>Decisions, not scores</li>
+      <li class="now" aria-current="step"><b>Meetings 15–20 · now</b>Flexible models, and reading them</li>
+      <li><b>Meetings 21–25</b>Structure without an answer key</li>
+      <li><b>Meetings 26–28</b>Where models fail</li>
+    </ol>
+  </div>
+
+  <div class="trip">
+    <article aria-labelledby="last">
+      <p class="tag">Last time · Meeting 16</p>
+      <h3 id="last">Forests</h3>
+      <p>Thursday’s studio asked three questions about one forest of 200 trees: did it beat the other models, could its
+      free out-of-bag score be trusted, and what does its importance plot really say? <a href="#dots">Connecting the
+      dots</a>, below, puts the answers together.</p>
+      <div class="keep"><b>Keep this</b>A forest wins by averaging trees that make different mistakes, and it scores
+      itself for free. But its importance plot says what the model split on, not what drives readmission.</div>
+    </article>
+
+    <article class="today" aria-labelledby="today">
+      <p class="tag">Today · Meeting 17</p>
+      <h3 id="today">Boosting</h3>
+      <p>A forest’s trees never see each other’s mistakes. Boosting’s trees see nothing else: each one is fitted to
+      what the model so far still gets wrong. <strong>Can trees that fix each other’s mistakes beat trees that
+      vote?</strong></p>
+      <p><strong>Where it sits.</strong> Meetings 15–20 ask whether flexible models change the rules from the first half
+      of the course. So far they have not: a forest’s score and its importance still had to be checked on patients it
+      never saw. Boosting brings a new way to overfit, too many rounds, and the same old cure: choose on data the model
+      was not fitted on.</p>
+      <p><strong>In the studio:</strong> what tree depth changes, what too many rounds do to the probabilities, and
+      whether Meeting 16’s two forest tricks, random rows and random columns, help boosting too.</p>
+    </article>
+
+    <article aria-labelledby="soon">
+      <p class="tag">Coming up</p>
+      <h3 id="soon">The bake-off, then interpretation</h3>
+      <ul>
+        <li><strong>Thursday, Nov 5 · The bake-off.</strong> Boosting, the forest, logistic regression and a model that
+        needs no tuning at all, judged six ways: accuracy, tuning effort, interpretability, stability, calibration and
+        cost. What did all the pipeline work buy you?</li>
+        <li><strong>Tuesday, Nov 10 · Interpretation.</strong> What a model’s explanations can and cannot tell you.
+        Thursday’s importance plot was the first example.</li>
+      </ul>
+      <p><strong>Due:</strong> Lab 7, Tuesday 11:59 pm · Defense 1 appointments through Thursday · Lab 8 is assigned
+      today, due Tuesday, Nov 10.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ CONNECTING THE DOTS ============================ -->
+<section class="wide dots" aria-labelledby="dots">
+  <h2 id="dots" data-toc="Connecting the dots"><span class="part">Before the new idea · about eight minutes</span>Connecting the dots: from one tree to a forest</h2>
+  <p class="lede" style="max-width:none">Meetings 15, 16 and today are one argument. Each method fixes the last one’s
+  problem, and each brings a problem of its own.</p>
+
+  <h3>Try first: answer each in your head, then open it</h3>
+  <div class="recall">
+    <details>
+      <summary>1. Why does a forest let each split look at only a few random columns?</summary>
+      <p>So the trees <strong>disagree</strong>. With every column available, the bagged trees all opened with prior
+      stays and made the same mistakes, so averaging them cancelled little. Forcing variety at every split made their
+      mistakes different: the forest reached <span class="num">0.651</span> against bagging’s <span class="num">0.630</span>.</p>
+    </details>
+    <details>
+      <summary>2. Why is the out-of-bag score honest when nothing was set aside?</summary>
+      <p>Each bootstrap sample leaves out about a third of the stays, and each stay is scored only by the trees that
+      left it out, trees that <strong>never saw it</strong>. It is the held-out rule from Meetings 3 and 6, paid for
+      with the rows the bootstrap skips: <span class="num">0.650</span>, against <span class="num">0.654</span> from
+      grouped cross-validation and <span class="num">0.651</span> on test.</p>
+    </details>
+    <details>
+      <summary>3. The forest’s importance plot (impurity importance) ranks lab tests 2nd of 20 columns. Does that mean
+      lab tests helps predict new patients? How would you check?</summary>
+      <p>Not by itself: the two importances answer different questions. Impurity importance says how much the forest’s
+      splits used a column on the <strong>training</strong> stays, and a count with many different values gets more
+      chances to be picked, by luck as well as by signal. Whether a column helps with <strong>new</strong> patients is a
+      question about patients the model did not see. Permutation importance asks it: shuffle one column on held-out
+      patients and measure how much the AUC drops. Lab tests: <span class="num">0.005</span>. Discharge, ranked 4th by
+      impurity: <span class="num">0.063</span>. Permutation has a blind spot of its own: when two columns carry the
+      same information, shuffling one lets the other cover for it, as the studio’s near-copy showed. And neither number
+      says what causes a readmission.</p>
+    </details>
+  </div>
+
+  <h3>The chain, so far</h3>
+  <div class="scroll">
+  <table class="chain">
+    <caption>Meetings 15–20: what each method fixes, the evidence from class, and what is still wrong</caption>
+    <thead><tr><th scope="col">method</th><th scope="col">what it fixes</th><th scope="col">the evidence</th>
+      <th scope="col">what is still wrong</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">One tree<span class="mtg">Meeting 15</span></th><td>Rules anyone can read: one yes/no
+        question at a time.</td><td>AUC <span class="num">0.640</span> against logistic regression’s
+        <span class="num">0.655</span>.</td><td><strong>Unstable.</strong> Refit on 20 samples of 1,000 patients, its
+        second questions came in 19 different versions.</td></tr>
+      <tr><th scope="row">Bagging<span class="mtg">Meeting 16</span></th><td>Instability: grow many trees on
+        bootstrap samples and average them.</td><td>One tree <span class="num">0.599</span> → bagging
+        <span class="num">0.630</span>.</td><td><strong>The trees are alike.</strong> All 200 open with prior stays, so
+        their mistakes do not cancel.</td></tr>
+      <tr><th scope="row">Random forest<span class="mtg">Meeting 16</span></th><td>Look-alike trees: each split sees a
+        few random columns.</td><td><span class="num">0.651</span>, tying logistic regression
+        (<span class="num">0.649</span>); out-of-bag <span class="num">0.650</span> for free.</td><td><strong>Can’t
+        predict past what it saw</strong> (2012’s riders); its importance plot is easy to misread.</td></tr>
+      <tr class="now"><th scope="row">Boosting<span class="mtg">Meeting 17 · today</span></th><td>Another way to combine
+        trees: one after another, each fixing the last one’s mistakes.</td><td>Parts 1 and 2 below.</td><td>A new way to
+        overfit: <strong>too many rounds</strong>.</td></tr>
+      <tr class="later"><th scope="row">The bake-off<span class="mtg">Meeting 18 · Thursday</span></th><td colspan="3">All
+        of them, and a model that needs no tuning, on the same patients: what does “better” mean?</td></tr>
+      <tr class="later"><th scope="row">Interpretation<span class="mtg">Meetings 19–20</span></th><td colspan="3">What a
+        model’s explanations can and cannot tell you, starting from Thursday’s importance plot.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Three numbers from Thursday: which are evidence about new patients?</h3>
+  <p>The course’s question, asked of Meeting 16: <em>when is a number you computed actually evidence about the
+  future?</em></p>
+  <div class="verdicts">
+    <div class="verdict yes"><p class="v-tag">Evidence ✓</p><p class="v-num">0.650</p><p class="v-what">the out-of-bag
+      AUC</p><p>Every stay is scored by trees that never saw it. It agreed with cross-validation and with the test
+      patients.</p></div>
+    <div class="verdict no"><p class="v-tag">Not evidence ✗</p><p class="v-num">0.109</p><p class="v-what">lab tests’
+      impurity importance, 2nd of 20</p><p>Counted on the training splits. Held out, lab tests was worth 0.005: the rank
+      describes the model, not new patients.</p></div>
+    <div class="verdict no"><p class="v-tag">Not evidence ✗</p><p class="v-num">47.4%</p><p class="v-what">the share of 2012’s
+      hours inside the forest’s 90% range</p><p>Learned on 2011. In 2012 the riders rose from 144 to 235 an hour, so 2012 was not
+      drawn like 2011: the promise needs that (Meeting 14’s exchangeability).</p></div>
+  </div>
+  <p class="note">The same rule runs through all three, and through today: a number tells you about new cases only if it
+  was measured on cases the model did not learn from, drawn the way the new ones will be.</p>
+</section>
+
+<!-- ============================ TODAY'S TOPIC ============================ -->
+<section class="topic" aria-labelledby="topic">
+  <h2 id="topic" data-toc="Today: Boosting"><span class="part">Today’s topic</span>Boosting</h2>
+  <p class="topic-q">Can trees that fix each other’s mistakes beat trees that vote?</p>
+  <ol class="topic-parts" aria-label="Today in three parts">
+    <li><a href="#p1"><b>Part 1</b>The idea on thirty made-up patients</a></li>
+    <li><a href="#p2"><b>Part 2</b>The same steps on the readmission data</a></li>
+    <li><a href="#studio"><b>Part 3</b>Your studio</a></li>
+  </ol>
+</section>
+
+<!-- ============================ PART 1 ============================ -->
+<section class="col" aria-labelledby="p1">
+  <h2 id="p1" data-toc="Part 1 · Made-up patients"><span class="part">Part 1 · the idea, small</span>Thirty made-up patients</h2>
+  <p>Each patient has one column, a <strong>severity score</strong> recorded at admission, from 0 to 10, and one number
+  to predict: <strong>days in the hospital</strong>. A tree that predicts a number works as in Meeting 15: each leaf
+  predicts the average of its patients. Here every tree is a <strong>stump</strong>, a tree with a single question.</p>
+
+  <h3 id="s1"><span class="step">Step 1</span>Start with the average</h3>
+  <p>Before any tree, predict the same number for everyone: the average of the 30, <span class="num" id="s1-mean"></span>
+  days. What is still wrong for each patient is the <strong>residual</strong>, the actual days minus the prediction.
+  The average squared residual is the training error, the MSE: <span class="num" id="s1-mse"></span>.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="legend" aria-hidden="true">
+    <span><i class="dotsw"></i>a patient</span>
+    <span><i class="sw model"></i>the prediction: the average</span>
+    <span><i class="sw" style="border-color:var(--back);border-top-width:2px"></i>a residual</span>
+  </div>
+  <div id="s1-plot" class="plotbox"></div>
+  <figcaption id="s1-cap">The 30 patients, severity across and days up. The line is the prediction for everyone; each
+  red stick is one patient’s residual.</figcaption>
+</figure>
+
+<section class="col">
+  <h3 id="s2"><span class="step">Step 2</span>Fit a small tree to what is still wrong</h3>
+  <p>Grow a stump on the <strong>residuals</strong>, not on the days. It finds the one cut that best separates the
+  patients the model under-predicts from those it over-predicts, and says one number for each side: the average
+  residual there. Add a fraction of it to the model (the <strong>learning rate</strong>), compute the new residuals,
+  and repeat. Each round, the right panel shows what is still wrong and the stump fitted to it; adding the stump moves
+  the model on the left.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="controls">
+    <div class="row">
+      <span class="label" id="r-lr-label">Learning rate</span>
+      <div class="seg" role="group" aria-labelledby="r-lr-label" id="r-lr"></div>
+    </div>
+    <div class="row">
+      <button type="button" class="btn primary" id="r-next">Add this stump</button>
+      <button type="button" class="btn" id="r-back">Back one round</button>
+      <button type="button" class="btn" id="r-reset">Start over</button>
+    </div>
+  </div>
+  <div class="duo">
+    <div>
+      <p class="label" style="margin:0 0 6px" id="r-left-title">The model so far</p>
+      <div class="legend" aria-hidden="true"><span><i class="dotsw"></i>a patient</span><span><i class="sw model"></i>the model</span></div>
+      <div id="r-model" class="plotbox"></div>
+    </div>
+    <div>
+      <p class="label" style="margin:0 0 6px">What is still wrong, and the next stump</p>
+      <div class="legend" aria-hidden="true"><span><i class="dotsw res"></i>a residual</span><span><i class="sw stump"></i>the stump fitted to them</span></div>
+      <div id="r-resid" class="plotbox"></div>
+    </div>
+  </div>
+  <p id="r-say" class="calc" aria-live="polite"></p>
+  <figcaption>With a learning rate of 1 the model takes the stump’s full step; with 0.1 it takes a tenth of it, so each
+  round changes the model a little and the residuals shrink slowly.</figcaption>
+</figure>
+
+<section class="col">
+  <h3 id="s3"><span class="step">Step 3</span>What the model is: one number and a list of stumps</h3>
+  <p>The fitted model does not keep the 30 patients. It keeps a <strong>starting value</strong>, the average, and for
+  each round <strong>one stump</strong>: its question and the two numbers it can say, the average residual on each
+  side. To predict for a new patient, start at the average and add the learning rate times what each stump says for
+  that patient. Earlier stumps never change: each round adds one more line to the list.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="controls">
+    <div class="row">
+      <span class="label" id="l-lr-label">Learning rate</span>
+      <div class="seg" role="group" aria-labelledby="l-lr-label" id="l-lr"></div>
+      <span class="label" id="l-R-label">Rounds</span>
+      <div class="seg" role="group" aria-labelledby="l-R-label" id="l-R"></div>
+    </div>
+    <label for="l-x">A new patient’s severity score: <span id="l-x-out" class="num"></span></label>
+    <input id="l-x" type="range" min="0" max="10" step="0.1" value="8">
+  </div>
+  <div class="split">
+    <div>
+      <p class="label" style="margin:0 0 6px">The stored model, and what each line adds for this patient</p>
+      <div class="ledger" tabindex="0" role="region" aria-label="The stored model, one line per round">
+        <table id="l-table">
+          <caption class="sr">The stored model: the starting value, then each stump’s question and the two numbers it
+          can say. The number this patient gets is marked.</caption>
+          <thead><tr><th scope="col">round</th><th scope="col">the stump asks</th><th scope="col" class="n">if no</th>
+            <th scope="col" class="n">if yes</th><th scope="col" class="n">× rate</th><th scope="col" class="n">prediction</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <p class="label" style="margin:0 0 6px">This patient’s prediction, round by round</p>
+      <div id="l-chart" class="plotbox"></div>
+    </div>
+  </div>
+  <p id="l-say" class="calc" aria-live="polite"></p>
+  <figcaption>Each row is one stored stump: its question and the two numbers it can say. The marked number (▸) is the
+  one this patient gets; times the learning rate, it is added to the prediction. Move the slider: the stored model does
+  not change, only which side of each question the patient lands on.</figcaption>
+</figure>
+
+<section class="col">
+  <h3 id="s4"><span class="step">Step 4</span>Keep going: when does it stop helping?</h3>
+  <p>Every round lowers the training error, and nothing in the method ever stops it. After enough rounds the stumps are
+  chasing single patients’ luck. To see when that starts, the page also makes up <strong>200 new patients</strong>
+  the same way and never fits on them. Their error is the honest one.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="controls">
+    <div class="row">
+      <span class="label" id="t-lr-label">Learning rate</span>
+      <div class="seg" role="group" aria-labelledby="t-lr-label" id="t-lr"></div>
+    </div>
+    <label for="t-k">Rounds: <span id="t-k-out" class="num"></span></label>
+    <input id="t-k" type="range" min="0" max="13" step="1" value="7">
+  </div>
+  <div class="split">
+    <div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="dotsw"></i>a training patient</span><span><i class="sw model"></i>the model</span>
+        <span><i class="sw truth"></i>the rule the data were made from</span>
+      </div>
+      <div id="t-model" class="plotbox"></div>
+    </div>
+    <div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="sw train"></i>training patients</span><span><i class="sw new"></i>new patients</span>
+      </div>
+      <div id="t-err" class="plotbox"></div>
+    </div>
+  </div>
+  <p id="t-say" class="calc" aria-live="polite"></p>
+  <figcaption>Right: the error (MSE) after each round, rounds on a log scale. The dashed floor is the noise in the new
+  patients: their error if the model knew the rule exactly. The open circle marks the round where the new patients’
+  error is lowest.</figcaption>
+</figure>
+
+<section class="col">
+  <h3 id="s5"><span class="step">Step 5</span>Two settings that act as one</h3>
+  <p>Each learning rate has its own best round. A smaller rate takes smaller steps, so it needs more rounds to get to the
+  same place, and the product of the two stays about the same:</p>
+  <div class="scroll">
+  <table id="lr-table">
+    <caption>The best round for each learning rate, on the 200 new patients</caption>
+    <thead><tr><th scope="col">learning rate</th><th scope="col" class="n">best round</th><th scope="col" class="n">rate × round</th>
+      <th scope="col" class="n">new-patient MSE there</th><th scope="col" class="n">after 1,000 rounds</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+  <p id="s4-say"></p>
+  <p>Two lessons follow. <strong>The learning rate and the number of rounds act as one setting</strong>: pick a small
+  rate, then choose the rounds for it on data the model was not fitted on. And <strong>the number of rounds is a
+  brake, not a capacity dial</strong>. A forest never gets worse with more trees, because it averages them; boosting
+  does, because every round fits the training data a little more closely.</p>
+
+  <h3 id="s6"><span class="step">Step 6</span>Why it is called gradient boosting</h3>
+  <div class="box-note">
+  <p>Write the loss for one patient as ½(<em>y</em> − <em>F</em>)², where <em>F</em> is the model’s current prediction.
+  Its slope with respect to <em>F</em> is −(<em>y</em> − <em>F</em>). So the residual <em>y</em> − <em>F</em> is the
+  <strong>negative gradient</strong>: for each patient, the direction that lowers the loss fastest. Each round fits a
+  tree to that direction and takes a small step along it. It is gradient descent, one tree at a time.</p>
+  <p>Change the loss and the recipe still works. For a yes/no outcome, boosting builds up the <strong>log-odds</strong>
+  and uses the log loss, whose negative gradient is <em>y</em> − <em>p</em>: the outcome (1 for came back, 0 for not)
+  minus the predicted chance. That is what every tree in Part 2 is fitted to. So even when the task is
+  classification, each tree is a <strong>regression tree</strong>: what it fits, <em>y</em> − <em>p</em>, is a
+  number, not a yes or no.</p>
+  <details><summary>One detail scikit-learn adds for yes/no outcomes</summary>
+  <p>After a tree is grown on <em>y</em> − <em>p</em>, each leaf’s value is not the plain average of its residuals. It
+  is one Newton step on the log loss: the sum of <em>y</em> − <em>p</em> in the leaf divided by the sum of
+  <em>p</em>(1 − <em>p</em>). The idea is the same; the step is better sized.</p></details>
+  </div>
+</section>
+
+<!-- ============================ PART 2 ============================ -->
+<section class="col" aria-labelledby="p2">
+  <h2 id="p2" data-toc="Part 2 · The real data"><span class="part">Part 2 · the real data</span>The same steps on the readmission data</h2>
+  <p>Meeting 16’s training sample: 15,000 patients and their 21,352 stays. To choose the number of rounds, hold out a
+  fifth of the <strong>patients</strong>, all of their stays together (3,000 patients, 4,263 stays, 517 of them
+  readmitted), and fit on the rest (17,089 stays). Each tree asks up to three questions in a row
+  (<code>max_depth=3</code>), for up to 1,000 rounds, at three learning rates. The score is the AUC.</p>
+</section>
+
+<figure class="wide panel">
+  <div class="controls">
+    <div class="row">
+      <span class="label" id="g-lr-label">Learning rate</span>
+      <div class="seg" role="group" aria-labelledby="g-lr-label" id="g-lr"></div>
+    </div>
+  </div>
+  <div class="duo">
+    <div>
+      <p class="label" style="margin:0 0 6px">Held-out patients, all three learning rates</p>
+      <div class="legend" aria-hidden="true"><span><i class="sw new"></i>the chosen rate</span><span><i class="sw other"></i>the others</span></div>
+      <div id="g-val" class="plotbox"></div>
+    </div>
+    <div>
+      <p class="label" style="margin:0 0 6px" id="g-tv-title">Training against held-out, one rate</p>
+      <div class="legend" aria-hidden="true"><span><i class="sw train"></i>training stays</span><span><i class="sw new"></i>held-out patients</span></div>
+      <div id="g-tv" class="plotbox"></div>
+    </div>
+  </div>
+  <p id="g-say" class="calc" aria-live="polite"></p>
+  <figcaption>AUC after round 1, 2, 3, 5, 10, … 1,000, rounds on a log scale. Left: the held-out patients only, on a
+  narrow scale; the open circle is each rate’s best round. Right: the same held-out curve beside the training stays, on
+  a wide scale.</figcaption>
+</figure>
+
+<section class="col">
+  <div class="stats" role="list" aria-label="The best round at each learning rate">
+    <div role="listitem"><b>18</b><span>rounds at a learning rate of 0.3 (rate × round 5.4)</span></div>
+    <div role="listitem"><b>34</b><span>rounds at 0.1 (rate × round 3.4)</span></div>
+    <div role="listitem"><b>112</b><span>rounds at 0.03 (rate × round 3.4)</span></div>
+    <div role="listitem"><b>0.668</b><span>the best held-out AUC, at 0.03; the other two 0.667</span></div>
+  </div>
+  <p>The same three patterns as the made-up patients. Training AUC climbs as long as the rounds continue, to 0.94 after
+  1,000 rounds at 0.3, while the held-out patients fall to 0.586: the trees are fitting single stays. The best rounds
+  shrink as the rate grows, and for the two smaller rates the product is the same. And the three best scores are nearly
+  equal, so the rate mostly changes how many rounds you need.</p>
+  <p>One caution about “best.” The held-out curve at 0.1 is nearly flat from round 20 to round 150 (0.659 to 0.667).
+  Hold out a different fifth of the patients and the best round moves: in five other draws it was 25, 38, 65, 68 and
+  200 rounds, and the best held-out AUC itself ranged from 0.641 to 0.680, a bigger swing than the gap between any two
+  of those rounds. The best round is a reasonable choice, not a precise one.</p>
+
+  <h3 id="inside">Inside one real prediction</h3>
+  <p>The chosen model is 34 trees, each asking up to three questions in a row, so each has 8 leaves. It stores one
+  starting number, the readmission rate among the training stays (11.6%) written as log-odds, <span class="num">−2.03</span>;
+  and for each tree, its questions and its 8 leaf values. Each leaf value is a correction to the log-odds, fitted to
+  <em>y</em> − <em>p</em> (Step 6). Here is tree 1:</p>
+  <figure class="panel">
+  <ul class="tree-list" aria-label="Tree 1 of 34, its questions and leaf values">
+  <li class="on"><span class="q">Prior stays more than 1?</span> <span class="cnt">(all 21,352 stays)</span>
+    <ul>
+      <li><span class="ans">no</span><span class="q">Discharged to a rehab facility (code 22)?</span> <span class="cnt">(18,353)</span>
+        <ul>
+          <li><span class="ans">no</span><span class="q">Discharged home (code 1)?</span> <span class="cnt">(17,989)</span>
+            <ul><li><span class="ans">no</span><span class="leaf">leaf: +0.10</span> <span class="cnt">(6,725 stays)</span></li><li><span class="ans">yes</span><span class="leaf">leaf: −0.40</span> <span class="cnt">(11,264 stays)</span></li></ul></li>
+          <li><span class="ans">yes</span><span class="q">Days in the hospital more than 1?</span> <span class="cnt">(364)</span>
+            <ul><li><span class="ans">no</span><span class="leaf">leaf: +8.64</span> <span class="cnt">(3 stays)</span></li><li><span class="ans">yes</span><span class="leaf">leaf: +1.79</span> <span class="cnt">(361 stays)</span></li></ul></li>
+        </ul></li>
+      <li class="on"><span class="ans">yes</span><span class="q">Prior stays more than 3?</span> <span class="cnt">(2,999)</span>
+        <ul>
+          <li><span class="ans">no</span><span class="q">On no diabetes medication?</span> <span class="cnt">(2,262)</span>
+            <ul><li><span class="ans">no</span><span class="leaf">leaf: +0.61</span> <span class="cnt">(1,804 stays)</span></li><li><span class="ans">yes</span><span class="leaf">leaf: +1.13</span> <span class="cnt">(458 stays)</span></li></ul></li>
+          <li class="on"><span class="ans">yes</span><span class="q">Prior stays more than 10?</span> <span class="cnt">(737)</span>
+            <ul><li class="on"><span class="ans">no</span><span class="leaf">leaf: +1.99</span> <span class="cnt">(708 stays)</span> <strong class="here">← this stay</strong></li><li><span class="ans">yes</span><span class="leaf">leaf: +5.94</span> <span class="cnt">(29 stays)</span></li></ul></li>
+        </ul></li>
+    </ul></li>
+</ul>
+  <figcaption>Tree 1 of 34. Each question splits the stays in two; each leaf holds a correction to the log-odds,
+  before the learning rate, and the number of training stays that land there. A tiny leaf can hold a big correction
+  (+8.64 from 3 stays), one reason the learning rate shrinks every tree. The path marked in bold is the stay followed
+  below.</figcaption>
+  </figure>
+
+  <p>Now follow one test stay: <strong>6 prior stays</strong>, 1 emergency visit, 11 days in the hospital, discharged to
+  a skilled nursing facility, aged 70–80. (It is the first stay in the test set with at least 3 prior stays; it did not
+  come back.) Tree 1 sends it down the marked path to a leaf of +1.99, so it adds 0.1 × 1.99 = +0.20 to the
+  log-odds. Every other tree does the same with its own questions:</p>
+</section>
+
+<figure class="wide panel">
+  <div class="split">
+    <div>
+      <p class="label" style="margin:0 0 6px">This stay’s predicted chance, tree by tree</p>
+      <div id="in-chart" class="plotbox"></div>
+    </div>
+    <div>
+      <table>
+        <caption>What each tree adds to this stay’s log-odds (learning rate × its leaf)</caption>
+        <thead><tr><th scope="col">from</th><th scope="col" class="n">adds</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">the start: 11.6% as log-odds</th><td class="n">−2.033</td></tr>
+          <tr><th scope="row">tree 1</th><td class="n">+0.199</td></tr><tr><th scope="row">tree 2</th><td class="n">+0.153</td></tr><tr><th scope="row">tree 3</th><td class="n">+0.108</td></tr><tr><th scope="row">tree 4</th><td class="n">+0.090</td></tr><tr><th scope="row">tree 5</th><td class="n">+0.098</td></tr>
+          <tr><th scope="row">trees 6–34 together</th><td class="n">+0.587</td></tr>
+          <tr class="tot"><th scope="row">total log-odds</th><td class="n">−0.797</td></tr>
+          <tr class="tot"><th scope="row">as a chance: 1 / (1 + e<sup>0.797</sup>)</th><td class="n">0.311</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <figcaption>The first five trees add +0.65 of the +1.24 in all: each tree corrects what the earlier ones
+  left, so later trees add less. The sum, turned back into a chance, is exactly what <code>predict_proba</code> gives
+  for this stay: 31.1%, against 11.6% for a stay the model knows nothing about.</figcaption>
+</figure>
+
+<section class="col">
+  <h3 id="test">One score on the test patients</h3>
+  <p>Refit at the chosen setting, a learning rate of 0.1 for 34 rounds, on all 21,352 training stays, and score the
+  24,706 test stays once:</p>
+  <div class="scroll">
+  <table>
+    <caption>Three models fit on Meeting 16’s 15,000 training patients, scored on the same test stays</caption>
+    <thead><tr><th scope="col">model</th><th scope="col" class="n">test AUC</th><th scope="col" class="n">Brier score</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">boosting: 34 rounds, learning rate 0.1, depth 3</th><td class="n">0.647</td><td class="n">0.0953</td></tr>
+      <tr><th scope="row">random forest (Meeting 16)</th><td class="n">0.651</td><td class="n">0.0952</td></tr>
+      <tr><th scope="row">logistic regression</th><td class="n">0.649</td><td class="n">0.0955</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>On these patients boosting does not clearly beat the other two: the three rank patients about equally well and their
+  probabilities score about the same. Boosting is often the strongest method on tables of data, and here it ties. When
+  scores are this close, Thursday’s bake-off asks what “better” should mean.</p>
+
+  <h3 id="code">See it in Scikit-Learn</h3>
+  <p>The model in Part 2, with every setting this page has been about. <code>make_pipe</code> is the notebook’s
+  preprocessing (fill and scale the counts, one-hot the categories) with the model at the end.</p>
+<pre><code>from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import GroupShuffleSplit
+
+# Hold out a fifth of the training PATIENTS (all their stays) to choose the rounds.
+fit_i, val_i = next(GroupShuffleSplit(1, test_size=0.2, random_state=17)
+                    .split(X_fit, y_fit, groups=groups_fit))
+
+boost = make_pipe(GradientBoostingClassifier(
+    n_estimators=1000,   # Step 4: the most rounds to try
+    learning_rate=0.1,   # Step 5: how much of each tree to add
+    max_depth=3,         # questions in a row per tree (Part 1's stumps: 1)
+    random_state=0,
+)).fit(X_fit.iloc[fit_i], y_fit[fit_i])
+
+# staged_predict_proba: the predictions after round 1, 2, ..., 1000, from ONE fit.
+Z_val = boost[:-1].transform(X_fit.iloc[val_i])     # the preprocessing alone
+val_auc = [roc_auc_score(y_fit[val_i], p[:, 1])
+           for p in boost["model"].staged_predict_proba(Z_val)]
+best = int(np.argmax(val_auc)) + 1                    # 34
+
+final = make_pipe(GradientBoostingClassifier(
+    n_estimators=best, learning_rate=0.1, max_depth=3, random_state=0,
+)).fit(X_fit, y_fit)
+p_test = final.predict_proba(X_test)[:, 1]
+print(roc_auc_score(y_test, p_test))                  # 0.647, scored once
+print(type(final["model"].estimators_[0, 0]).__name__)  # DecisionTreeRegressor, even for yes/no
+
+# What the model stores, and how one prediction adds up ("Inside one real prediction").
+z = final["prep"].transform(X_test.iloc[[43]])        # the stay followed above, preprocessed
+start = np.log(y_fit.mean() / (1 - y_fit.mean()))     # -2.03: the readmission rate as log-odds
+steps = [0.1 * tree[0].predict(z)[0] for tree in final["model"].estimators_]   # 34 corrections
+print(1 / (1 + np.exp(-(start + sum(steps)))))        # 0.311, what final.predict_proba gives</code></pre>
+
+  <div class="scroll">
+  <table>
+    <caption>The commands, and what each one gives you</caption>
+    <thead><tr><th scope="col">command</th><th scope="col">what it does</th><th scope="col">on this page</th></tr></thead>
+    <tbody>
+      <tr><th scope="row"><code>GradientBoostingClassifier</code>,<br><code>GradientBoostingRegressor</code></th><td>The model.
+        The classifier is for yes/no outcomes (it adds up log-odds; each tree fits <em>y</em> − <em>p</em>); the regressor
+        is for numbers (it adds up predictions; each tree fits the residuals).</td><td>Part 2; Part 1</td></tr>
+      <tr><th scope="row"><code>.fit(X, y)</code></th><td>Grows the trees one round at a time, in order; each tree fits
+        what the ones before it left.</td><td>Step 2</td></tr>
+      <tr><th scope="row"><code>.predict_proba(X)[:, 1]</code></th><td>The starting value plus every tree’s correction,
+        turned into a chance.</td><td>Inside one real prediction</td></tr>
+      <tr><th scope="row"><code>.staged_predict_proba(X)</code></th><td>The same after round 1, 2, 3, … from one fit:
+        how to find the best round without refitting.</td><td>Step 4, Part 2’s curves</td></tr>
+      <tr><th scope="row"><code>.estimators_</code></th><td>The stored trees, one row per round; each is a
+        <code>DecisionTreeRegressor</code>.</td><td>Step 3, tree 1</td></tr>
+      <tr><th scope="row"><code>.n_estimators_</code></th><td>How many rounds were actually fitted: fewer than
+        <code>n_estimators</code> when early stopping stops it.</td><td>early stopping, below</td></tr>
+      <tr><th scope="row"><code>.feature_importances_</code></th><td>Impurity importance, summed over all the trees. It
+        is measured on the training rows, with the same caution as Meeting 16’s forest: it says what the model split on,
+        not what helps with new patients.</td><td>Connecting the dots, question 3</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="scroll">
+  <table>
+    <caption>The settings that matter in boosting</caption>
+    <thead><tr><th scope="col">setting</th><th scope="col">what it controls</th><th scope="col">on this page</th></tr></thead>
+    <tbody>
+      <tr><th scope="row"><code>n_estimators</code></th><td>How many rounds, so how many trees. Too many overfit: choose it on held-out data.</td><td>Step 4</td></tr>
+      <tr><th scope="row"><code>learning_rate</code></th><td>How much of each tree is added. Smaller needs more rounds; the two act as one setting.</td><td>Step 5</td></tr>
+      <tr><th scope="row"><code>max_depth</code></th><td>How many questions each tree asks in a row. Boosting uses small trees, often 1 to 6 deep.</td><td>Part 1 uses 1; Part 2 uses 3; the studio compares</td></tr>
+      <tr><th scope="row"><code>subsample</code></th><td>The share of rows each round sees (default 1.0). Below 1, each tree
+        fits a random part of the data: Meeting 16’s random rows, inside boosting (called stochastic gradient
+        boosting).</td><td>studio question 3</td></tr>
+      <tr><th scope="row"><code>max_features</code></th><td>How many columns each split may consider (default: all).
+        <code>"sqrt"</code> is Meeting 16’s random forest trick, inside boosting.</td><td>studio question 3</td></tr>
+      <tr><th scope="row"><code>init</code></th><td>Where the sum starts (default: the average, as log-odds for a
+        classifier). Another fitted model can be the start, a forest for example; the trees then correct its
+        mistakes.</td><td>Step 1</td></tr>
+      <tr><th scope="row"><code>n_iter_no_change</code>, <code>validation_fraction</code></th><td>Built-in early stopping: hold out a share of the rows and stop when the loss there stops improving.
+        It holds out random rows, not whole patients, so stays from one patient can sit on both sides.</td><td>Part 2’s held-out patients</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><code>HistGradientBoostingClassifier</code> is the fast version used in practice: it sorts each column into at
+  most 255 bins before searching for cuts. Most settings carry over, a few under other names:</p>
+  <div class="scroll">
+  <table>
+    <caption>From <code>GradientBoostingClassifier</code> to <code>HistGradientBoostingClassifier</code></caption>
+    <thead><tr><th scope="col">GradientBoosting…</th><th scope="col">HistGradientBoosting…</th><th scope="col">what changes</th></tr></thead>
+    <tbody>
+      <tr><th scope="row"><code>n_estimators</code></th><td><code>max_iter</code></td><td>The number of rounds (default 100).</td></tr>
+      <tr><th scope="row"><code>max_depth=3</code></th><td><code>max_leaf_nodes=31</code>, <code>max_depth=None</code></td>
+        <td>Trees are limited by their number of leaves rather than their depth.</td></tr>
+      <tr><th scope="row"><code>n_iter_no_change</code></th><td><code>early_stopping="auto"</code></td><td>Early stopping
+        turns itself on above 10,000 rows, holding out 10% of the rows at random. Set <code>early_stopping=False</code>
+        to choose the rounds yourself, on held-out patients.</td></tr>
+      <tr><th scope="row"><code>subsample</code></th><td>none</td><td>No random rows per round.</td></tr>
+      <tr><th scope="row"><code>max_features</code></th><td><code>max_features</code> (a share, default 1.0)</td>
+        <td>Random columns per split, as a fraction: <code>0.3</code> means 30% of them.</td></tr>
+      <tr><th scope="row">one-hot the categories first</th><td><code>categorical_features="from_dtype"</code></td>
+        <td>Columns stored as pandas categories are split as categories directly, no one-hot needed.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Boosting is older than the gradient version. The first method, AdaBoost (<code>AdaBoostClassifier</code>),
+  was built for classification: instead of fitting residuals, each round reweights the cases the last learner got
+  wrong, so the next one concentrates on them. It can boost any simple learner, though stumps are the usual choice.
+  Gradient boosting replaced it in practice because one recipe covers any loss.</p>
+
+  <!-- ============================ PART 3 ============================ -->
+  <h2 id="studio" data-toc="Part 3 · Your studio"><span class="part">Part 3 · your turn</span>Your studio</h2>
+  <p>The studio is at the bottom of the Meeting 17 notebook, and each question lists its steps. All three questions
+  count; whatever you do not finish in class, finish before the deadline.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th scope="col">question</th><th scope="col">what you do</th><th scope="col">this page’s help</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · about 15 min</th><td>Tree depth: at a learning rate of 0.1, boost stumps, trees 3 deep and trees
+        6 deep, and find each one’s best round and held-out AUC.</td><td>Steps 4–5, and Part 2’s split</td></tr>
+      <tr><th scope="row">2 · about 15 min</th><td>Too many rounds: one model of 1,000 rounds on all the training stays;
+        its test AUC and calibration slope after 34, 100, 300 and 1,000 rounds.</td><td>Step 4, and the caution about
+        “best”</td></tr>
+      <tr><th scope="row">3 · about 15 min</th><td>The forest’s tricks inside boosting: <code>subsample=0.5</code> (random
+        rows) and <code>max_features="sqrt"</code> (random columns), alone and together. Each one’s best round, its
+        held-out AUC there, and how fast it overfits.</td><td>Meeting 16, and the settings table</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>The tools the studio uses</h3>
+  <ul>
+    <li><strong><code>staged_auc(model, rows, outcome)</code></strong> takes a fitted boosting pipeline and gives its AUC
+    after round 1, 2, 3, … from one fit. The best round is <code>np.argmax(...) + 1</code>.</li>
+    <li><strong>The held-out patients</strong> are <code>X_fit.iloc[val_i]</code> with <code>y_fit[val_i]</code>; fit on
+    <code>X_fit.iloc[fit_i]</code> with <code>y_fit[fit_i]</code>. Both made in the notebook’s setup.</li>
+    <li><strong><code>scores(probs)</code></strong> gives a model’s AUC, Brier score, average predicted chance and
+    calibration slope on the test patients.</li>
+  </ul>
+
+  <h3>Stuck?</h3>
+  <div class="scroll">
+  <table>
+    <thead><tr><th scope="col">you see</th><th scope="col">what to do</th></tr></thead>
+    <tbody>
+      <tr><td><code>NameError</code> for <code>staged_auc</code>, <code>fit_i</code> or <code>scores</code></td><td>Run the notebook from the top (Run All).</td></tr>
+      <tr><td>A held-out AUC near 0.8 or 0.9</td><td>You scored the stays the model was fitted on. Score <code>X_fit.iloc[val_i]</code> against <code>y_fit[val_i]</code>.</td></tr>
+      <tr><td>The best round is 600 or 1,000</td><td>That is the last round, not the best: take <code>np.argmax</code> of the held-out curve, plus 1.</td></tr>
+      <tr><td>Question 2 runs slowly</td><td>One fit of 1,000 rounds, then <code>staged_predict_proba</code> on the test stays: about 30 seconds. Do not refit for each round.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Write your guess before each question and keep it, answer each question’s sentence, and answer the
+  exit ticket. Upload the notebook to Canvas under “Studio notebook — Day 17” by <strong>Wednesday, November 4,
+  3:40 pm</strong>.</p>
+
+  <h2 id="next" data-toc="Next"><span class="part">After class</span>Next: the bake-off</h2>
+  <p>On Thursday the methods meet on the same patients: boosting, the forest, logistic regression, and a foundation
+  model that needs no tuning. They are judged on six things, not one score.</p>
+
+  <p class="foot">Part 1’s patients are made up, and every boosted model in Part 1 is fitted in your browser from fixed
+  random seeds, so the numbers are the same each time you open the page. Part 2’s numbers come from the Meeting 17
+  notebook: the Diabetes 130-US Hospitals data (UCI), split by patient as in Meeting 9, with Meeting 16’s sample of
+  15,000 training patients.</p>
+</section>
+</main>
+</div>
+<script>
+(() => {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; };
+  const $ = (id) => document.getElementById(id);
+  // A number with a real minus sign, and a plus sign when asked.
+  const fmt = (v, d = 2, plus = false) => {
+    const s = Math.abs(v).toFixed(d), zero = Number(s) === 0;
+    return (v < 0 && !zero ? "−" : plus && !zero ? "+" : "") + s;
+  };
+  const comma = (n) => n.toLocaleString("en-US");
+
+  // CORE START ------------------------------------------------------------------------------
+  // A small seeded random-number generator, so every visitor sees the same patients and models.
+  function mulberry32(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  // The rule the made-up data come from: three plateaus of days, plus noise.
+  const truth = (x) => (x < 3 ? 3 : x < 6.5 ? 6 : 10);
+  function make(seed, n, sd) {
+    const r = mulberry32(seed), out = [];
+    for (let i = 0; i < n; i++) {
+      const x = Math.round(r() * 100) / 10, u1 = Math.max(r(), 1e-12), u2 = r();
+      const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      out.push([x, Math.max(0.5, Math.round((truth(x) + sd * z) * 10) / 10)]);
+    }
+    return out.sort((a, b) => a[0] - b[0]);
+  }
+  const TRAIN = make(44, 30, 1.5), NEW = make(1044, 200, 1.5);
+  const XS = TRAIN.map((d) => d[0]), YS = TRAIN.map((d) => d[1]);
+  const U = [...new Set(XS)];                                    // distinct scores, sorted
+  const MIDS = U.slice(0, -1).map((u, j) => (u + U[j + 1]) / 2); // every cut a stump can make
+  const seg = (x) => { let s = 0; while (s < MIDS.length && MIDS[s] < x) s++; return s; };
+  const SEG_TRAIN = XS.map(seg), SEG_NEW = NEW.map((d) => seg(d[0]));
+  const FLOOR = NEW.reduce((s, d) => s + (d[1] - truth(d[0])) ** 2, 0) / NEW.length;
+
+  // The best single cut on the residuals r: the one that maximizes n_left*mean_left^2 + n_right*mean_right^2,
+  // which is the same as the smallest weighted squared error of the two sides.
+  function stump(r) {
+    let best = null, sl = 0, nl = 0;
+    const n = XS.length, tot = r.reduce((a, b) => a + b, 0);
+    for (let j = 0; j < n - 1; j++) {
+      sl += r[j]; nl++;
+      if (XS[j] === XS[j + 1]) continue;
+      const ml = sl / nl, mr = (tot - sl) / (n - nl), gain = nl * ml * ml + (n - nl) * mr * mr;
+      if (!best || gain > best.gain + 1e-12) best = { cut: (XS[j] + XS[j + 1]) / 2, ml, mr, gain };
+    }
+    return best;
+  }
+
+  // Boost stumps for R rounds at learning rate lr. V[k] holds the model's prediction on each stretch of scores
+  // between two cuts after k rounds, so the model can be drawn at any round.
+  function boost(lr, R) {
+    const n = XS.length, f0 = YS.reduce((a, b) => a + b, 0) / n;
+    const F = XS.map(() => f0), G = NEW.map(() => f0);
+    let v = U.map(() => f0);
+    const V = [v.slice()], stumps = [], trE = [], teE = [];
+    const mse = (pred, ys) => pred.reduce((s, p, i) => s + (ys[i] - p) ** 2, 0) / pred.length;
+    const NY = NEW.map((d) => d[1]);
+    trE.push(mse(F, YS)); teE.push(mse(G, NY));
+    for (let k = 1; k <= R; k++) {
+      const s = stump(YS.map((y, i) => y - F[i]));
+      stumps.push(s);
+      for (let i = 0; i < n; i++) F[i] += lr * (XS[i] <= s.cut ? s.ml : s.mr);
+      for (let i = 0; i < G.length; i++) G[i] += lr * (NEW[i][0] <= s.cut ? s.ml : s.mr);
+      v = v.map((val, j) => val + lr * (U[j] <= s.cut ? s.ml : s.mr));
+      V.push(v.slice());
+      trE.push(mse(F, YS)); teE.push(mse(G, NY));
+    }
+    const best = teE.indexOf(Math.min(...teE.slice(1)));
+    return { lr, f0, stumps, V, trE, teE, best };
+  }
+  const RATES = [1, 0.3, 0.1, 0.03];
+  const RUNS = Object.fromEntries(RATES.map((lr) => [lr, boost(lr, 1000)]));
+  // CORE END --------------------------------------------------------------------------------
+
+  // Plot geometry shared by the made-up-patient panels: severity 0-10 across.
+  function frame(host, { W = 480, H = 300, yLo, yHi, yTicks, yLabel, xLabel = "severity score", label, xLog = false, left = 50 }) {
+    host.innerHTML = "";
+    const m = { l: left, r: xLog ? 26 : 14, t: 12, b: 42 };
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: "img", "aria-label": label }, host);
+    const sx = xLog ? (k) => m.l + (Math.log10(k) / 3) * (W - m.l - m.r) : (x) => m.l + (x / 10) * (W - m.l - m.r);
+    const sy = (y) => m.t + (1 - (y - yLo) / (yHi - yLo)) * (H - m.t - m.b);
+    for (const y of yTicks) {
+      el("line", { x1: m.l, x2: W - m.r, y1: sy(y), y2: sy(y), class: "gridline" }, svg);
+      txt(svg, m.l - 8, sy(y) + 4, String(y), { "text-anchor": "end", "font-size": 12, class: "muted mono" });
+    }
+    const xTicks = xLog ? [1, 3, 10, 30, 100, 300, 1000] : [0, 2, 4, 6, 8, 10];
+    for (const x of xTicks) txt(svg, sx(x), H - m.b + 18, xLog ? comma(x) : String(x), { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+    el("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, class: "axis" }, svg);
+    el("line", { x1: m.l, x2: m.l, y1: m.t, y2: H - m.b, class: "axis" }, svg);
+    txt(svg, (m.l + W - m.r) / 2, H - 6, xLabel, { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    const yl = txt(svg, 14, (m.t + H - m.b) / 2, yLabel, { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    yl.setAttribute("transform", `rotate(-90 14 ${(m.t + H - m.b) / 2})`);
+    return { svg, sx, sy, m, W, H };
+  }
+  // A model is one value per stretch of scores; draw it as flat steps.
+  function stepPath(f, v) {
+    let d = `M${f.sx(0)},${f.sy(v[0])}`;
+    for (let j = 0; j < MIDS.length; j++) d += ` H${f.sx(MIDS[j])} V${f.sy(v[j + 1])}`;
+    return d + ` H${f.sx(10)}`;
+  }
+  const truthPath = (f) => `M${f.sx(0)},${f.sy(3)} H${f.sx(3)} V${f.sy(6)} H${f.sx(6.5)} V${f.sy(10)} H${f.sx(10)}`;
+  const dots = (f, pts, cls, r = 4.2) => pts.forEach(([x, y]) => el("circle", { cx: f.sx(x), cy: f.sy(y), r, class: cls }, f.svg));
+  const DAYS = { yLo: 0, yHi: 14, yTicks: [0, 2, 4, 6, 8, 10, 12, 14], yLabel: "days in the hospital" };
+
+  // ---------- Step 1: the average, and every residual ----------
+  (function stepOne() {
+    const f0 = RUNS[1].f0;
+    $("s1-mean").textContent = f0.toFixed(2);
+    $("s1-mse").textContent = RUNS[1].trE[0].toFixed(2);
+    const hi = TRAIN.reduce((a, d) => (d[1] > a[1] ? d : a)), lo = TRAIN.reduce((a, d) => (d[1] < a[1] ? d : a));
+    const f = frame($("s1-plot"), { ...DAYS, W: 760, H: 320,
+      label: `The 30 made-up patients with the average, ${f0.toFixed(2)} days, drawn as a flat line, and each patient's residual as a stick from the line to the patient.` });
+    TRAIN.forEach(([x, y]) => el("line", { x1: f.sx(x), x2: f.sx(x), y1: f.sy(f0), y2: f.sy(y), class: "stick" }, f.svg));
+    el("line", { x1: f.sx(0), x2: f.sx(10), y1: f.sy(f0), y2: f.sy(f0), class: "line-model" }, f.svg);
+    dots(f, TRAIN, "pt");
+    txt(f.svg, f.sx(0) + 8, f.sy(f0) - 8, `everyone: ${f0.toFixed(2)} days`, { "font-size": 13, class: "halo" });
+    $("s1-cap").textContent = `The 30 patients, severity across and days up. The line is the prediction for everyone; each red stick is ` +
+      `one patient’s residual, from ${fmt(hi[1] - f0, 1, true)} days for the patient who stayed ${hi[1]} to ${fmt(lo[1] - f0, 1, true)} ` +
+      `for the one who stayed ${lo[1]}.`;
+  })();
+
+  // A segmented control: one button per value; calls back with the chosen value.
+  function segControl(host, values, start, onPick) {
+    const btns = values.map((v) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = String(v); b.setAttribute("aria-pressed", String(v === start));
+      b.addEventListener("click", () => { btns.forEach((o) => o.setAttribute("aria-pressed", String(o === b))); onPick(v); });
+      host.appendChild(b); return b;
+    });
+  }
+
+  // ---------- Step 2: one round at a time ----------
+  (function stepTwo() {
+    const MAXR = 30;
+    let lr = 0.3, k = 0;
+    segControl($("r-lr"), [1, 0.3, 0.1], lr, (v) => { lr = v; draw(); });
+    $("r-next").addEventListener("click", () => { if (k < MAXR) { k++; draw(); } });
+    $("r-back").addEventListener("click", () => { if (k > 0) { k--; draw(); } });
+    $("r-reset").addEventListener("click", () => { k = 0; draw(); });
+    function draw() {
+      const run = RUNS[lr], v = run.V[k], s = run.stumps[k];
+      const F = SEG_TRAIN.map((j) => v[j]), res = TRAIN.map(([x, y], i) => [x, y - F[i]]);
+      $("r-left-title").textContent = k === 0 ? "The model so far: the average" : `The model after ${k} round${k === 1 ? "" : "s"}`;
+      const a = frame($("r-model"), { ...DAYS,
+        label: `The 30 patients and the model after ${k} rounds at a learning rate of ${lr}, drawn as flat steps. Training MSE ${run.trE[k].toFixed(2)}.` });
+      el("path", { d: stepPath(a, v), class: "line-model" }, a.svg);
+      dots(a, TRAIN, "pt");
+      const b = frame($("r-resid"), { yLo: -7, yHi: 7, yTicks: [-6, -4, -2, 0, 2, 4, 6], yLabel: "residual (days)",
+        label: `The residuals after ${k} rounds, and the next stump: at or below a severity of ${s.cut.toFixed(2)} it says ${fmt(s.ml)} days, above it ${fmt(s.mr)}.` });
+      el("line", { x1: b.sx(0), x2: b.sx(10), y1: b.sy(0), y2: b.sy(0), class: "zero" }, b.svg);
+      el("path", { d: `M${b.sx(0)},${b.sy(s.ml)} H${b.sx(s.cut)} V${b.sy(s.mr)} H${b.sx(10)}`, class: "line-stump" }, b.svg);
+      dots(b, res, "pt-res");
+      txt(b.svg, b.sx(s.cut) + 6, b.m.t + 14, `cut at ${s.cut.toFixed(2)}`, { "font-size": 12, class: "halo mono" });
+      const start = k === 0 ? `Start: everyone gets ${run.f0.toFixed(2)} days. Training MSE ${run.trE[0].toFixed(2)}.`
+                            : `After ${k} round${k === 1 ? "" : "s"}: training MSE ${run.trE[k].toFixed(2)} (it started at ${run.trE[0].toFixed(2)}).`;
+      $("r-say").innerHTML = `${start}<br>The next stump asks “severity above ${s.cut.toFixed(2)}?” The average residual is ` +
+        `<b>${fmt(s.ml, 2, true)}</b> days at or below the cut and <b>${fmt(s.mr, 2, true)}</b> above it.<br>` +
+        `At a learning rate of ${lr}, adding it moves the model by <span class="big">${fmt(lr * s.ml, 2, true)}</span> and ` +
+        `<span class="big">${fmt(lr * s.mr, 2, true)}</span> days.`;
+      $("r-next").disabled = k >= MAXR; $("r-back").disabled = k === 0;
+    }
+    draw();
+  })();
+
+  // ---------- Step 3: what the model stores, and one prediction added up ----------
+  (function stepThree() {
+    let lr = 0.1, R = 10;
+    segControl($("l-lr"), [1, 0.3, 0.1], lr, (v) => { lr = v; draw(); });
+    segControl($("l-R"), [5, 10, 30], R, (v) => { R = v; draw(); });
+    $("l-x").addEventListener("input", draw);
+    const expr = (ts) => ts.map((t, i) => (i === 0 ? fmt(t) : (t < 0 ? " − " : " + ") + Math.abs(t).toFixed(2))).join("");
+    function draw() {
+      const x = +$("l-x").value, run = RUNS[lr];
+      $("l-x-out").textContent = x.toFixed(1);
+      $("l-x").setAttribute("aria-valuetext", `severity ${x.toFixed(1)}`);
+      let pred = run.f0, sum = 0;
+      const path = [pred], terms = [];
+      let rows = `<tr class="start"><th scope="row">start</th><td>everyone gets the average</td><td class="n"></td>` +
+        `<td class="n"></td><td class="n"></td><td class="n">${pred.toFixed(2)}</td></tr>`;
+      for (let k = 0; k < R; k++) {
+        const s = run.stumps[k], yes = x > s.cut, v = yes ? s.mr : s.ml;
+        pred += lr * v; sum += v; path.push(pred); terms.push(v);
+        const cell = (val, on) => `<td class="n${on ? " pick" : ""}">${on ? "▸ " : ""}${fmt(val, 2, true)}</td>`;
+        rows += `<tr><th scope="row">${k + 1}</th><td>severity above ${s.cut.toFixed(2)}?</td>${cell(s.ml, !yes)}${cell(s.mr, yes)}` +
+          `<td class="n">${fmt(lr * v, 2, true)}</td><td class="n">${pred.toFixed(2)}</td></tr>`;
+      }
+      $("l-table").tBodies[0].innerHTML = rows;
+
+      const host = $("l-chart"); host.innerHTML = "";
+      const W = 440, H = 270, m = { l: 50, r: 16, t: 14, b: 42 };
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: "img",
+        "aria-label": `The prediction for a patient with severity ${x.toFixed(1)}: ${run.f0.toFixed(2)} days at the start, ${pred.toFixed(2)} after ${R} rounds at a learning rate of ${lr}. The rule the data were made from says ${truth(x)}.` }, host);
+      const sx = (k) => m.l + (k / R) * (W - m.l - m.r), sy = (d) => m.t + (1 - d / 14) * (H - m.t - m.b);
+      for (const d of [0, 2, 4, 6, 8, 10, 12, 14]) {
+        el("line", { x1: m.l, x2: W - m.r, y1: sy(d), y2: sy(d), class: "gridline" }, svg);
+        txt(svg, m.l - 8, sy(d) + 4, String(d), { "text-anchor": "end", "font-size": 12, class: "muted mono" });
+      }
+      const ticks = R <= 10 ? [...Array(R + 1).keys()] : [0, 5, 10, 15, 20, 25, 30];
+      for (const k of ticks) txt(svg, sx(k), H - m.b + 18, String(k), { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+      el("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, class: "axis" }, svg);
+      txt(svg, (m.l + W - m.r) / 2, H - 6, "round", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+      const yl = txt(svg, 14, (m.t + H - m.b) / 2, "predicted days", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+      yl.setAttribute("transform", `rotate(-90 14 ${(m.t + H - m.b) / 2})`);
+      el("line", { x1: m.l, x2: W - m.r, y1: sy(truth(x)), y2: sy(truth(x)), class: "line-truth" }, svg);
+      txt(svg, W - m.r - 2, sy(truth(x)) - 6, `the rule: ${truth(x)} days`, { "text-anchor": "end", "font-size": 11, class: "muted halo" });
+      el("path", { d: path.map((d, k) => `${k ? "L" : "M"}${sx(k).toFixed(1)},${sy(d).toFixed(1)}`).join(" "), class: "line-model" }, svg);
+      path.forEach((d, k) => el("circle", { cx: sx(k), cy: sy(d), r: R > 10 ? 2.5 : 4, class: "dot-acc" }, svg));
+
+      const shown = terms.slice(0, 3);
+      $("l-say").innerHTML = `Stored: <b>1</b> starting value, <b>${R}</b> questions and <b>${2 * R}</b> leaf numbers, ` +
+        `plus the learning rate. No patients.<br>This patient: ${run.f0.toFixed(2)} + ${lr} × (${expr(shown)}${R > 3 ? " + …" : ""}) ` +
+        `= ${run.f0.toFixed(2)} + ${lr} × ${fmt(sum, 2)} = <span class="big">${pred.toFixed(2)}</span> days.`;
+    }
+    draw();
+  })();
+
+  // ---------- Part 2: one real prediction, tree by tree (tools/day17_inside_numbers.py) ----------
+  (function insideOne() {
+    const F0 = -2.0331, STEPS = [0.1987, 0.1528, 0.1082, 0.0903, 0.0984, 0.0632, 0.0561, 0.0392, 0.0465, 0.0435, 0.0376, 0.0276, 0.0376, 0.011, 0.0158, 0.0101, 0.02, 0.0104, 0.0224, 0.0117, 0.0061, -0.0026, 0.0046, 0.0066, -0.0038, 0.023, -0.003, -0.0034, 0.0166, 0.0053, -0.0007, 0.0091, 0.0117, 0.0651];
+    const sig = (z) => 1 / (1 + Math.exp(-z));
+    const probs = [sig(F0)];
+    STEPS.reduce((acc, v) => { const z = acc + v; probs.push(sig(z)); return z; }, F0);
+    const host = $("in-chart"), W = 460, H = 270, m = { l: 54, r: 16, t: 14, b: 42 };
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: "img",
+      "aria-label": `This stay's predicted chance of coming back, from ${(100 * probs[0]).toFixed(1)}% at the start to ${(100 * probs.at(-1)).toFixed(1)}% after 34 trees; each tree adds less than the one before, on the whole.` }, host);
+    const sx = (k) => m.l + (k / 34) * (W - m.l - m.r), sy = (p) => m.t + (1 - p / 0.4) * (H - m.t - m.b);
+    for (const p of [0, 0.1, 0.2, 0.3, 0.4]) {
+      el("line", { x1: m.l, x2: W - m.r, y1: sy(p), y2: sy(p), class: "gridline" }, svg);
+      txt(svg, m.l - 8, sy(p) + 4, `${Math.round(100 * p)}%`, { "text-anchor": "end", "font-size": 12, class: "muted mono" });
+    }
+    for (const k of [0, 5, 10, 15, 20, 25, 30, 34]) txt(svg, sx(k), H - m.b + 18, String(k), { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+    el("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, class: "axis" }, svg);
+    txt(svg, (m.l + W - m.r) / 2, H - 6, "trees added", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    const yl = txt(svg, 14, (m.t + H - m.b) / 2, "predicted chance", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    yl.setAttribute("transform", `rotate(-90 14 ${(m.t + H - m.b) / 2})`);
+    el("line", { x1: m.l, x2: W - m.r, y1: sy(probs[0]), y2: sy(probs[0]), class: "line-floor" }, svg);
+    txt(svg, W - m.r - 2, sy(probs[0]) + 15, `the start: ${(100 * probs[0]).toFixed(1)}% for everyone`, { "text-anchor": "end", "font-size": 11, class: "muted halo" });
+    el("path", { d: probs.map((p, k) => `${k ? "L" : "M"}${sx(k).toFixed(1)},${sy(p).toFixed(1)}`).join(" "), class: "line-model" }, svg);
+    probs.forEach((p, k) => el("circle", { cx: sx(k), cy: sy(p), r: 2.6, class: "dot-acc" }, svg));
+    txt(svg, sx(34) - 4, sy(probs.at(-1)) - 10, `${(100 * probs.at(-1)).toFixed(1)}%`, { "text-anchor": "end", "font-size": 13, class: "halo mono" });
+  })();
+
+  // ---------- Step 4: many rounds, and the new patients ----------
+  const STOPS = [0, 1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500, 1000];
+  let tableRate = 0.1;
+  (function stepThree() {
+    let lr = 0.1;
+    segControl($("t-lr"), RATES, lr, (v) => { lr = v; tableRate = v; draw(); markTable(); });
+    $("t-k").addEventListener("input", draw);
+    function draw() {
+      const run = RUNS[lr], K = STOPS[+$("t-k").value];
+      $("t-k-out").textContent = comma(K);
+      $("t-k").setAttribute("aria-valuetext", `${comma(K)} rounds`);
+      const a = frame($("t-model"), { ...DAYS,
+        label: `The 30 training patients and the model after ${K} rounds at a learning rate of ${lr}, with the rule the data were made from.` });
+      el("path", { d: truthPath(a), class: "line-truth" }, a.svg);
+      el("path", { d: stepPath(a, run.V[K]), class: "line-model" }, a.svg);
+      dots(a, TRAIN, "pt");
+      const b = frame($("t-err"), { yLo: 0, yHi: 13, yTicks: [0, 2, 4, 6, 8, 10, 12], yLabel: "error (MSE)", xLabel: "round", xLog: true,
+        label: `Training and new-patient error by round at a learning rate of ${lr}. Lowest new-patient error ${run.teE[run.best].toFixed(2)} at round ${run.best}; after 1,000 rounds training ${run.trE[1000].toFixed(2)} and new patients ${run.teE[1000].toFixed(2)}.` });
+      el("line", { x1: b.sx(1), x2: b.sx(1000), y1: b.sy(FLOOR), y2: b.sy(FLOOR), class: "line-floor" }, b.svg);
+      txt(b.svg, b.sx(1) + 4, b.sy(FLOOR) + 15, `noise floor: ${FLOOR.toFixed(2)}`, { "font-size": 11, class: "muted halo" });
+      const line = (arr, cls) => el("path", { d: arr.slice(1).map((e, i) => `${i ? "L" : "M"}${b.sx(i + 1).toFixed(1)},${b.sy(Math.min(e, 13)).toFixed(1)}`).join(" "), class: cls }, b.svg);
+      line(run.trE, "line-train"); line(run.teE, "line-new");
+      el("circle", { cx: b.sx(run.best), cy: b.sy(run.teE[run.best]), r: 6, class: "dot-best" }, b.svg);
+      if (K >= 1) {
+        el("line", { x1: b.sx(K), x2: b.sx(K), y1: b.m.t, y2: b.H - b.m.b, class: "now-line" }, b.svg);
+        el("circle", { cx: b.sx(K), cy: b.sy(Math.min(run.trE[K], 13)), r: 4.5, class: "dot-train" }, b.svg);
+        el("circle", { cx: b.sx(K), cy: b.sy(Math.min(run.teE[K], 13)), r: 4.5, class: "dot-new" }, b.svg);
+      }
+      const where = K === 0 ? "No stumps yet: everyone gets the average."
+        : K < run.best ? `Still learning the rule: the new patients improve until round ${run.best}.`
+        : K === run.best ? "This is the round where the new patients do best."
+        : `Past round ${run.best}, training keeps improving while the new patients get worse: the stumps are fitting noise.`;
+      $("t-say").innerHTML = `Learning rate ${lr}, round ${comma(K)}: training MSE <b>${run.trE[K].toFixed(2)}</b>, ` +
+        `new patients <span class="big">${run.teE[K].toFixed(2)}</span>.<br>Lowest new-patient error at this rate: ` +
+        `${run.teE[run.best].toFixed(2)}, at round ${run.best}. ${where}`;
+    }
+    draw();
+  })();
+
+  // ---------- Step 5: the best round for each rate ----------
+  function markTable() {
+    [...$("lr-table").tBodies[0].rows].forEach((r) => r.classList.toggle("is-on", Number(r.dataset.lr) === tableRate));
+  }
+  (function stepFour() {
+    const body = $("lr-table").tBodies[0];
+    for (const lr of RATES) {
+      const run = RUNS[lr], tr = document.createElement("tr");
+      tr.dataset.lr = lr;
+      tr.innerHTML = `<th scope="row">${lr}</th><td class="n">${run.best}</td><td class="n">${(lr * run.best).toFixed(1)}</td>` +
+        `<td class="n">${run.teE[run.best].toFixed(2)}</td><td class="n">${run.teE[1000].toFixed(2)}</td>`;
+      body.appendChild(tr);
+    }
+    markTable();
+    const small = [0.3, 0.1, 0.03], prod = small.map((lr) => lr * RUNS[lr].best);
+    const avgProd = prod.reduce((a, b) => a + b, 0) / prod.length;
+    const avgBest = small.reduce((a, lr) => a + RUNS[lr].teE[RUNS[lr].best], 0) / small.length;
+    $("s4-say").textContent = `For 0.3, 0.1 and 0.03 the best round is close to ${Math.round(avgProd)} ÷ the learning rate. ` +
+      `A rate of 1 adds every stump in full and overshoots: its best, ${RUNS[1].teE[RUNS[1].best].toFixed(2)}, is worse than the ` +
+      `others’ (about ${avgBest.toFixed(1)}). Run any rate long enough and the new patients get worse.`;
+  })();
+
+  // ---------- Part 2: the readmission curves (Meeting 17 notebook) ----------
+  const STAGES = [1, 2, 3, 5, 10, 20, 30, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1000];
+  const REAL = {
+    0.3: { best: 18, bestVal: 0.6667,
+      train: [0.6448, 0.645, 0.6507, 0.6627, 0.6743, 0.687, 0.6984, 0.7191, 0.7386, 0.7543, 0.7846, 0.8063, 0.8398, 0.8612, 0.9031, 0.9257, 0.9415],
+      val: [0.6544, 0.6544, 0.6602, 0.6635, 0.6659, 0.6642, 0.6617, 0.6546, 0.6512, 0.6462, 0.6316, 0.6183, 0.6116, 0.6083, 0.5991, 0.5934, 0.5858] },
+    0.1: { best: 34, bestVal: 0.6673,
+      train: [0.6448, 0.6451, 0.6454, 0.6458, 0.657, 0.6681, 0.6762, 0.6865, 0.6957, 0.7057, 0.7192, 0.7299, 0.7529, 0.7715, 0.8017, 0.8238, 0.8436],
+      val: [0.6544, 0.6546, 0.6542, 0.6551, 0.6619, 0.6643, 0.6667, 0.6639, 0.6623, 0.6586, 0.6587, 0.6541, 0.6495, 0.6435, 0.6335, 0.6257, 0.6213] },
+    0.03: { best: 112, bestVal: 0.6683,
+      train: [0.6448, 0.6448, 0.6451, 0.6451, 0.6457, 0.6549, 0.6563, 0.6672, 0.6712, 0.6766, 0.6844, 0.6889, 0.6983, 0.7071, 0.7233, 0.7362, 0.7469],
+      val: [0.6544, 0.6544, 0.6546, 0.6546, 0.6546, 0.6614, 0.6615, 0.6681, 0.6668, 0.6673, 0.6675, 0.6644, 0.6626, 0.6611, 0.6567, 0.6521, 0.6471] },
+  };
+  (function partTwo() {
+    let lr = 0.1;
+    segControl($("g-lr"), [0.3, 0.1, 0.03], lr, (v) => { lr = v; draw(); });
+    const poly = (f, ys, cls) => el("path", { d: ys.map((y, i) => `${i ? "L" : "M"}${f.sx(STAGES[i]).toFixed(1)},${f.sy(y).toFixed(1)}`).join(" "), class: cls }, f.svg);
+    function draw() {
+      const r = REAL[lr];
+      const a = frame($("g-val"), { yLo: 0.58, yHi: 0.675, yTicks: [0.58, 0.6, 0.62, 0.64, 0.66], yLabel: "held-out AUC", xLabel: "round", xLog: true, left: 62,
+        label: `Held-out AUC by round for learning rates 0.3, 0.1 and 0.03. Best rounds 18, 34 and 112, all near 0.667.` });
+      for (const o of [0.3, 0.1, 0.03]) if (o !== lr) poly(a, REAL[o].val, "line-other");
+      poly(a, r.val, "line-new");
+      for (const o of [0.3, 0.1, 0.03]) {
+        el("circle", { cx: a.sx(REAL[o].best), cy: a.sy(REAL[o].bestVal), r: o === lr ? 6 : 4, class: o === lr ? "dot-best" : "dot-muted" }, a.svg);
+        if (o === lr) txt(a.svg, a.sx(r.best), a.sy(r.bestVal) - 11, `round ${r.best}`, { "text-anchor": "middle", "font-size": 12, class: "halo mono" });
+      }
+      $("g-tv-title").textContent = `Training against held-out, learning rate ${lr}`;
+      const b = frame($("g-tv"), { yLo: 0.55, yHi: 0.96, yTicks: [0.6, 0.7, 0.8, 0.9], yLabel: "AUC", xLabel: "round", xLog: true, left: 56,
+        label: `At a learning rate of ${lr}, training AUC rises to ${r.train.at(-1)} after 1,000 rounds while held-out AUC peaks at round ${r.best} and falls to ${r.val.at(-1)}.` });
+      poly(b, r.train, "line-train"); poly(b, r.val, "line-new");
+      el("circle", { cx: b.sx(r.best), cy: b.sy(r.bestVal), r: 5, class: "dot-best" }, b.svg);
+      $("g-say").innerHTML = `Learning rate ${lr}: best round <span class="big">${r.best}</span>, held-out AUC ${r.bestVal.toFixed(3)}. ` +
+        `After 1,000 rounds: training ${r.train.at(-1).toFixed(3)}, held-out ${r.val.at(-1).toFixed(3)}.`;
+    }
+    draw();
+  })();
+})();
+</script>
+</body>
+</html>
