@@ -365,6 +365,22 @@ main h2 .part { margin-bottom: 6px; }
 .tree-list .here { color: var(--accent); font-size: 0.86rem; }
 tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
 
+/* The terse pattern (Jeff, Nov 4): on screen one headline and one figure; the explanation sits in a reveal */
+.headline { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+            line-height: 1.3; margin: 10px 0 12px; }
+details.more { margin: 12px 0; border-left: 3px solid var(--line); padding: 2px 0 2px 12px; font-size: 0.97rem; }
+details.more[open] { border-left-color: var(--accent); }
+details.more summary { color: var(--accent); font-weight: 700; }
+/* One value changing along a line: a prediction moving tree by tree */
+.track { list-style: none; padding: 0; margin: 14px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+.track li { flex: 1 1 86px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.track li b { display: block; font-family: var(--font-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.track li span { color: var(--muted); font-size: 0.82rem; }
+.track li.end { border: 2px solid var(--accent); }
+/* The best value in a column of a scoreboard: bold, with a mark, never colour alone */
+td.best { font-weight: 700; color: var(--accent); white-space: nowrap; }
+td.best::after { content: " ★"; }
+
 
 </style>
 </head>
@@ -415,13 +431,7 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
     <article class="today" aria-labelledby="today">
       <p class="tag">Today · Meeting 17</p>
       <h3 id="today">Boosting</h3>
-      <p>A forest’s trees never see each other’s mistakes. Boosting’s trees see nothing else: each one is fitted to
-      what the model so far still gets wrong. <strong>Can trees that fix each other’s mistakes beat trees that
-      vote?</strong></p>
-      <p><strong>Where it sits.</strong> Meetings 15–20 ask whether flexible models change the rules from the first half
-      of the course. So far they have not: a forest’s score and its importance still had to be checked on patients it
-      never saw. Boosting brings a new way to overfit, too many rounds, and the same old cure: choose on data the model
-      was not fitted on.</p>
+      <p>Small trees in sequence, each fitted to what the last ones got wrong.</p>
       <p><strong>In the studio:</strong> what tree depth changes, what too many rounds do to the probabilities, and
       whether Meeting 16’s two forest tricks, random rows and random columns, help boosting too.</p>
     </article>
@@ -436,8 +446,7 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
         <li><strong>Tuesday, Nov 10 · Interpretation.</strong> What a model’s explanations can and cannot tell you.
         Thursday’s importance plot was the first example.</li>
       </ul>
-      <p><strong>Due:</strong> Lab 7, Tuesday 11:59 pm · Defense 1 appointments through Thursday · Lab 8 is assigned
-      today, due Tuesday, Nov 10.</p>
+      <p><strong>Due:</strong> Lab 7, Tuesday 11:59 pm · Defense 1 appointments through Thursday · Studio Day 17, Wednesday 3:40 pm.</p>
     </article>
   </div>
 </section>
@@ -562,11 +571,14 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
 
 <section class="col">
   <h3 id="s2"><span class="step">Step 2</span>Fit a small tree to what is still wrong</h3>
+  <p class="headline">Fit a stump to what is still wrong, add a little of it, repeat.</p>
+  <details class="more"><summary>In words</summary>
   <p>Grow a stump on the <strong>residuals</strong>, not on the days. It finds the one cut that best separates the
   patients the model under-predicts from those it over-predicts, and says one number for each side: the average
   residual there. Add a fraction of it to the model (the <strong>learning rate</strong>), compute the new residuals,
   and repeat. Each round, the right panel shows what is still wrong and the stump fitted to it; adding the stump moves
   the model on the left.</p>
+  </details>
 </section>
 
 <figure class="wide panel">
@@ -600,10 +612,13 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
 
 <section class="col">
   <h3 id="s3"><span class="step">Step 3</span>What the model is: one number and a list of stumps</h3>
+  <p class="headline">The model is one number and a list of stumps. The patients are gone.</p>
+  <details class="more"><summary>In words</summary>
   <p>The fitted model does not keep the 30 patients. It keeps a <strong>starting value</strong>, the average, and for
   each round <strong>one stump</strong>: its question and the two numbers it can say, the average residual on each
   side. To predict for a new patient, start at the average and add the learning rate times what each stump says for
   that patient. Earlier stumps never change: each round adds one more line to the list.</p>
+  </details>
 </section>
 
 <figure class="wide panel">
@@ -643,9 +658,12 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
 
 <section class="col">
   <h3 id="s4"><span class="step">Step 4</span>Keep going: when does it stop helping?</h3>
+  <p class="headline">Training error only falls. New patients show when to stop.</p>
+  <details class="more"><summary>In words</summary>
   <p>Every round lowers the training error, and nothing in the method ever stops it. After enough rounds the stumps are
   chasing single patients’ luck. To see when that starts, the page also makes up <strong>200 new patients</strong>
   the same way and never fits on them. Their error is the honest one.</p>
+  </details>
 </section>
 
 <figure class="wide panel">
@@ -680,8 +698,11 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
 
 <section class="col">
   <h3 id="s5"><span class="step">Step 5</span>Two settings that act as one</h3>
+  <p class="headline">Smaller steps need more rounds: rate × round stays about the same.</p>
+  <details class="more"><summary>In words</summary>
   <p>Each learning rate has its own best round. A smaller rate takes smaller steps, so it needs more rounds to get to the
   same place, and the product of the two stays about the same:</p>
+  </details>
   <div class="scroll">
   <table id="lr-table">
     <caption>The best round for each learning rate, on the 200 new patients</caption>
@@ -691,12 +712,16 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
   </table>
   </div>
   <p id="s4-say"></p>
+  <details class="more"><summary>What follows from that</summary>
   <p>Two lessons follow. <strong>The learning rate and the number of rounds act as one setting</strong>: pick a small
   rate, then choose the rounds for it on data the model was not fitted on. And <strong>the number of rounds is a
   brake, not a capacity dial</strong>. A forest never gets worse with more trees, because it averages them; boosting
   does, because every round fits the training data a little more closely.</p>
+  </details>
 
   <h3 id="s6"><span class="step">Step 6</span>Why it is called gradient boosting</h3>
+  <p class="headline">“Gradient”: the residual is the direction that lowers the loss fastest.</p>
+  <details class="more"><summary>The argument</summary>
   <div class="box-note">
   <p>Write the loss for one patient as ½(<em>y</em> − <em>F</em>)², where <em>F</em> is the model’s current prediction.
   Its slope with respect to <em>F</em> is −(<em>y</em> − <em>F</em>). So the residual <em>y</em> − <em>F</em> is the
@@ -712,15 +737,19 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
   is one Newton step on the log loss: the sum of <em>y</em> − <em>p</em> in the leaf divided by the sum of
   <em>p</em>(1 − <em>p</em>). The idea is the same; the step is better sized.</p></details>
   </div>
+  </details>
 </section>
 
 <!-- ============================ PART 2 ============================ -->
 <section class="col" aria-labelledby="p2">
   <h2 id="p2" data-toc="Part 2 · The real data"><span class="part">Part 2 · the real data</span>The same steps on the readmission data</h2>
+  <p class="headline">Meeting 16’s 15,000 patients, trees 3 deep, three learning rates.</p>
+  <details class="more"><summary>The setup</summary>
   <p>Meeting 16’s training sample: 15,000 patients and their 21,352 stays. To choose the number of rounds, hold out a
   fifth of the <strong>patients</strong>, all of their stays together (3,000 patients, 4,263 stays, 517 of them
   readmitted), and fit on the rest (17,089 stays). Each tree asks up to three questions in a row
   (<code>max_depth=3</code>), for up to 1,000 rounds, at three learning rates. The score is the AUC.</p>
+  </details>
 </section>
 
 <figure class="wide panel">
@@ -755,21 +784,44 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
     <div role="listitem"><b>112</b><span>rounds at 0.03 (rate × round 3.4)</span></div>
     <div role="listitem"><b>0.668</b><span>the best held-out AUC, at 0.03; the other two 0.667</span></div>
   </div>
+  <p class="headline">Same pattern: training keeps climbing, held-out patients turn.</p>
+  <details class="more"><summary>Reading the curves</summary>
   <p>The same three patterns as the made-up patients. Training AUC climbs as long as the rounds continue, to 0.94 after
   1,000 rounds at 0.3, while the held-out patients fall to 0.586: the trees are fitting single stays. The best rounds
   shrink as the rate grows, and for the two smaller rates the product is the same. And the three best scores are nearly
   equal, so the rate mostly changes how many rounds you need.</p>
+  </details>
+  <details class="more"><summary>How sure is “best”?</summary>
   <p>One caution about “best.” The held-out curve at 0.1 is nearly flat from round 20 to round 150 (0.659 to 0.667).
   Hold out a different fifth of the patients and the best round moves: in five other draws it was 25, 38, 65, 68 and
   200 rounds, and the best held-out AUC itself ranged from 0.641 to 0.680, a bigger swing than the gap between any two
   of those rounds. The best round is a reasonable choice, not a precise one.</p>
+  </details>
 
   <h3 id="inside">Inside one real prediction</h3>
-  <p>The chosen model is 34 trees, each asking up to three questions in a row, so each has 8 leaves. It stores one
-  starting number, the readmission rate among the training stays (11.6%) written as log-odds, <span class="num">−2.03</span>;
-  and for each tree, its questions and its 8 leaf values. Each leaf value is a correction to the log-odds, fitted to
-  <em>y</em> − <em>p</em> (Step 6). Here is tree 1:</p>
-  <figure class="panel">
+  <p class="headline">One starting chance, then 34 small trees. One test stay goes from 11.6% to 31.1%.</p>
+  <ol class="track" aria-label="This stay's predicted chance as trees are added">
+    <li><b>11.6%</b><span>start: everyone</span></li>
+    <li><b>13.8%</b><span>after tree 1</span></li>
+    <li><b>17.2%</b><span>after tree 3</span></li>
+    <li><b>20.0%</b><span>after tree 5</span></li>
+    <li><b>24.3%</b><span>after tree 10</span></li>
+    <li><b>28.3%</b><span>after tree 20</span></li>
+    <li class="end"><b>31.1%</b><span>after tree 34</span></li>
+  </ol>
+  <p>The stay: <strong>6 prior stays</strong>, 11 days in the hospital, discharged to a skilled nursing facility, aged
+  70–80. It is the first test stay with at least 3 prior stays. It did not come back.</p>
+</section>
+
+<figure class="wide panel">
+  <p class="label" style="margin:0 0 6px">This stay’s predicted chance, tree by tree</p>
+  <div id="in-chart" class="plotbox"></div>
+  <figcaption>Each tree corrects what the earlier ones left, so later trees add less. The last chance is exactly what
+  <code>predict_proba</code> gives for this stay.</figcaption>
+</figure>
+
+<section class="col">
+  <details class="more"><summary>What tree 1 looks like</summary>
   <ul class="tree-list" aria-label="Tree 1 of 34, its questions and leaf values">
   <li class="on"><span class="q">Prior stays more than 1?</span> <span class="cnt">(all 21,352 stays)</span>
     <ul>
@@ -789,26 +841,15 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
         </ul></li>
     </ul></li>
 </ul>
-  <figcaption>Tree 1 of 34. Each question splits the stays in two; each leaf holds a correction to the log-odds,
-  before the learning rate, and the number of training stays that land there. A tiny leaf can hold a big correction
-  (+8.64 from 3 stays), one reason the learning rate shrinks every tree. The path marked in bold is the stay followed
-  below.</figcaption>
-  </figure>
-
-  <p>Now follow one test stay: <strong>6 prior stays</strong>, 1 emergency visit, 11 days in the hospital, discharged to
-  a skilled nursing facility, aged 70–80. (It is the first stay in the test set with at least 3 prior stays; it did not
-  come back.) Tree 1 sends it down the marked path to a leaf of +1.99, so it adds 0.1 × 1.99 = +0.20 to the
-  log-odds. Every other tree does the same with its own questions:</p>
-</section>
-
-<figure class="wide panel">
-  <div class="split">
-    <div>
-      <p class="label" style="margin:0 0 6px">This stay’s predicted chance, tree by tree</p>
-      <div id="in-chart" class="plotbox"></div>
-    </div>
-    <div>
-      <table>
+  <p>Each leaf holds a correction on the log-odds scale, before the learning rate, and the number of training stays that
+  land there. A tiny leaf can hold a big correction (+8.64 from 3 stays), one reason the learning rate shrinks every
+  tree. The bold path is the stay above.</p>
+  </details>
+  <details class="more"><summary>How the trees add up: log-odds</summary>
+  <p>Chances cannot simply be added: they would pass 100%. So boosting adds on the <strong>log-odds</strong> scale,
+  log(<em>p</em> / (1 − <em>p</em>)), and converts back at the end. Each tree adds the learning rate times its leaf value.
+  Tree 1 sends this stay to a leaf of +1.99, so it adds 0.1 × 1.99 = +0.20:</p>
+  <table>
         <caption>What each tree adds to this stay’s log-odds (learning rate × its leaf)</caption>
         <thead><tr><th scope="col">from</th><th scope="col" class="n">adds</th></tr></thead>
         <tbody>
@@ -819,18 +860,14 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
           <tr class="tot"><th scope="row">as a chance: 1 / (1 + e<sup>0.797</sup>)</th><td class="n">0.311</td></tr>
         </tbody>
       </table>
-    </div>
-  </div>
-  <figcaption>The first five trees add +0.65 of the +1.24 in all: each tree corrects what the earlier ones
-  left, so later trees add less. The sum, turned back into a chance, is exactly what <code>predict_proba</code> gives
-  for this stay: 31.1%, against 11.6% for a stay the model knows nothing about.</figcaption>
-</figure>
+  </details>
 
-<section class="col">
   <h3 id="test">One score on the test patients</h3>
+  <details class="more"><summary>Why 0.1 and not 0.03?</summary>
   <p>Why 0.1 and not 0.03, whose held-out AUC was higher? By 0.001, far less than the luck of which patients were held
   out, and 0.03 needs over three times as many rounds. So keep scikit-learn’s default rate and let the held-out patients
   choose the rounds: 34.</p>
+  </details>
   <p>Refit at the chosen setting, a learning rate of 0.1 for 34 rounds, on all 21,352 training stays, and score the
   24,706 test stays once:</p>
   <div class="scroll">
@@ -844,9 +881,12 @@ tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
     </tbody>
   </table>
   </div>
+  <p class="headline">On these patients boosting does not clearly beat the other two.</p>
+  <details class="more"><summary>What that means</summary>
   <p>On these patients boosting does not clearly beat the other two: the three rank patients about equally well and their
   probabilities score about the same. Boosting is often the strongest method on tables of data, and here it ties. When
   scores are this close, Thursday’s bake-off asks what “better” should mean.</p>
+  </details>
 
   <h3 id="code">See it in Scikit-Learn</h3>
   <p>The model in Part 2, with every setting this page has been about. <code>make_pipe</code> is the notebook’s
@@ -885,6 +925,7 @@ start = np.log(y_fit.mean() / (1 - y_fit.mean()))     # -2.03: the readmission r
 steps = [0.1 * tree[0].predict(z)[0] for tree in final["model"].estimators_]   # 34 corrections
 print(1 / (1 + np.exp(-(start + sum(steps)))))        # 0.311, what final.predict_proba gives</code></pre>
 
+  <details class="more"><summary>The commands</summary>
   <div class="scroll">
   <table>
     <caption>The commands, and what each one gives you</caption>
@@ -909,7 +950,9 @@ print(1 / (1 + np.exp(-(start + sum(steps)))))        # 0.311, what final.predic
     </tbody>
   </table>
   </div>
+  </details>
 
+  <details class="more"><summary>The settings</summary>
   <div class="scroll">
   <table>
     <caption>The settings that matter in boosting</caption>
@@ -931,8 +974,9 @@ print(1 / (1 + np.exp(-(start + sum(steps)))))        # 0.311, what final.predic
     </tbody>
   </table>
   </div>
-  <p><code>HistGradientBoostingClassifier</code> is the fast version used in practice: it sorts each column into at
-  most 255 bins before searching for cuts. Most settings carry over, a few under other names:</p>
+  </details>
+  <details class="more"><summary>The fast version: HistGradientBoosting</summary>
+  <p>It sorts each column into at most 255 bins before searching for cuts. Most settings carry over, a few under other names.</p>
   <div class="scroll">
   <table>
     <caption>From <code>GradientBoostingClassifier</code> to <code>HistGradientBoostingClassifier</code></caption>
@@ -952,10 +996,13 @@ print(1 / (1 + np.exp(-(start + sum(steps)))))        # 0.311, what final.predic
     </tbody>
   </table>
   </div>
+  </details>
+  <details class="more"><summary>Before gradient boosting: AdaBoost</summary>
   <p>Boosting is older than the gradient version. The first method, AdaBoost (<code>AdaBoostClassifier</code>),
   was built for classification: instead of fitting residuals, each round reweights the cases the last learner got
   wrong, so the next one concentrates on them. It can boost any simple learner, though stumps are the usual choice.
   Gradient boosting replaced it in practice because one recipe covers any loss.</p>
+  </details>
 
   <!-- ============================ PART 3 ============================ -->
   <h2 id="studio" data-toc="Part 3 · Your studio"><span class="part">Part 3 · your turn</span>Your studio</h2>
@@ -976,7 +1023,7 @@ print(1 / (1 + np.exp(-(start + sum(steps)))))        # 0.311, what final.predic
     </tbody>
   </table>
   </div>
-  <h3>The tools the studio uses</h3>
+  <details class="more"><summary>The tools the studio uses</summary>
   <ul>
     <li><strong><code>staged_auc(model, rows, outcome)</code></strong> takes a fitted boosting pipeline and gives its AUC
     after round 1, 2, 3, … from one fit. The best round is <code>np.argmax(...) + 1</code>.</li>
@@ -985,8 +1032,9 @@ print(1 / (1 + np.exp(-(start + sum(steps)))))        # 0.311, what final.predic
     <li><strong><code>scores(probs)</code></strong> gives a model’s AUC, Brier score, average predicted chance and
     calibration slope on the test patients.</li>
   </ul>
+  </details>
 
-  <h3>Stuck?</h3>
+  <details class="more"><summary>Stuck?</summary>
   <div class="scroll">
   <table>
     <thead><tr><th scope="col">you see</th><th scope="col">what to do</th></tr></thead>
@@ -998,6 +1046,7 @@ print(1 / (1 + np.exp(-(start + sum(steps)))))        # 0.311, what final.predic
     </tbody>
   </table>
   </div>
+  </details>
   <p class="note">Write your guess before each question and keep it, answer each question’s sentence, and answer the
   exit ticket. Upload the notebook to Canvas under “Studio notebook — Day 17” by <strong>Wednesday, November 4,
   3:40 pm</strong>.</p>

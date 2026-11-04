@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Built from content/lessons/pages/day18_bakeoff.html in the course repo by tools/build_page.py. Open this file in a web browser. -->
+<title>The Bake-off</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* STAT 764 daily pages: the shared theme.
+   Inlined into every page by tools/build_page.py, so each page stays one self-contained file.
+   Edit here, then rebuild the pages; never edit a built page's <style> by hand. */
+
+/* Layout: the tree and forest pages' system (one reading column, figures widen to 1040px), so the three read as a set. */
+:root {
+  --paper: #f1f5f4;
+  --surface: #ffffff;
+  --ink: #13242a;
+  --muted: #485b60;
+  --line: #c6d2d1;
+  --grid: #e2e9e8;
+  --back: #ad3822;          /* came back within 30 days */
+  --stay: #276a6f;          /* did not come back */
+  --accent: #1d4c87;        /* the thing you are steering: a selected question, a path */
+  --accent-soft: #e2ebf6;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --read: 68ch;
+  --wide: 1040px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+    --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+  --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px;
+       line-height: 1.6; margin: 0; }
+.page { padding-inline: 16px; padding-block: 40px 72px; }
+.col { max-width: var(--read); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 700; margin-top: 64px; }
+h3 { font-size: 1.25rem; font-weight: 700; margin-top: 40px; display: flex; gap: 12px; align-items: baseline; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+strong { font-weight: 700; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+           color: var(--muted); margin: 0 0 12px; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+.step { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em;
+        color: var(--accent); border: 1.5px solid var(--accent); border-radius: 999px; padding: 1px 9px;
+        white-space: nowrap; transform: translateY(-2px); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.part { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--muted); display: block; margin-bottom: 6px; font-weight: 500; }
+
+/* Figures */
+figure { margin: 28px auto; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 12px; max-width: var(--read); }
+svg { display: block; max-width: 100%; height: auto; }
+.scroll { overflow-x: auto; }
+.treebox { display: flex; justify-content: center; margin-bottom: 18px; }
+.treebox svg { flex: none; max-width: 100%; }
+.plotbox { display: flex; justify-content: center; }
+svg text { font-family: var(--font-body); fill: var(--ink); }
+svg .mono { font-family: var(--font-mono); }
+svg .muted { fill: var(--muted); }
+svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.axis { stroke: var(--line); stroke-width: 1; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; color: var(--muted); margin: 0 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Controls */
+.controls { display: grid; gap: 14px; margin-bottom: 14px; }
+label, .label { font-weight: 700; font-size: 0.95rem; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.seg { display: inline-flex; border: 1.5px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.92rem; padding: 6px 12px; border: 0; background: var(--surface);
+              color: var(--accent); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 700; }
+.btn { font: inherit; font-size: 0.92rem; font-weight: 700; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+       border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Readouts */
+.readout { display: grid; gap: 10px; }
+.sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.side { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.side .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.side b { display: block; }
+.calc { font-family: var(--font-mono); font-size: 0.9rem; background: var(--paper); border-radius: 6px; padding: 10px 12px;
+        line-height: 1.7; overflow-x: auto; }
+.calc .big { font-size: 1.05rem; font-weight: 500; color: var(--accent); }
+.say { font-size: 1rem; }
+
+/* Stat strip, tables, code */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); margin: 24px 0; }
+.stats div { padding: 12px 12px 12px 0; }
+.stats b { display: block; font-family: var(--font-display); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--ink); font-size: 0.85rem; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px;
+      overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--surface); }
+.card .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.card b { font-family: var(--font-display); font-size: 1.2rem; display: block; margin-top: 2px; }
+details { margin-top: 10px; font-size: 0.92rem; }
+summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.foot { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); margin-top: 64px; padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  .board .bar, .hbars .bar { transition: width 0.25s ease; }
+}
+/* The one-sentence method: the page's thesis */
+.method { margin: 28px 0 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+          border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+.method div { padding: 14px 16px 14px 0; }
+.method div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.method b { display: block; font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 2px; }
+.method span { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 620px) {
+  .method { grid-template-columns: 1fr; }
+  .method div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* Forest page additions */
+.box-note { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 18px 6px; margin: 22px 0 8px; }
+.box-note h4 { font-family: var(--font-display); font-size: 1.1rem; margin: 12px 0 4px; }
+
+/* Boosting page additions */
+.line-model { stroke: var(--accent); stroke-width: 3; fill: none; stroke-linejoin: round; }
+.line-stump { stroke: var(--accent); stroke-width: 3; fill: none; stroke-dasharray: 7 4; }
+.line-truth { stroke: var(--muted); stroke-width: 1.6; fill: none; stroke-dasharray: 2 4; }
+.line-train { stroke: var(--stay); stroke-width: 2.4; fill: none; stroke-dasharray: 6 4; }
+.line-new { stroke: var(--back); stroke-width: 2.8; fill: none; }
+.line-other { stroke: var(--muted); stroke-width: 1.6; fill: none; opacity: 0.7; }
+.line-floor { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.zero { stroke: var(--ink); stroke-width: 1; opacity: 0.5; }
+.pt { fill: var(--ink); }
+.pt-res { fill: var(--back); }
+.stick { stroke: var(--back); stroke-width: 1.4; opacity: 0.8; }
+.now-line { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.dot-new { fill: var(--back); stroke: var(--surface); stroke-width: 1.5; }
+.dot-train { fill: var(--stay); stroke: var(--surface); stroke-width: 1.5; }
+.dot-best { fill: var(--surface); stroke: var(--back); stroke-width: 2.4; }
+.dot-acc { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.sw { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; }
+.sw.model { border-color: var(--accent); }
+.sw.stump { border-top-style: dashed; border-color: var(--accent); }
+.sw.truth { border-top: 2px dotted var(--muted); }
+.sw.train { border-top-style: dashed; border-color: var(--stay); }
+.sw.new { border-color: var(--back); }
+.sw.other { border-top-width: 2px; border-color: var(--muted); }
+.dotsw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.dotsw.res { background: var(--back); }
+tr.is-on th, tr.is-on td { background: var(--accent-soft); font-weight: 700; }
+
+/* Where we are: the course's question, the six units, and last time / today / coming up */
+.where { margin-top: 40px; }
+.spine { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); padding: 14px 0 16px; margin-top: 14px; }
+.spine .q { font-family: var(--font-display); font-size: clamp(1.25rem, 2.6vw, 1.55rem); font-weight: 700; line-height: 1.25; margin: 4px 0 0; }
+.units { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.units li { border-top: 4px solid var(--line); padding: 6px 4px 0 0; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
+.units li b { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; }
+.units li.done { border-top-color: var(--stay); }
+.units li.now { border-top-color: var(--accent); color: var(--ink); font-weight: 700; }
+.units li.now b { color: var(--accent); }
+@media (max-width: 760px) { .units { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.trip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+@media (max-width: 900px) { .trip { grid-template-columns: minmax(0, 1fr); } }
+.trip article { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 16px 10px; }
+.trip article.today { border: 2px solid var(--accent); }
+.trip h3 { margin-top: 12px; font-size: 1.15rem; display: block; }
+.trip .tag { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 0; }
+.trip ul { padding-left: 18px; margin: 8px 0; }
+.trip li { margin: 6px 0; font-size: 0.95rem; }
+.trip p { font-size: 0.95rem; }
+.keep { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; margin: 10px 0 4px; }
+.keep b { display: block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+.dot-muted { fill: var(--muted); }
+
+/* Connecting the dots */
+.recall { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; align-items: start; }
+@media (max-width: 900px) { .recall { grid-template-columns: minmax(0, 1fr); } }
+.recall details { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; margin: 0; font-size: 0.95rem; }
+.recall summary { color: var(--ink); line-height: 1.4; }
+.recall summary::marker { color: var(--accent); }
+.recall details[open] { border-color: var(--accent); }
+.chain caption { font-weight: 700; }
+.chain th[scope="row"] { font-family: var(--font-display); font-size: 1.05rem; white-space: nowrap; }
+.chain .mtg { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0.03em; }
+.chain tr.now th, .chain tr.now td { background: var(--accent-soft); }
+.chain tr.now .mtg { color: var(--accent); }
+.chain tr.later th, .chain tr.later td { color: var(--muted); font-style: italic; }
+.verdicts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+@media (max-width: 900px) { .verdicts { grid-template-columns: minmax(0, 1fr); } }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: 6px; padding: 2px 14px 8px; font-size: 0.95rem; }
+.verdict.yes { border-top-color: var(--stay); }
+.verdict.no { border-top-color: var(--back); }
+.verdict .v-tag { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; margin: 10px 0 0; }
+.verdict.yes .v-tag { color: var(--stay); }
+.verdict.no .v-tag { color: var(--back); }
+.verdict .v-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin: 2px 0 0; font-variant-numeric: tabular-nums; }
+.verdict .v-what { color: var(--muted); margin: 0 0 6px; font-size: 0.9rem; }
+
+/* ---------- Components from the tree and forest pages (Meetings 15-16) ---------- */
+.pt-back { stroke: var(--back); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.pt-stay { fill: var(--stay); }
+.box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.box-shade { fill: var(--back); }
+.cutline { stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.side-no { fill: var(--stay); opacity: 0.08; }
+.side-yes { fill: var(--back); opacity: 0.08; }
+.node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+.edge { stroke: var(--ink); stroke-width: 1.3; fill: none; }
+.on .node, .node.on { stroke: var(--accent); stroke-width: 3; }
+.edge.on { stroke: var(--accent); stroke-width: 3; }
+.newpt { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.region-on { fill: none; stroke: var(--accent); stroke-width: 3; }
+.curve { stroke: var(--accent); stroke-width: 3; fill: none; }
+.dot-accent { fill: var(--accent); }
+.line-tree { stroke: var(--accent); stroke-width: 2.6; fill: none; }
+.line-logit { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
+.band { fill: var(--accent-soft); }
+.pt-num { fill: var(--ink); }
+.resid { stroke: var(--back); stroke-width: 1.6; }
+.meanline { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.box-num { fill: var(--accent); }
+.boundary { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.leafedge { fill: none; stroke: var(--line); stroke-width: 1; }
+
+/* Three boundaries side by side */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+.trio-title { margin: 0 0 6px; }
+.trio-note { margin: 6px 0 0; font-size: 0.92rem; color: var(--muted); }
+/* Leaderboard of candidate questions */
+.board { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.board button { width: 100%; display: grid; grid-template-columns: minmax(0, 11.5em) minmax(0, 1fr) 3.6em; gap: 8px;
+                align-items: center; font: inherit; font-size: 0.85rem; text-align: left; color: var(--ink);
+                background: none; border: 1px solid transparent; border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+.board button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.board .bar { height: 10px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.board button[aria-pressed="true"] .bar { background: var(--accent); }
+.board .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+
+/* Real-data bars */
+.hbars { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 16em) minmax(0, 1fr) 4.4em; gap: 10px; align-items: center; font-size: 0.88rem; }
+.hbars .bar { height: 12px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.hbars li.win { font-weight: 700; }
+.hbars li.win .bar { background: var(--accent); }
+.hbars .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+@media (max-width: 560px) {
+  .hbars li { grid-template-columns: minmax(0, 1fr) 4em; }
+  .hbars li .bar { grid-column: 1 / -1; grid-row: 2; }
+  .board button { grid-template-columns: minmax(0, 1fr) 3.4em; }
+  .board .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+.chips { display: grid; gap: 6px; }
+.chiprow { display: grid; grid-template-columns: 12em minmax(0, 1fr); gap: 10px; align-items: start; }
+.chiprow > span { font-size: 0.85rem; color: var(--muted); padding-top: 2px; }
+.chiprow ul { list-style: none; display: flex; flex-wrap: wrap; gap: 3px; margin: 0; padding: 0; }
+.chip { font-family: var(--font-mono); font-size: 0.72rem; padding: 1px 6px; border: 1px solid var(--line); border-radius: 4px;
+        color: var(--muted); background: var(--paper); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
+@media (max-width: 620px) { .chiprow { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.ghost { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.tally { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.tally li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; font-size: 0.95rem; }
+.tick-tree { stroke: var(--back); stroke-width: 1.4; stroke-opacity: 0.55; }
+.seg-main { fill: var(--accent); }
+.dot-muted { fill: var(--muted); }
+.dot-tree { fill: var(--muted); fill-opacity: 0.45; }
+.hidden-line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ibar { display: inline-block; width: 7em; height: 10px; background: var(--grid); border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.ibar > span { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+.seg-other { fill: var(--muted); }
+.seg-gap { stroke: var(--surface); stroke-width: 2; }
+svg .on-seg { fill: var(--surface); font-weight: 700; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+select { font: inherit; font-size: 0.95rem; padding: 5px 8px; border: 1.5px solid var(--accent); border-radius: 6px;
+         background: var(--surface); color: var(--ink); max-width: 100%; }
+select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- The template's frame: contents bar and section labels ---------- */
+.toc { max-width: var(--wide); margin: 30px auto 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
+       font-size: 0.9rem; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.toc .toc-label { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase;
+                  color: var(--muted); margin-right: 4px; }
+.toc a { text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+         border-radius: 999px; padding: 3px 11px; }
+.toc a b { font-family: var(--font-mono); font-weight: 500; color: var(--accent); margin-right: 5px; }
+.toc a:hover { border-color: var(--accent); color: var(--accent); }
+.toc a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+main h2[id] { scroll-margin-top: 18px; }
+main h2 .part { margin-bottom: 6px; }
+
+/* The "Today's topic" banner: where the review ends and the new material begins */
+.topic { max-width: var(--wide); margin: 80px auto 0; padding: 18px 0 20px; border-top: 4px solid var(--ink);
+         border-bottom: 1px solid var(--line); }
+.topic h2 { font-size: clamp(2.4rem, 6vw, 3.4rem); margin-top: 0; letter-spacing: -0.02em; }
+.topic h2 .part { font-size: 0.85rem; margin-bottom: 8px; }
+.topic .topic-q { font-family: var(--font-display); font-size: clamp(1.15rem, 2.4vw, 1.4rem); color: var(--muted);
+                  margin: 8px 0 16px; max-width: 46ch; }
+.topic-parts { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .topic-parts { grid-template-columns: minmax(0, 1fr); } }
+.topic-parts a { display: block; text-decoration: none; color: var(--ink); background: var(--surface);
+                 border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 8px 12px; }
+.topic-parts a b { display: block; font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500;
+                   letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.topic-parts a:hover { border-color: var(--accent); }
+.topic-parts a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* A ledger: a model's stored lines, with the one a case uses marked (boosting's Step 3) */
+.ledger { max-height: 380px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+.ledger:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ledger table { font-size: 0.86rem; }
+.ledger thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.ledger td.pick { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.ledger td.n, .ledger th.n { white-space: nowrap; }
+.ledger tr.start th, .ledger tr.start td { font-style: italic; color: var(--muted); }
+/* A tree written as nested questions, with one case's path in bold */
+.tree-list, .tree-list ul { list-style: none; margin: 0; padding: 0; }
+.tree-list ul { padding-left: 20px; margin-left: 8px; border-left: 1px dashed var(--line); }
+.tree-list li { margin: 5px 0; }
+.tree-list .ans { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); margin-right: 8px;
+                  border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+.tree-list .q { font-weight: 500; }
+.tree-list .leaf { font-family: var(--font-mono); font-size: 0.9rem; }
+.tree-list .cnt { color: var(--muted); font-size: 0.86rem; }
+.tree-list li.on > .q, .tree-list li.on > .leaf, .tree-list li.on > .ans { font-weight: 700; color: var(--accent); border-color: var(--accent); }
+.tree-list .here { color: var(--accent); font-size: 0.86rem; }
+tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
+
+/* The terse pattern (Jeff, Nov 4): on screen one headline and one figure; the explanation sits in a reveal */
+.headline { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+            line-height: 1.3; margin: 10px 0 12px; }
+details.more { margin: 12px 0; border-left: 3px solid var(--line); padding: 2px 0 2px 12px; font-size: 0.97rem; }
+details.more[open] { border-left-color: var(--accent); }
+details.more summary { color: var(--accent); font-weight: 700; }
+/* One value changing along a line: a prediction moving tree by tree */
+.track { list-style: none; padding: 0; margin: 14px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+.track li { flex: 1 1 86px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.track li b { display: block; font-family: var(--font-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.track li span { color: var(--muted); font-size: 0.82rem; }
+.track li.end { border: 2px solid var(--accent); }
+/* The best value in a column of a scoreboard: bold, with a mark, never colour alone */
+td.best { font-weight: 700; color: var(--accent); white-space: nowrap; }
+td.best::after { content: " ★"; }
+
+
+</style>
+</head>
+<body>
+<div class="page">
+<header class="col">
+  <p class="eyebrow">STAT 764 · Meeting 18 · The bake-off</p>
+  <h1>Four models, one decision</h1>
+  <p class="lede">When models score about the same, what does “better” mean?</p>
+  <div class="method" role="list" aria-label="Today in three moves">
+    <div role="listitem"><b>Same patients</b><span>Four models, one test set.</span></div>
+    <div role="listitem"><b>Six yardsticks</b><span>Not just one score.</span></div>
+    <div role="listitem"><b>One decision</b><span>Which would you deploy?</span></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="On this page"><span class="toc-label">On this page</span><a href="#where"><b>1</b>Where we are</a><a href="#dots"><b>2</b>Connecting the dots</a><a href="#topic"><b>3</b>Today: The bake-off</a><a href="#p1"><b>4</b>Part 1 · Is a gap real?</a><a href="#p2"><b>5</b>Part 2 · The scoreboard</a><a href="#studio"><b>6</b>Part 3 · Your studio</a><a href="#next"><b>7</b>Next</a></nav>
+
+<main>
+<!-- ============================ WHERE WE ARE ============================ -->
+<section class="wide where" aria-labelledby="where">
+  <h2 id="where" data-toc="Where we are"><span class="part">Start here</span>Where we are</h2>
+  <div class="spine">
+    <p class="eyebrow" style="margin:0">The question the whole course is asking</p>
+    <p class="q">When is a number you computed actually evidence about the future?</p>
+    <ol class="units" aria-label="The six units of the course">
+      <li class="done"><b>Meetings 1–6</b>Can you trust your own number?</li>
+      <li class="done"><b>Meetings 7–8</b>Making models behave</li>
+      <li class="done"><b>Meetings 9–14</b>Decisions, not scores</li>
+      <li class="now" aria-current="step"><b>Meetings 15–20 · now</b>Flexible models, and reading them</li>
+      <li><b>Meetings 21–25</b>Structure without an answer key</li>
+      <li><b>Meetings 26–28</b>Where models fail</li>
+    </ol>
+  </div>
+
+  <div class="trip">
+    <article aria-labelledby="last">
+      <p class="tag">Last time · Meeting 17</p>
+      <h3 id="last">Boosting</h3>
+      <div class="keep"><b>Keep this</b>Boosting adds small trees, each fitted to what is still wrong. More rounds can
+      overfit, so choose them on held-out patients.</div>
+    </article>
+    <article class="today" aria-labelledby="today">
+      <p class="tag">Today · Meeting 18</p>
+      <h3 id="today">The bake-off</h3>
+      <p>Tree models and a foundation model against logistic regression. <strong>You recommend one.</strong></p>
+    </article>
+    <article aria-labelledby="soon">
+      <p class="tag">Coming up</p>
+      <h3 id="soon">Interpretation</h3>
+      <ul>
+        <li><strong>Tue, Nov 10:</strong> what a model’s explanations can tell you.</li>
+        <li><strong>Thu, Nov 12:</strong> breaking those tools.</li>
+      </ul>
+      <p><strong>Due:</strong> today’s studio, Friday 3:40 pm · Lab 8, Tue Nov 10 · Capstone Stage 2, Nov 12.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ CONNECTING THE DOTS ============================ -->
+<section class="wide dots" aria-labelledby="dots">
+  <h2 id="dots" data-toc="Connecting the dots"><span class="part">Before the new idea · about five minutes</span>Connecting the dots: finishing boosting</h2>
+
+  <h3>Try first: answer each in your head, then open it</h3>
+  <div class="recall">
+    <details>
+      <summary>1. What does each new boosted tree fit?</summary>
+      <p>What is <strong>still wrong</strong>: the outcome minus the predicted chance for a yes/no outcome, the residual
+      for a number.</p>
+    </details>
+    <details>
+      <summary>2. Why can more rounds hurt boosting, when more trees never hurt a forest?</summary>
+      <p>A forest <strong>averages</strong>: another tree only steadies the average. Boosting <strong>adds</strong>:
+      every round fits the training data more closely, and eventually it is fitting noise.</p>
+    </details>
+    <details>
+      <summary>3. As the rounds pile up, what goes wrong first: the order or the probabilities?</summary>
+      <p>The <strong>probabilities</strong>. In Tuesday’s studio, test AUC held through 300 rounds (0.647, 0.653, 0.652)
+      while the calibration slope fell from 1.02 to 0.80, and to 0.59 by round 1,000.</p>
+    </details>
+  </div>
+
+  <h3>Boosting on the real patients</h3>
+  <div class="stats" role="list" aria-label="Boosting on the readmission data">
+    <div role="listitem"><b>34</b><span>best round at a learning rate of 0.1, on held-out patients</span></div>
+    <div role="listitem"><b>0.647</b><span>test AUC: about the same as the forest and logistic regression</span></div>
+    <div role="listitem"><b>34 × 8</b><span>trees × leaves stored, plus a starting value</span></div>
+    <div role="listitem"><b>31.1%</b><span>one stay’s predicted chance, built up below</span></div>
+  </div>
+
+  <p class="headline">One test stay, six prior stays: each tree nudges its chance up.</p>
+  <ol class="track" aria-label="This stay's predicted chance as trees are added">
+    <li><b>11.6%</b><span>start: everyone</span></li>
+    <li><b>13.8%</b><span>after tree 1</span></li>
+    <li><b>17.2%</b><span>after tree 3</span></li>
+    <li><b>20.0%</b><span>after tree 5</span></li>
+    <li><b>24.3%</b><span>after tree 10</span></li>
+    <li><b>28.3%</b><span>after tree 20</span></li>
+    <li class="end"><b>31.1%</b><span>after tree 34</span></li>
+  </ol>
+  <details class="more">
+    <summary>How the trees add up</summary>
+    <p>Chances cannot simply be added: they would pass 100%. So boosting adds on the <strong>log-odds</strong> scale, then
+    converts back. This stay starts at log-odds −2.03 (11.6%). Tree 1 sends it to a leaf of +1.99, and 0.1 × 1.99 = +0.20
+    moves it to −1.83, which is 13.8%. After all 34 trees it is at −0.80, which is 31.1%, and that is exactly what
+    <code>predict_proba</code> reports. The steps are worked on Meeting 17’s page.</p>
+  </details>
+
+  <h3>The chain, so far</h3>
+  <div class="scroll">
+  <table class="chain">
+    <caption>Meetings 15–20: what each method fixes, and what is still wrong</caption>
+    <thead><tr><th scope="col">method</th><th scope="col">what it fixes</th><th scope="col">the evidence</th>
+      <th scope="col">what is still wrong</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">One tree<span class="mtg">Meeting 15</span></th><td>Rules anyone can read.</td>
+        <td>AUC <span class="num">0.640</span></td><td><strong>Unstable.</strong></td></tr>
+      <tr><th scope="row">Bagging<span class="mtg">Meeting 16</span></th><td>Instability: average many trees.</td>
+        <td><span class="num">0.630</span></td><td><strong>The trees are alike.</strong></td></tr>
+      <tr><th scope="row">Random forest<span class="mtg">Meeting 16</span></th><td>Look-alike trees: random columns.</td>
+        <td><span class="num">0.651</span></td><td><strong>Can’t predict past what it saw.</strong></td></tr>
+      <tr><th scope="row">Boosting<span class="mtg">Meeting 17</span></th><td>Another way to combine trees: in sequence.</td>
+        <td><span class="num">0.647</span></td><td><strong>Too many rounds overfit.</strong></td></tr>
+      <tr class="now"><th scope="row">The bake-off<span class="mtg">Meeting 18 · today</span></th><td colspan="3">All of them
+        and a model that needs no tuning: what does “better” mean?</td></tr>
+      <tr class="later"><th scope="row">Interpretation<span class="mtg">Meetings 19–20</span></th><td colspan="3">What a
+        model’s explanations can and cannot tell you.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ============================ TODAY'S TOPIC ============================ -->
+<section class="topic" aria-labelledby="topic">
+  <h2 id="topic" data-toc="Today: The bake-off"><span class="part">Today’s topic</span>The bake-off</h2>
+  <p class="topic-q">Which model would you deploy for the $150 home visit?</p>
+  <ol class="topic-parts" aria-label="Today in three parts">
+    <li><a href="#p1"><b>Part 1</b>Is a gap real?</a></li>
+    <li><a href="#p2"><b>Part 2</b>The scoreboard</a></li>
+    <li><a href="#studio"><b>Part 3</b>Your studio</a></li>
+  </ol>
+</section>
+
+<!-- ============================ PART 1 ============================ -->
+<section class="col" aria-labelledby="p1">
+  <h2 id="p1" data-toc="Part 1 · Is a gap real?"><span class="part">Part 1 · the idea, small</span>Is a gap real?</h2>
+  <p class="headline">Sixty made-up patients. Model A beats Model B. Would it on other patients?</p>
+</section>
+
+<figure class="wide panel">
+  <div class="row" style="margin-bottom:12px">
+    <button type="button" class="btn primary" id="b-one">Redraw the patients once</button>
+    <button type="button" class="btn" id="b-many">Redraw 200 times</button>
+    <button type="button" class="btn" id="b-reset">Start over</button>
+  </div>
+  <div id="b-plot" class="plotbox"></div>
+  <p id="b-say" class="calc" aria-live="polite"></p>
+  <figcaption>Each mark is one redraw of the 60 patients, with replacement: Model A’s AUC minus Model B’s on that
+  redraw. The dashed line is a gap of zero.</figcaption>
+</figure>
+
+<section class="col">
+  <details class="more">
+    <summary>Why redraw patients, and why keep the pair?</summary>
+    <p><strong>Redraw</strong> because the test patients are one sample, and a different sample would give a different
+    gap. <strong>Patients, not stays,</strong> because a patient’s stays belong together (Meeting 9).
+    <strong>Keep the pair</strong>, both models on the same redraw, so the luck they share cancels: a difficult redraw
+    is difficult for both. Comparing two separate intervals would miss that and look less certain than it is.</p>
+  </details>
+
+  <!-- ============================ PART 2 ============================ -->
+  <h2 id="p2" data-toc="Part 2 · The scoreboard"><span class="part">Part 2 · the real data</span>The scoreboard</h2>
+  <p>Fit on Meeting 16’s 15,000 training patients. Scored on the same 24,706 test stays, of whom 11.1% came back.</p>
+  <p class="headline">TabICL ranks best, with no tuning. But no model wins every column.</p>
+  <div class="scroll">
+  <table>
+    <caption>How good: the order, the numbers and the money (★ best in the column)</caption>
+    <thead><tr><th scope="col">model</th><th scope="col" class="n">AUC</th><th scope="col" class="n">Brier</th>
+      <th scope="col" class="n">average said</th><th scope="col" class="n">calibration slope</th>
+      <th scope="col" class="n">patients visited</th><th scope="col" class="n">net per 1,000</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">logistic regression</th><td class="n">0.649</td><td class="n">0.0955</td><td class="n">11.5%</td><td class="n">0.88</td><td class="n">13.2%</td><td class="n">$6,965</td></tr>
+      <tr><th scope="row">random forest</th><td class="n">0.651</td><td class="n">0.0952</td><td class="n">11.5%</td><td class="n best">1.00</td><td class="n">14.9%</td><td class="n">$6,846</td></tr>
+      <tr><th scope="row">boosting</th><td class="n">0.647</td><td class="n">0.0953</td><td class="n">11.5%</td><td class="n">1.02</td><td class="n">12.0%</td><td class="n">$6,751</td></tr>
+      <tr><th scope="row">TabICL</th><td class="n best">0.656</td><td class="n best">0.0950</td><td class="n">9.8%</td><td class="n">0.85</td><td class="n">11.1%</td><td class="n best">$7,555</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <details class="more">
+    <summary>Reading the columns</summary>
+    <ul>
+      <li><strong>AUC</strong> is the order. <strong>Brier</strong> is the numbers and the order together; lower is
+      better.</li>
+      <li><strong>Average said</strong> should match the 11.1% who came back. TabICL’s 9.8% runs low.</li>
+      <li><strong>Calibration slope</strong>: 1 means the spread is right; below 1, too extreme.</li>
+      <li><strong>Net per 1,000</strong> is Meeting 10’s money: visit everyone at or above 0.169, the break-even for a
+      $150 visit that prevents 5% of a $17,700 readmission.</li>
+    </ul>
+  </details>
+
+  <p class="headline">The price of each model is not on that scoreboard.</p>
+  <div class="scroll">
+  <table>
+    <caption>What each model costs you</caption>
+    <thead><tr><th scope="col">model</th><th scope="col">tuning</th><th scope="col">time to fit and predict</th>
+      <th scope="col">one patient’s score, explained</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">logistic regression</th><td>almost none</td><td>under a second</td><td>coefficients</td></tr>
+      <tr><th scope="row">random forest</th><td>a few settings</td><td>about a second*</td><td>needs extra tools</td></tr>
+      <tr><th scope="row">boosting</th><td>rounds, rate, depth</td><td>about a second*</td><td>needs extra tools</td></tr>
+      <tr><th scope="row">TabICL</th><td>none</td><td>about 4 s on a GPU; about 5 min on 24 CPU cores</td><td>very little</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="foot" style="margin-top:8px;border:0;padding:0">* On a 24-core workstation. A laptop takes longer.</p>
+  <details class="more">
+    <summary>What is a foundation model?</summary>
+    <p>TabICL was trained in advance on many simulated tables. Fitting it does not train it on your data: it holds your
+    rows as context and predicts from them, which is why there is nothing to tune. Its predictions were computed once on
+    a GPU and are in a file in your clone, so you do not need to install anything.</p>
+  </details>
+
+  <p class="note">Two yardsticks are missing: <strong>are these gaps real</strong>, and <strong>would the model say the
+  same thing next time?</strong> That is your studio.</p>
+
+  <h3 id="code">See it in Scikit-Learn</h3>
+<pre><code>from tabicl import TabICLClassifier            # not in the course environment
+
+model = TabICLClassifier()                     # no settings to tune
+model.fit(X_train, y_train)                    # holds the rows as context
+p = model.predict_proba(X_test)[:, 1]          # a GPU makes this take seconds
+
+# The notebook's paired bootstrap: the gap and the middle 95% of redraws.
+gap, low, high = paired_gap(probs["TabICL"], probs["logistic regression"])</code></pre>
+
+  <!-- ============================ PART 3 ============================ -->
+  <h2 id="studio" data-toc="Part 3 · Your studio"><span class="part">Part 3 · your turn</span>Your studio</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th scope="col">question</th><th scope="col">what you do</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · about 15 min</th><td><strong>Which gaps are real?</strong> Each model against logistic
+        regression, in AUC and in dollars, with intervals.</td></tr>
+      <tr><th scope="row">2 · about 15 min</th><td><strong>Would it say the same next time?</strong> Refit on five samples:
+        how far does a patient’s score move, and do the top-10% lists overlap?</td></tr>
+      <tr><th scope="row">3 · about 15 min</th><td><strong>Your recommendation.</strong> One model for the $150 visit, with
+        a number for each yardstick.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>All three count; finish at home whatever you do not finish in class.</p>
+  <details class="more">
+    <summary>Stuck?</summary>
+    <div class="scroll">
+    <table>
+      <thead><tr><th scope="col">you see</th><th scope="col">what to do</th></tr></thead>
+      <tbody>
+        <tr><td><code>NameError</code> for <code>probs</code>, <code>paired_gap</code> or <code>tabicl</code></td><td>Run the notebook from the top (Run All).</td></tr>
+        <tr><td>An error loading <code>tabicl_test_predictions.csv</code></td><td>Run <code>git pull</code> in your clone: the file came with today’s update.</td></tr>
+        <tr><td><code>paired_gap</code> is slow</td><td>About 10 seconds a call: it redraws the patients 300 times.</td></tr>
+        <tr><td>Every interval is huge, or a <code>TypeError</code></td><td><code>measure</code> takes <code>(outcome, probs)</code>, in that order.</td></tr>
+        <tr><td>Question 2: the overlap is 1.0</td><td>You compared a sample with itself. Compare two different samples.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
+  <p class="note">Write your guess first and keep it, and answer the exit ticket. Upload to Canvas under “Studio notebook
+  — Day 18” by <strong>Friday, November 6, 3:40 pm</strong>.</p>
+
+  <h2 id="next" data-toc="Next"><span class="part">After class</span>Next: interpretation</h2>
+  <p>On Tuesday we ask what a model can tell you about <em>why</em>, starting from the importance plots of Meeting 16.</p>
+  <p><strong>Lab 8</strong> takes up the question today’s table leaves open: fix TabICL’s numbers, and does the hospital make more
+  money? About an hour, due Tuesday, November 10, at 11:59 pm.</p>
+
+  <p class="foot">Part 1’s patients are made up and computed in your browser from fixed seeds. Part 2’s numbers come from
+  the Meeting 18 notebook: the Diabetes 130-US Hospitals data (UCI), split by patient as in Meeting 9, with Meeting 16’s
+  sample of 15,000 training patients. TabICL: Qu et al. (2025).</p>
+</section>
+</main>
+</div>
+<script>
+(() => {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; };
+  const $ = (id) => document.getElementById(id);
+  const sign = (v, d = 3) => (v < 0 ? "−" : "+") + Math.abs(v).toFixed(d);
+
+  // A small seeded random-number generator, so every visitor sees the same patients.
+  function mulberry32(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function normal(r) { const u = Math.max(r(), 1e-12), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+  // Sixty made-up patients: two models that share most of their signal and their luck, and are equally good by design.
+  function make(seed) {
+    const r = mulberry32(seed), P = [];
+    for (let i = 0; i < 60; i++) {
+      const y = r() < 0.35 ? 1 : 0, z = normal(r);
+      P.push({ y, a: 0.8 * y + z + 0.6 * normal(r), b: 0.8 * y + z + 0.6 * normal(r) });
+    }
+    return P;
+  }
+  function auc(P, k) {
+    let w = 0, n = 0;
+    for (const p of P) if (p.y) for (const q of P) if (!q.y) { n++; w += p[k] > q[k] ? 1 : p[k] === q[k] ? 0.5 : 0; }
+    return n ? w / n : 0.5;
+  }
+  const PATIENTS = make(49), A = auc(PATIENTS, "a"), B = auc(PATIENTS, "b"), GAP = A - B;
+  let rng, diffs;
+  const redraw = () => {
+    const Q = PATIENTS.map(() => PATIENTS[Math.floor(rng() * PATIENTS.length)]);
+    diffs.push(auc(Q, "a") - auc(Q, "b"));
+  };
+
+  function draw() {
+    const host = $("b-plot"); host.innerHTML = "";
+    const W = 760, H = 250, m = { l: 20, r: 20, t: 16, b: 44 }, LO = -0.25, HI = 0.3, BIN = 0.0125;
+    const sx = (d) => m.l + ((d - LO) / (HI - LO)) * (W - m.l - m.r);
+    const sorted = [...diffs].sort((x, y) => x - y);
+    const lo = sorted[Math.floor(0.025 * sorted.length)], hi = sorted[Math.ceil(0.975 * sorted.length) - 1];
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: "img",
+      "aria-label": `${diffs.length} redraws of Model A's AUC minus Model B's. The gap on the original patients is ${GAP.toFixed(3)}.` }, host);
+    const counts = new Map();
+    for (const d of diffs) { const b = Math.round(d / BIN); counts.set(b, (counts.get(b) || 0) + 1); }
+    const top = Math.max(8, ...counts.values()), base = H - m.b, unit = (base - m.t - 8) / top;
+    for (const [b, c] of counts) {
+      const x = sx(b * BIN), inside = diffs.length >= 40 && b * BIN >= lo && b * BIN <= hi;
+      el("rect", { x: x - 6, y: base - c * unit, width: 12, height: c * unit, fill: inside ? "var(--accent)" : "var(--muted)", opacity: inside ? 0.9 : 0.5 }, svg);
+    }
+    el("line", { x1: m.l, x2: W - m.r, y1: base, y2: base, class: "axis" }, svg);
+    for (const t of [-0.2, -0.1, 0, 0.1, 0.2, 0.3]) txt(svg, sx(t), base + 18, sign(t, 1).replace("+0.0", "0").replace("−0.0", "0"), { "text-anchor": "middle", "font-size": 12, class: "muted mono" });
+    txt(svg, (m.l + W - m.r) / 2, H - 6, "Model A’s AUC minus Model B’s", { "text-anchor": "middle", "font-size": 13, class: "muted" });
+    el("line", { x1: sx(0), x2: sx(0), y1: m.t, y2: base, class: "line-floor" }, svg);
+    el("line", { x1: sx(GAP), x2: sx(GAP), y1: m.t, y2: base, class: "now-line" }, svg);
+    txt(svg, sx(GAP) + 6, m.t + 10, `this test set: ${sign(GAP)}`, { "font-size": 12, class: "halo mono" });
+
+    let say = `Model A ${A.toFixed(3)}, Model B ${B.toFixed(3)}: a gap of <span class="big">${sign(GAP)}</span>.`;
+    if (diffs.length) say += ` Redraws so far: ${diffs.length}.`;
+    if (diffs.length >= 40) {
+      const zero = lo <= 0 && hi >= 0;
+      say += `<br>The middle 95% runs from <b>${sign(lo)}</b> to <b>${sign(hi)}</b>. ` +
+        (zero ? "It includes 0: these patients cannot tell the two models apart." : "It excludes 0: this gap is more than the luck of the patients.");
+    } else {
+      say += "<br>Is that gap real? Redraw the patients and see.";
+    }
+    $("b-say").innerHTML = say;
+  }
+  function reset() { rng = mulberry32(1049); diffs = []; draw(); }
+  $("b-one").addEventListener("click", () => { redraw(); draw(); });
+  $("b-many").addEventListener("click", () => { for (let i = 0; i < 200; i++) redraw(); draw(); });
+  $("b-reset").addEventListener("click", reset);
+  reset();
+})();
+</script>
+</body>
+</html>
