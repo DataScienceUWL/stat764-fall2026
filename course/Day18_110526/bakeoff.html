@@ -457,7 +457,7 @@ td.best::after { content: " ★"; }
       every round fits the training data more closely, and eventually it is fitting noise.</p>
     </details>
     <details>
-      <summary>3. As the rounds pile up, what goes wrong first: the order or the probabilities?</summary>
+      <summary>3. As the rounds pile up, what goes wrong first: the order (AUC) or the probabilities (calibration slope)?</summary>
       <p>The <strong>probabilities</strong>. In Tuesday’s studio, test AUC held through 300 rounds (0.647, 0.653, 0.652)
       while the calibration slope fell from 1.02 to 0.80, and to 0.59 by round 1,000.</p>
     </details>
@@ -544,6 +544,10 @@ td.best::after { content: " ★"; }
 
 <section class="col">
   <details class="more">
+    <summary>Is Model A really better?</summary>
+    <p>No. We built these two models to be equally good, so the whole gap of 0.038 is luck. It still looked like a win.</p>
+  </details>
+  <details class="more">
     <summary>Why redraw patients, and why keep the pair?</summary>
     <p><strong>Redraw</strong> because the test patients are one sample, and a different sample would give a different
     gap. <strong>Patients, not stays,</strong> because a patient’s stays belong together (Meeting 9).
@@ -552,7 +556,52 @@ td.best::after { content: " ★"; }
   </details>
 
   <!-- ============================ PART 2 ============================ -->
-  <h2 id="p2" data-toc="Part 2 · The scoreboard"><span class="part">Part 2 · the real data</span>The scoreboard</h2>
+  <h2 id="p2" data-toc="Part 2 · The scoreboard"><span class="part">Part 2 · the real data</span>Four models, one scoreboard</h2>
+
+  <h3 id="fourth">The fourth model: what is TabICL?</h3>
+  <p class="headline">A foundation model is trained once, on a huge amount of data, then used on problems it has never seen.</p>
+  <p>You have met the idea: ChatGPT and Claude are foundation models for text. TabICL is one for tables, and your training
+  rows play the part of the prompt.</p>
+  <p>TabICL is a neural network with about 28 million weights. We treat it as a black box here; how such networks work is a
+  topic for DS 776.</p>
+  <div class="scroll">
+  <table>
+    <caption>Where the learning happens</caption>
+    <thead><tr><th scope="col">question</th><th scope="col">logistic regression, forest, boosting</th><th scope="col">TabICL</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">When does it learn?</th><td>when you call <code>fit</code></td><td>once, by its makers, before you use it</td></tr>
+      <tr><th scope="row">From what?</th><td>your training rows</td><td>about 35 million simulated tables</td></tr>
+      <tr><th scope="row">What does <code>fit</code> do?</th><td>finds coefficients, grows trees</td><td>keeps your rows as context</td></tr>
+      <tr><th scope="row">What must you tune?</th><td>a little to a lot</td><td>nothing</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <details class="more">
+    <summary>How can it predict without training on your data?</summary>
+    <ul>
+      <li><strong>Practice.</strong> Make up a table, hide some outcomes, predict them from the rest, adjust. It did that
+      about 35 million times. It learned a way of reading tables, not any one table.</li>
+      <li><strong>On your data.</strong> One pass through the network, with nothing updated. It sums up each row, then
+      each test patient looks at the training patients and their outcomes. That is the ICL in the name:
+      <em>in-context learning</em>.</li>
+      <li><strong>Think k-nearest neighbors.</strong> <code>fit</code> keeps the rows and the work happens at prediction.
+      The difference is that TabICL learned in advance how to use those rows.</li>
+      <li><strong>Eight tries.</strong> By default it runs 8 times, with the columns shuffled, and averages the answers.</li>
+    </ul>
+  </details>
+  <details class="more">
+    <summary>What does it know about patients?</summary>
+    <p>Nothing. It trained only on simulated tables, so it has never seen a hospital. It does not read column names either:
+    <code>number_inpatient</code> is just a column of numbers. Everything it knows about these patients comes from the
+    15,000 you hand it.</p>
+  </details>
+  <details class="more">
+    <summary>Who made it?</summary>
+    <p>The Soda team at Inria, in France. We ran TabICLv2, published at ICML 2026, with open code and weights. Its
+    best-known relative is TabPFN.</p>
+  </details>
+
+  <h3 id="board">The scoreboard</h3>
   <p>Fit on Meeting 16’s 15,000 training patients. Scored on the same 24,706 test stays, of whom 11.1% came back.</p>
   <p class="headline">TabICL ranks best, with no tuning. But no model wins every column.</p>
   <div class="scroll">
@@ -596,12 +645,6 @@ td.best::after { content: " ★"; }
   </table>
   </div>
   <p class="foot" style="margin-top:8px;border:0;padding:0">* On a 24-core workstation. A laptop takes longer.</p>
-  <details class="more">
-    <summary>What is a foundation model?</summary>
-    <p>TabICL was trained in advance on many simulated tables. Fitting it does not train it on your data: it holds your
-    rows as context and predicts from them, which is why there is nothing to tune. Its predictions were computed once on
-    a GPU and are in a file in your clone, so you do not need to install anything.</p>
-  </details>
 
   <p class="note">Two yardsticks are missing: <strong>are these gaps real</strong>, and <strong>would the model say the
   same thing next time?</strong> That is your studio.</p>
@@ -615,6 +658,7 @@ p = model.predict_proba(X_test)[:, 1]          # a GPU makes this take seconds
 
 # The notebook's paired bootstrap: the gap and the middle 95% of redraws.
 gap, low, high = paired_gap(probs["TabICL"], probs["logistic regression"])</code></pre>
+  <p>You do not need to install TabICL. Its predictions were computed once on a GPU and are in a file in your clone.</p>
 
   <!-- ============================ PART 3 ============================ -->
   <h2 id="studio" data-toc="Part 3 · Your studio"><span class="part">Part 3 · your turn</span>Your studio</h2>
@@ -657,7 +701,7 @@ gap, low, high = paired_gap(probs["TabICL"], probs["logistic regression"])</code
 
   <p class="foot">Part 1’s patients are made up and computed in your browser from fixed seeds. Part 2’s numbers come from
   the Meeting 18 notebook: the Diabetes 130-US Hospitals data (UCI), split by patient as in Meeting 9, with Meeting 16’s
-  sample of 15,000 training patients. TabICL: Qu et al. (2025).</p>
+  sample of 15,000 training patients. TabICL here is TabICLv2 (Qu et al., 2026), the default in the tabicl package.</p>
 </section>
 </main>
 </div>
