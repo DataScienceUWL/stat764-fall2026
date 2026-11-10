@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Built from content/lessons/pages/day19_interpretation.html in the course repo by tools/build_page.py. Open this file in a web browser. -->
+<title>Same Score, Different Models</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* STAT 764 daily pages: the shared theme.
+   Inlined into every page by tools/build_page.py, so each page stays one self-contained file.
+   Edit here, then rebuild the pages; never edit a built page's <style> by hand. */
+
+/* Layout: the tree and forest pages' system (one reading column, figures widen to 1040px), so the three read as a set. */
+:root {
+  --paper: #f1f5f4;
+  --surface: #ffffff;
+  --ink: #13242a;
+  --muted: #485b60;
+  --line: #c6d2d1;
+  --grid: #e2e9e8;
+  --back: #ad3822;          /* came back within 30 days */
+  --stay: #276a6f;          /* did not come back */
+  --accent: #1d4c87;        /* the thing you are steering: a selected question, a path */
+  --accent-soft: #e2ebf6;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --read: 68ch;
+  --wide: 1040px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+    --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+  --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px;
+       line-height: 1.6; margin: 0; }
+.page { padding-inline: 16px; padding-block: 40px 72px; }
+.col { max-width: var(--read); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 700; margin-top: 64px; }
+h3 { font-size: 1.25rem; font-weight: 700; margin-top: 40px; display: flex; gap: 12px; align-items: baseline; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+strong { font-weight: 700; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+           color: var(--muted); margin: 0 0 12px; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+.step { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em;
+        color: var(--accent); border: 1.5px solid var(--accent); border-radius: 999px; padding: 1px 9px;
+        white-space: nowrap; transform: translateY(-2px); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.part { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--muted); display: block; margin-bottom: 6px; font-weight: 500; }
+
+/* Figures */
+figure { margin: 28px auto; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 12px; max-width: var(--read); }
+svg { display: block; max-width: 100%; height: auto; }
+.scroll { overflow-x: auto; }
+.treebox { display: flex; justify-content: center; margin-bottom: 18px; }
+.treebox svg { flex: none; max-width: 100%; }
+.plotbox { display: flex; justify-content: center; }
+svg text { font-family: var(--font-body); fill: var(--ink); }
+svg .mono { font-family: var(--font-mono); }
+svg .muted { fill: var(--muted); }
+svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.axis { stroke: var(--line); stroke-width: 1; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; color: var(--muted); margin: 0 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Controls */
+.controls { display: grid; gap: 14px; margin-bottom: 14px; }
+label, .label { font-weight: 700; font-size: 0.95rem; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.seg { display: inline-flex; border: 1.5px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.92rem; padding: 6px 12px; border: 0; background: var(--surface);
+              color: var(--accent); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 700; }
+.btn { font: inherit; font-size: 0.92rem; font-weight: 700; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+       border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Readouts */
+.readout { display: grid; gap: 10px; }
+.sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.side { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.side .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.side b { display: block; }
+.calc { font-family: var(--font-mono); font-size: 0.9rem; background: var(--paper); border-radius: 6px; padding: 10px 12px;
+        line-height: 1.7; overflow-x: auto; }
+.calc .big { font-size: 1.05rem; font-weight: 500; color: var(--accent); }
+.say { font-size: 1rem; }
+
+/* Stat strip, tables, code */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); margin: 24px 0; }
+.stats div { padding: 12px 12px 12px 0; }
+.stats b { display: block; font-family: var(--font-display); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--ink); font-size: 0.85rem; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px;
+      overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--surface); }
+.card .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.card b { font-family: var(--font-display); font-size: 1.2rem; display: block; margin-top: 2px; }
+details { margin-top: 10px; font-size: 0.92rem; }
+summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.foot { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); margin-top: 64px; padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  .board .bar, .hbars .bar { transition: width 0.25s ease; }
+}
+/* The one-sentence method: the page's thesis */
+.method { margin: 28px 0 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+          border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+.method div { padding: 14px 16px 14px 0; }
+.method div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.method b { display: block; font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 2px; }
+.method span { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 620px) {
+  .method { grid-template-columns: 1fr; }
+  .method div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* Forest page additions */
+.box-note { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 18px 6px; margin: 22px 0 8px; }
+.box-note h4 { font-family: var(--font-display); font-size: 1.1rem; margin: 12px 0 4px; }
+
+/* Boosting page additions */
+.line-model { stroke: var(--accent); stroke-width: 3; fill: none; stroke-linejoin: round; }
+.line-stump { stroke: var(--accent); stroke-width: 3; fill: none; stroke-dasharray: 7 4; }
+.line-truth { stroke: var(--muted); stroke-width: 1.6; fill: none; stroke-dasharray: 2 4; }
+.line-train { stroke: var(--stay); stroke-width: 2.4; fill: none; stroke-dasharray: 6 4; }
+.line-new { stroke: var(--back); stroke-width: 2.8; fill: none; }
+.line-other { stroke: var(--muted); stroke-width: 1.6; fill: none; opacity: 0.7; }
+.line-floor { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.zero { stroke: var(--ink); stroke-width: 1; opacity: 0.5; }
+.pt { fill: var(--ink); }
+.pt-res { fill: var(--back); }
+.stick { stroke: var(--back); stroke-width: 1.4; opacity: 0.8; }
+.now-line { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.dot-new { fill: var(--back); stroke: var(--surface); stroke-width: 1.5; }
+.dot-train { fill: var(--stay); stroke: var(--surface); stroke-width: 1.5; }
+.dot-best { fill: var(--surface); stroke: var(--back); stroke-width: 2.4; }
+.dot-acc { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.sw { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; }
+.sw.model { border-color: var(--accent); }
+.sw.stump { border-top-style: dashed; border-color: var(--accent); }
+.sw.truth { border-top: 2px dotted var(--muted); }
+.sw.train { border-top-style: dashed; border-color: var(--stay); }
+.sw.new { border-color: var(--back); }
+.sw.other { border-top-width: 2px; border-color: var(--muted); }
+.dotsw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.dotsw.res { background: var(--back); }
+tr.is-on th, tr.is-on td { background: var(--accent-soft); font-weight: 700; }
+
+/* Where we are: the course's question, the six units, and last time / today / coming up */
+.where { margin-top: 40px; }
+.spine { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); padding: 14px 0 16px; margin-top: 14px; }
+.spine .q { font-family: var(--font-display); font-size: clamp(1.25rem, 2.6vw, 1.55rem); font-weight: 700; line-height: 1.25; margin: 4px 0 0; }
+.units { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.units li { border-top: 4px solid var(--line); padding: 6px 4px 0 0; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
+.units li b { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; }
+.units li.done { border-top-color: var(--stay); }
+.units li.now { border-top-color: var(--accent); color: var(--ink); font-weight: 700; }
+.units li.now b { color: var(--accent); }
+@media (max-width: 760px) { .units { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.trip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+@media (max-width: 900px) { .trip { grid-template-columns: minmax(0, 1fr); } }
+.trip article { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 16px 10px; }
+.trip article.today { border: 2px solid var(--accent); }
+.trip h3 { margin-top: 12px; font-size: 1.15rem; display: block; }
+.trip .tag { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 0; }
+.trip ul { padding-left: 18px; margin: 8px 0; }
+.trip li { margin: 6px 0; font-size: 0.95rem; }
+.trip p { font-size: 0.95rem; }
+.keep { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; margin: 10px 0 4px; }
+.keep b { display: block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+.dot-muted { fill: var(--muted); }
+
+/* Connecting the dots */
+.recall { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; align-items: start; }
+@media (max-width: 900px) { .recall { grid-template-columns: minmax(0, 1fr); } }
+.recall details { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; margin: 0; font-size: 0.95rem; }
+.recall summary { color: var(--ink); line-height: 1.4; }
+.recall summary::marker { color: var(--accent); }
+.recall details[open] { border-color: var(--accent); }
+.chain caption { font-weight: 700; }
+.chain th[scope="row"] { font-family: var(--font-display); font-size: 1.05rem; white-space: nowrap; }
+.chain .mtg { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0.03em; }
+.chain tr.now th, .chain tr.now td { background: var(--accent-soft); }
+.chain tr.now .mtg { color: var(--accent); }
+.chain tr.later th, .chain tr.later td { color: var(--muted); font-style: italic; }
+.verdicts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+@media (max-width: 900px) { .verdicts { grid-template-columns: minmax(0, 1fr); } }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: 6px; padding: 2px 14px 8px; font-size: 0.95rem; }
+.verdict.yes { border-top-color: var(--stay); }
+.verdict.no { border-top-color: var(--back); }
+.verdict .v-tag { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; margin: 10px 0 0; }
+.verdict.yes .v-tag { color: var(--stay); }
+.verdict.no .v-tag { color: var(--back); }
+.verdict .v-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin: 2px 0 0; font-variant-numeric: tabular-nums; }
+.verdict .v-what { color: var(--muted); margin: 0 0 6px; font-size: 0.9rem; }
+
+/* ---------- Components from the tree and forest pages (Meetings 15-16) ---------- */
+.pt-back { stroke: var(--back); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.pt-stay { fill: var(--stay); }
+.box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.box-shade { fill: var(--back); }
+.cutline { stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.side-no { fill: var(--stay); opacity: 0.08; }
+.side-yes { fill: var(--back); opacity: 0.08; }
+.node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+.edge { stroke: var(--ink); stroke-width: 1.3; fill: none; }
+.on .node, .node.on { stroke: var(--accent); stroke-width: 3; }
+.edge.on { stroke: var(--accent); stroke-width: 3; }
+.newpt { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.region-on { fill: none; stroke: var(--accent); stroke-width: 3; }
+.curve { stroke: var(--accent); stroke-width: 3; fill: none; }
+.dot-accent { fill: var(--accent); }
+.line-tree { stroke: var(--accent); stroke-width: 2.6; fill: none; }
+.line-logit { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
+.band { fill: var(--accent-soft); }
+.pt-num { fill: var(--ink); }
+.resid { stroke: var(--back); stroke-width: 1.6; }
+.meanline { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.box-num { fill: var(--accent); }
+.boundary { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.leafedge { fill: none; stroke: var(--line); stroke-width: 1; }
+
+/* Three boundaries side by side */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+.trio-title { margin: 0 0 6px; }
+.trio-note { margin: 6px 0 0; font-size: 0.92rem; color: var(--muted); }
+/* Leaderboard of candidate questions */
+.board { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.board button { width: 100%; display: grid; grid-template-columns: minmax(0, 11.5em) minmax(0, 1fr) 3.6em; gap: 8px;
+                align-items: center; font: inherit; font-size: 0.85rem; text-align: left; color: var(--ink);
+                background: none; border: 1px solid transparent; border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+.board button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.board .bar { height: 10px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.board button[aria-pressed="true"] .bar { background: var(--accent); }
+.board .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+
+/* Real-data bars */
+.hbars { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 16em) minmax(0, 1fr) 4.4em; gap: 10px; align-items: center; font-size: 0.88rem; }
+.hbars .bar { height: 12px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.hbars li.win { font-weight: 700; }
+.hbars li.win .bar { background: var(--accent); }
+.hbars .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+@media (max-width: 560px) {
+  .hbars li { grid-template-columns: minmax(0, 1fr) 4em; }
+  .hbars li .bar { grid-column: 1 / -1; grid-row: 2; }
+  .board button { grid-template-columns: minmax(0, 1fr) 3.4em; }
+  .board .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+.chips { display: grid; gap: 6px; }
+.chiprow { display: grid; grid-template-columns: 12em minmax(0, 1fr); gap: 10px; align-items: start; }
+.chiprow > span { font-size: 0.85rem; color: var(--muted); padding-top: 2px; }
+.chiprow ul { list-style: none; display: flex; flex-wrap: wrap; gap: 3px; margin: 0; padding: 0; }
+.chip { font-family: var(--font-mono); font-size: 0.72rem; padding: 1px 6px; border: 1px solid var(--line); border-radius: 4px;
+        color: var(--muted); background: var(--paper); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
+@media (max-width: 620px) { .chiprow { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.ghost { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.tally { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.tally li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; font-size: 0.95rem; }
+.tick-tree { stroke: var(--back); stroke-width: 1.4; stroke-opacity: 0.55; }
+.seg-main { fill: var(--accent); }
+.dot-muted { fill: var(--muted); }
+.dot-tree { fill: var(--muted); fill-opacity: 0.45; }
+.hidden-line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ibar { display: inline-block; width: 7em; height: 10px; background: var(--grid); border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.ibar > span { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+.seg-other { fill: var(--muted); }
+.seg-gap { stroke: var(--surface); stroke-width: 2; }
+svg .on-seg { fill: var(--surface); font-weight: 700; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+select { font: inherit; font-size: 0.95rem; padding: 5px 8px; border: 1.5px solid var(--accent); border-radius: 6px;
+         background: var(--surface); color: var(--ink); max-width: 100%; }
+select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- The template's frame: contents bar and section labels ---------- */
+.toc { max-width: var(--wide); margin: 30px auto 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
+       font-size: 0.9rem; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.toc .toc-label { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase;
+                  color: var(--muted); margin-right: 4px; }
+.toc a { text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+         border-radius: 999px; padding: 3px 11px; }
+.toc a b { font-family: var(--font-mono); font-weight: 500; color: var(--accent); margin-right: 5px; }
+.toc a:hover { border-color: var(--accent); color: var(--accent); }
+.toc a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+main h2[id] { scroll-margin-top: 18px; }
+main h2 .part { margin-bottom: 6px; }
+
+/* The "Today's topic" banner: where the review ends and the new material begins */
+.topic { max-width: var(--wide); margin: 80px auto 0; padding: 18px 0 20px; border-top: 4px solid var(--ink);
+         border-bottom: 1px solid var(--line); }
+.topic h2 { font-size: clamp(2.4rem, 6vw, 3.4rem); margin-top: 0; letter-spacing: -0.02em; }
+.topic h2 .part { font-size: 0.85rem; margin-bottom: 8px; }
+.topic .topic-q { font-family: var(--font-display); font-size: clamp(1.15rem, 2.4vw, 1.4rem); color: var(--muted);
+                  margin: 8px 0 16px; max-width: 46ch; }
+.topic-parts { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .topic-parts { grid-template-columns: minmax(0, 1fr); } }
+.topic-parts a { display: block; text-decoration: none; color: var(--ink); background: var(--surface);
+                 border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 8px 12px; }
+.topic-parts a b { display: block; font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500;
+                   letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.topic-parts a:hover { border-color: var(--accent); }
+.topic-parts a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* A ledger: a model's stored lines, with the one a case uses marked (boosting's Step 3) */
+.ledger { max-height: 380px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+.ledger:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ledger table { font-size: 0.86rem; }
+.ledger thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.ledger td.pick { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.ledger td.n, .ledger th.n { white-space: nowrap; }
+.ledger tr.start th, .ledger tr.start td { font-style: italic; color: var(--muted); }
+/* A tree written as nested questions, with one case's path in bold */
+.tree-list, .tree-list ul { list-style: none; margin: 0; padding: 0; }
+.tree-list ul { padding-left: 20px; margin-left: 8px; border-left: 1px dashed var(--line); }
+.tree-list li { margin: 5px 0; }
+.tree-list .ans { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); margin-right: 8px;
+                  border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+.tree-list .q { font-weight: 500; }
+.tree-list .leaf { font-family: var(--font-mono); font-size: 0.9rem; }
+.tree-list .cnt { color: var(--muted); font-size: 0.86rem; }
+.tree-list li.on > .q, .tree-list li.on > .leaf, .tree-list li.on > .ans { font-weight: 700; color: var(--accent); border-color: var(--accent); }
+.tree-list .here { color: var(--accent); font-size: 0.86rem; }
+tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
+
+/* The terse pattern (Jeff, Nov 4): on screen one headline and one figure; the explanation sits in a reveal */
+.headline { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+            line-height: 1.3; margin: 10px 0 12px; }
+details.more { margin: 12px 0; border-left: 3px solid var(--line); padding: 2px 0 2px 12px; font-size: 0.97rem; }
+details.more[open] { border-left-color: var(--accent); }
+details.more summary { color: var(--accent); font-weight: 700; }
+/* One value changing along a line: a prediction moving tree by tree */
+.track { list-style: none; padding: 0; margin: 14px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+.track li { flex: 1 1 86px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.track li b { display: block; font-family: var(--font-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.track li span { color: var(--muted); font-size: 0.82rem; }
+.track li.end { border: 2px solid var(--accent); }
+/* The best value in a column of a scoreboard: bold, with a mark, never colour alone */
+td.best { font-weight: 700; color: var(--accent); white-space: nowrap; }
+td.best::after { content: " ★"; }
+
+/* ---------- This page ---------- */
+.fig svg { width: 100%; height: auto; display: block; }
+.bar-l { fill: var(--accent); }
+.ice-line { fill: none; stroke: var(--muted); stroke-width: 1; opacity: 0.55; }
+.pd-line { fill: none; stroke: var(--ink); stroke-width: 3.5; }
+.def { border-left: 3px solid var(--accent); padding: 6px 0 6px 16px; margin: 16px 0 8px; }
+.def dt { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; }
+.def dd { margin: 2px 0 12px; }
+.def dd:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="col">
+  <p class="eyebrow">STAT 764 · Meeting 19 · Same score, different models</p>
+  <h1>Two models can tie and still disagree</h1>
+  <p class="lede">Thursday’s models tied. Today: how to choose among them, how to read their chances, and three questions to ask about what each one learned.</p>
+  <div class="method" role="list" aria-label="Today's three questions and the tools that answer them">
+    <div role="listitem"><b>Which columns does it use?</b><span>Answered by permutation importance.</span></div>
+    <div role="listitem"><b>How does its chance move?</b><span>Answered by partial dependence.</span></div>
+    <div role="listitem"><b>Why this patient’s score?</b><span>Answered by SHAP values.</span></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="On this page"><span class="toc-label">On this page</span><a href="#where"><b>1</b>Where we are</a><a href="#dots"><b>2</b>Connecting the dots</a><a href="#pick"><b>3</b>Picking a model</a><a href="#calib"><b>4</b>Reading calibration</a><a href="#topic"><b>5</b>Today: Three questions</a><a href="#p1"><b>6</b>Part 1 · Which columns?</a><a href="#p2"><b>7</b>Part 2 · How does it move?</a><a href="#p3"><b>8</b>Part 3 · Why this patient?</a><a href="#studio"><b>9</b>Part 4 · Your studio</a><a href="#next"><b>10</b>Next</a></nav>
+
+<main>
+<section class="wide where" aria-labelledby="where">
+  <h2 id="where" data-toc="Where we are"><span class="part">Start here</span>Where we are</h2>
+  <div class="spine">
+    <p class="eyebrow" style="margin:0">The question the whole course is asking</p>
+    <p class="q">When is a number you computed actually evidence about the future?</p>
+    <ol class="units" aria-label="The six units of the course">
+      <li class="done"><b>Meetings 1–6</b>Can you trust your own number?</li>
+      <li class="done"><b>Meetings 7–8</b>Making models behave</li>
+      <li class="done"><b>Meetings 9–14</b>Decisions, not scores</li>
+      <li class="now" aria-current="step"><b>Meetings 15–20 · now</b>Flexible models, and reading them</li>
+      <li><b>Meetings 21–25</b>Structure without an answer key</li>
+      <li><b>Meetings 26–28</b>Where models fail</li>
+    </ol>
+  </div>
+  <div class="trip">
+    <article aria-labelledby="last">
+      <p class="tag">Last time · Meeting 18</p>
+      <h3 id="last">The bake-off</h3>
+      <div class="keep"><b>Keep this</b>When models nearly tie, check whether a gap is real, then choose for the use:
+      no model wins every yardstick.</div>
+    </article>
+    <article class="today" aria-labelledby="today">
+      <p class="tag">Today · Meeting 19</p>
+      <h3 id="today">Same score, different models</h3>
+      <p>Logistic regression and the forest scored alike. <strong>Did they learn the same things?</strong></p>
+    </article>
+    <article aria-labelledby="soon">
+      <p class="tag">Coming up</p>
+      <h3 id="soon">Breaking the tools</h3>
+      <ul><li><strong>Thu, Nov 12:</strong> where today’s three tools mislead you.</li></ul>
+      <p><strong>Due:</strong> Lab 8, tonight 11:59 pm · today’s studio, Wednesday 3:40 pm · Capstone Stage 2, Sun Nov 15.</p>
+    </article>
+  </div>
+</section>
+
+<section class="wide dots" aria-labelledby="dots">
+  <h2 id="dots" data-toc="Connecting the dots"><span class="part">Before the new idea · about four minutes</span>Connecting the dots: the bake-off</h2>
+  <h3>Try first: answer each in your head, then open it</h3>
+  <div class="recall">
+    <details>
+      <summary>1. TabICL beat logistic regression’s AUC by 0.007. Real?</summary>
+      <p><strong>Yes.</strong> The paired bootstrap’s middle 95% ran from +0.003 to +0.012, which excludes 0.</p>
+    </details>
+    <details>
+      <summary>2. Did any model make clearly more money at the $150 visit?</summary>
+      <p><strong>No.</strong> Every dollar gap’s interval included 0. TabICL’s +$591 ran from −$260 to +$1,519.</p>
+    </details>
+    <details>
+      <summary>3. When models tie, how do you choose?</summary>
+      <p>In five steps, starting from the decision. They are the next section, beside where Thursday’s
+      recommendations slipped.</p>
+    </details>
+  </div>
+  <h3>The chain, so far</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="The chain of methods">
+  <table class="chain">
+    <caption>Meetings 15–20: what each method fixes, and what is still wrong</caption>
+    <thead><tr><th scope="col">method</th><th scope="col">what it fixes</th><th scope="col">the evidence</th><th scope="col">what is still wrong</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">One tree<span class="mtg">Meeting 15</span></th><td>Rules anyone can read.</td><td>AUC <span class="num">0.640</span></td><td><strong>Unstable.</strong></td></tr>
+      <tr><th scope="row">Random forest<span class="mtg">Meeting 16</span></th><td>Instability: average many different trees.</td><td><span class="num">0.651</span></td><td><strong>Hard to read.</strong></td></tr>
+      <tr><th scope="row">Boosting<span class="mtg">Meeting 17</span></th><td>Another way to combine trees.</td><td><span class="num">0.647</span></td><td><strong>Hard to read.</strong></td></tr>
+      <tr><th scope="row">The bake-off<span class="mtg">Meeting 18</span></th><td>Judging models on several yardsticks.</td><td>no dollar gap real</td><td><strong>We do not know what they learned.</strong></td></tr>
+      <tr class="now"><th scope="row">Same score, different models<span class="mtg">Meeting 19 · today</span></th><td colspan="3">Two models, same AUC: what each one uses, how its chance moves, and where they disagree.</td></tr>
+      <tr class="later"><th scope="row">Breaking the tools<span class="mtg">Meeting 20</span></th><td colspan="3">When today’s answers mislead.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="col" aria-labelledby="pick">
+  <h2 id="pick" data-toc="Picking a model"><span class="part">Before the new idea · about eight minutes</span>Picking a model when the scores tie</h2>
+  <p class="headline">Five steps, in this order. Each one would have caught something in Thursday’s recommendations.</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="Five steps for picking a model, where Thursday's recommendations slipped, and what to write instead">
+  <table>
+    <caption>Picking among models that score about the same</caption>
+    <thead><tr><th scope="col">step</th><th scope="col">ask</th><th scope="col">on Thursday: the slip, and what to write instead</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · Start from the decision</th><td>Does the decision use the chances themselves, or only the
+      order? The $150 visit goes to every stay with a chance of at least 0.169, so the chances must be right (the next
+      section shows how to check). A nurse who reviews the top 5% uses only the order.</td><td><p><strong>Slipped:</strong>
+      most scorecards wrote down a calibration slope, but few said what it meant for the visits.</p>
+      <p><strong>Instead:</strong> “TabICL’s chances run low, 9.8% said against 11.1% who came back, so at 0.169 it
+      sends too few visits.”</p></td></tr>
+      <tr><th scope="row">2 · Is a gap real?</th><td>Redraw the test patients many times, score both models on each
+      redraw, and read the middle 95% of the gaps (the paired bootstrap). If that range includes 0, it is a tie. Do it
+      in dollars, the decision’s own unit.</td><td><p><strong>Slipped:</strong> some picks rested on a dollar lead that
+      their own gap table called noise.</p><p><strong>Instead:</strong> “TabICL leads by $591 per 1,000 stays, but the
+      middle 95% runs from −$260 to +$1,519. On money, it is a tie.”</p></td></tr>
+      <tr><th scope="row">3 · Fix the chances, then compare again</th><td>Chances that run high, low or too extreme can
+      be fixed after fitting (Meeting 12’s calibration fix). The order of the patients cannot. So a flaw you can fix
+      should not decide on its own.</td><td><p><strong>Slipped:</strong> a calibration slope below 1 was read as
+      “chances too high.”</p><p><strong>Instead:</strong> “TabICL’s slope of 0.85 means its chances are too extreme;
+      its average, 9.8% against 11.1%, means they run low. Both can be fixed.”</p></td></tr>
+      <tr><th scope="row">4 · Stability, explanation, cost</th><td>What comes with the model and no fix changes: does the
+      list of patients to visit stay the same when you refit? Can you explain one score to a nurse? What does it cost to
+      run?</td><td><p><strong>Slipped:</strong> one scorecard put the net dollars under “cost,” which means running and
+      keeping the model.</p><p><strong>Instead:</strong> “Logistic regression fits in under a second on a laptop.
+      TabICL needs a GPU: about 4 seconds there, about 5 minutes on 24 CPU cores.”</p></td></tr>
+      <tr><th scope="row">5 · Still tied?</th><td>Take the simplest model that does the job, and name a result that
+      would change your mind.</td><td><p><strong>Slipped:</strong> most picks named no such result, or only a general
+      worry.</p><p><strong>Instead:</strong> “I would switch to the forest if a refit kept as much of its top-10% list
+      as logistic regression does: 83%, against about two-thirds.”</p></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3 id="pick-do">In practice</h3>
+  <ol>
+    <li>Write the decision in one sentence before you look at any scores: who acts, on which patients, at what cost.</li>
+    <li>Compare every model with the simplest one, on the same test patients, and write every gap with its middle 95%.</li>
+    <li>Learn any fix on patients the model was not fitted on and judge it on others; then redo step 2. A fix you keep
+    is part of the model from then on.</li>
+    <li>Refit on a few training samples and count how much of the list to visit stays the same.</li>
+    <li>Write the recommendation in the order of the steps, ending with the result that would change it.</li>
+  </ol>
+  <details class="more">
+    <summary>Real is not the same as big</summary>
+    <p>TabICL’s AUC lead over logistic regression was real: +0.007, with the middle 95% from +0.003 to +0.012. It was
+    too small to show up in dollars. A gap can pass step 2 in AUC and fail it in the decision’s unit.</p>
+  </details>
+  <details class="more">
+    <summary>So which model should we have picked?</summary>
+    <p>Any of the four, if the five steps get you there and you name the result that would change your mind. There is
+    no hidden right answer. Whether fixing TabICL’s chances pays is Lab 8, due tonight; we take it up Thursday.</p>
+  </details>
+  <p class="note">Lab 8, due tonight, is step 3 on TabICL; whether the fix pays waits for Thursday. Meeting 26 (where
+  models fail) adds two checks: does the model work for each group of patients, and for patients after 1999–2008?</p>
+</section>
+
+<section class="col" aria-labelledby="calib">
+  <h2 id="calib" data-toc="Reading calibration"><span class="part">Before the new idea · about five minutes</span>Reading calibration: one average and one slope are not enough</h2>
+  <p class="headline">Calibration asks: when the model says 20%, do about 20% come back?</p>
+  <dl class="def">
+    <dt>Reliability table</dt>
+    <dd>Sort the stays by the model’s chance and cut them into groups, such as tenths. For each group, put the average
+    chance beside the share who actually came back. A calibrated model’s two columns match in every group.</dd>
+    <dt>Level</dt>
+    <dd>Do the chances run high or low overall? Check: the average chance against the share who came back. Logistic
+    regression: 11.5% against 11.1%.</dd>
+    <dt>Spread</dt>
+    <dd>Are the chances too extreme or too timid? Check: the calibration slope. 1 is right. Below 1 is too extreme: the
+    high chances too high <em>and</em> the low ones too low. Above 1 is too timid. Logistic regression: 0.88, slightly
+    too extreme.</dd>
+  </dl>
+  <p>Neither summary looks where the decision is made. A visit pays when more than 16.9% of patients like this one come
+  back, so the $150 visit needs only the reliability table’s rows near 0.169. Logistic regression’s:</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="Logistic regression's reliability table near the visit line">
+  <table>
+    <caption>Logistic regression, the test stays near the $150 visit’s line</caption>
+    <thead><tr><th scope="col">stays the model puts</th><th scope="col" class="n">stays</th><th scope="col" class="n">average chance</th><th scope="col" class="n">share who came back</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">just below the line (0.12 to 0.169): no visit</th><td class="num">4,462</td><td class="num">14.0%</td><td class="num">13.7%</td></tr>
+      <tr><th scope="row">just above the line (0.169 to 0.25): visit</th><td class="num">2,047</td><td class="num">20.1%</td><td class="num">19.4%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Both rows match, and they fall on the right sides of 16.9%: skipping the first group was right, and visiting the
+  second paid.</p>
+
+  <h3 id="calib-demo">Each summary, fooled</h3>
+  <p>Two altered versions of logistic regression’s chances, made by shifting or stretching every patient’s log-odds as
+  Meeting 11 did. The order of the patients never changes, so all three have AUC 0.649. 11.1% came back.</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="Three versions of the same model's chances">
+  <table>
+    <caption>Same patients, same order, three sets of chances</caption>
+    <thead><tr><th scope="col">version</th><th scope="col" class="n">average chance</th><th scope="col" class="n">slope</th>
+    <th scope="col" class="n">top tenth: chance, share who came back</th><th scope="col" class="n">just below 0.169: share who came back</th>
+    <th scope="col" class="n">net per 1,000 stays</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">As fitted</th><td class="num">11.5%</td><td class="num">0.88</td><td class="num">27.8%, 24.4%</td><td class="num">13.7%</td><td class="num">$6,965</td></tr>
+      <tr><th scope="row">Slope right, level wrong</th><td class="num">8.3%</td><td class="num"><strong>1.00</strong></td><td class="num">19.3%, 24.4%</td><td class="num"><strong>19.1%</strong></td><td class="num"><strong>$5,346</strong></td></tr>
+      <tr><th scope="row">Level right, spread wrong</th><td class="num"><strong>11.1%</strong></td><td class="num">0.55</td><td class="num"><strong>38.1%, 24.4%</strong></td><td class="num">14.0%</td><td class="num">$6,777</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li><strong>“The average matches, so the chances are right.”</strong> The third version matches to the decimal, yet
+    its top tenth says 38.1% when 24.4% came back.</li>
+    <li><strong>“A slope of 1 means calibrated.”</strong> The second version’s slope is exactly 1.00 and every chance is
+    too low. It skips stays where 19.1% came back and earns $1,619 less per 1,000.</li>
+    <li><strong>“A slope below 1 means the chances are too high.”</strong> It means too extreme: too high at the top and
+    too low at the bottom. High or low overall is the level.</li>
+  </ul>
+  <p><strong>In practice:</strong> report the average and the slope, then read the reliability table near the
+  decision’s line, always on patients the model was not fitted on.</p>
+  <details class="more">
+    <summary>Why the third version barely loses money</summary>
+    <p>Its chances are wrong at the ends but close near 0.169 (just above the line it says 20.3% and 17.3% came back),
+    and the visit only looks at the line. A use that reads the top chances, like telling a patient “38%,” would be badly
+    misled.</p>
+  </details>
+  <details class="more">
+    <summary>Is logistic regression’s slope of 0.88 a problem?</summary>
+    <p>It is slightly too extreme: its top tenth says 27.8% when 24.4% came back. Near 0.169 it is close (the two rows
+    above), so the visit barely feels it.</p>
+  </details>
+  <details class="more">
+    <summary>Where TabICL fits</summary>
+    <p>TabICL has both flaws: a slope of 0.85 (too extreme) and an average of 9.8% against 11.1% (too low). Whether
+    fixing it pays is Lab 8, due tonight.</p>
+  </details>
+</section>
+
+<section class="topic" aria-labelledby="topic">
+  <h2 id="topic" data-toc="Today: Three questions"><span class="part">Today’s topic</span>Three questions to ask any model</h2>
+  <p class="topic-q">What did logistic regression learn about the readmission patients?</p>
+  <div class="keep" style="margin:0 0 16px"><b>What these tools are for</b>These tools do not pick a model. They show
+  what each one learned, which is what you tell a nurse (step 4), and they can rule a model out when what it learned
+  does not make sense.</div>
+  <ol class="topic-parts" aria-label="Today in four parts">
+    <li><a href="#p1"><b>Part 1</b>Which columns?</a></li>
+    <li><a href="#p2"><b>Part 2</b>How does it move?</a></li>
+    <li><a href="#p3"><b>Part 3</b>Why this patient?</a></li>
+    <li><a href="#studio"><b>Part 4</b>Your studio</a></li>
+  </ol>
+</section>
+
+<section class="col">
+  <h2 id="p1" data-toc="Part 1 · Which columns?"><span class="part">Part 1 · the question</span>Which columns does the model use?</h2>
+  <p class="headline">The standard answer is permutation importance: shuffle one column among the test stays, and if the AUC falls, the model relied on it.</p>
+</section>
+<figure class="wide panel fig">
+  <div id="imp-plot"></div>
+  <figcaption>Logistic regression on the 24,706 test stays: the fall in AUC when each column is shuffled, averaged over 5 shuffles.
+  Two columns carry nearly all of it; the next is worth 0.008.</figcaption>
+</figure>
+<section class="col">
+  <details class="more">
+    <summary>What this does not tell you</summary>
+    <p>How the prediction moves with the column (Part 2), why one patient got their score (Part 3), and whether the column
+    causes readmission: it describes this model, not the hospital. Thursday shows how two look-alike columns can make
+    both seem unimportant.</p>
+  </details>
+  <details class="more">
+    <summary>Why are the importance numbers so small?</summary>
+    <p>They are falls in AUC. The whole model is only 0.15 above a coin flip (0.649 against 0.5), and each of the top two
+    columns accounts for about a third of that.</p>
+  </details>
+
+  <h2 id="p2" data-toc="Part 2 · How does it move?"><span class="part">Part 2 · the question</span>How does the chance move as prior stays change?</h2>
+  <p class="headline">The standard answer is partial dependence: set everyone’s prior stays to 0, then 1, then 2, and predict each time.</p>
+  <dl class="def">
+    <dt>Partial dependence</dt>
+    <dd>The model’s average predicted chance when every patient’s value of one column is set to the same number.</dd>
+    <dt>ICE: individual conditional expectation</dt>
+    <dd>One patient’s predicted chance as one column changes, with everything else about the patient held fixed. Partial
+    dependence is the average of the ICE curves.</dd>
+  </dl>
+</section>
+<figure class="wide panel fig">
+  <div id="pd-plot"></div>
+  <figcaption>Thin lines: 40 test patients, each with their other columns unchanged (ICE curves). Thick line: the average over
+  200 patients, the partial dependence.</figcaption>
+</figure>
+<section class="col">
+  <p>On average the chance climbs from <strong>9.5%</strong> at no prior stays to <strong>38.9%</strong> at seven. But the patients
+  spread out: at seven, the middle 90% run from 24% to 56%, because their other columns differ.</p>
+
+  <h3 id="p2-build">How one patient’s line is made</h3>
+  <p>Take stay 710 from Part 3, who had 2 prior stays. Keep everything else about them, change only prior stays, and ask the
+  model each time:</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="One patient's ICE line">
+  <table>
+    <caption>Stay 710’s ICE line, from logistic regression</caption>
+    <thead><tr><th scope="col">prior stays set to</th><th scope="col" class="n">0</th><th scope="col" class="n">1</th><th scope="col" class="n">2</th><th scope="col" class="n">3</th><th scope="col" class="n">4</th><th scope="col" class="n">5</th><th scope="col" class="n">6</th><th scope="col" class="n">7</th></tr></thead>
+    <tbody><tr><th scope="row">predicted chance</th><td class="n">20.1%</td><td class="n">24.7%</td><td class="n"><strong>29.9%</strong></td><td class="n">35.8%</td><td class="n">42.1%</td><td class="n">48.7%</td><td class="n">55.4%</td><td class="n">61.8%</td></tr></tbody>
+  </table>
+  </div>
+  <p>At 2, their real value, the line passes through their actual prediction, 29.9%. Do this for 200 patients and you get the
+  thin lines; average them and you get the thick one.</p>
+
+  <h3 id="p2-read">How to read the plot</h3>
+  <ul>
+    <li><strong>The thick line’s slope</strong> is how much the model’s chance moves with the column, on average. Steep: the
+    model leans on it. Flat: it does not.</li>
+    <li><strong>The thin lines</strong> are single patients. Parallel lines mean the column moves everyone the same way. Lines
+    that fan out mean the effect differs from patient to patient.</li>
+    <li><strong>A line’s height</strong> comes from the patient’s other columns: a line that starts high belongs to a patient
+    who is high-risk for other reasons.</li>
+    <li><strong>It is a what-if about the model:</strong> what would this model predict if this patient had had five prior
+    stays? Not what would have happened to the patient.</li>
+  </ul>
+  <details class="more">
+    <summary>Why logistic regression’s lines fan out</summary>
+    <p>Logistic regression gives every patient the same push per prior stay in log-odds, so in log-odds its lines are
+    parallel. Converted to chances, the same push moves a high-risk patient further than a low-risk one, so the lines fan
+    out. A forest can fan out for a second reason: it can learn that prior stays matter more for some patients than for
+    others.</p>
+  </details>
+  <details class="more">
+    <summary>Where partial dependence can mislead</summary>
+    <p>Setting everyone to seven prior stays includes patients for whom that combination is rare or never happens. The model
+    answers anyway, and the average includes those answers. Thursday is about what happens where few real patients look like
+    that.</p>
+  </details>
+
+  <h2 id="p3" data-toc="Part 3 · Why this patient?"><span class="part">Part 3 · the question</span>Why did this patient get 29.9%?</h2>
+  <p class="headline">The standard answer is SHAP values: start from a typical patient and add each column’s push.</p>
+  <dl class="def">
+    <dt>SHAP: SHapley Additive exPlanations</dt>
+    <dd>Each column’s push on one patient’s prediction, measured from a typical patient. The pushes add up exactly to that
+    patient’s score.</dd>
+  </dl>
+  <ol class="track" aria-label="This patient's chance, built up one column at a time" id="shap-track"></ol>
+  <p>Test stay 710: 2 prior stays, 10 days in the hospital, aged 80 to 90, and discharged to another inpatient care facility
+  instead of home (discharge code 5). That discharge adds the most.</p>
+
+  <h3 id="p3-table">Every push, against a typical patient</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="Stay 710's SHAP values">
+  <table>
+    <caption>Stay 710’s SHAP values from logistic regression, in log-odds (+ pushes the chance up)</caption>
+    <thead><tr><th scope="col">column</th><th scope="col">this patient</th><th scope="col">for comparison</th><th scope="col" class="n">push</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">where discharged to</th><td>another inpatient facility</td><td>most stays go home (60%); this code is 1.3%</td><td class="n">+0.72</td></tr>
+      <tr><th scope="row">prior inpatient stays</th><td>2</td><td>0.63 on average</td><td class="n">+0.37</td></tr>
+      <tr><th scope="row">admitting specialty</th><td>internal medicine</td><td>28% of stays</td><td class="n">+0.12</td></tr>
+      <tr><th scope="row">lab procedures</th><td>70</td><td>43 on average</td><td class="n">+0.08</td></tr>
+      <tr><th scope="row">insulin</th><td>none</td><td>47% of stays</td><td class="n">−0.08</td></tr>
+      <tr><th scope="row">diabetes medication</th><td>none</td><td>23% of stays</td><td class="n">−0.05</td></tr>
+      <tr><th scope="row">the other 14 columns</th><td></td><td></td><td class="n">+0.16</td></tr>
+      <tr><th scope="row">total</th><td colspan="2">10.4% → 29.9%</td><td class="n"><strong>+1.31</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 id="p3-how">How SHAP works</h3>
+  <ol>
+    <li><strong>Start from a typical patient:</strong> every column at its training average. Counts take their average
+    (0.63 prior stays), categories their shares (60% discharged home). Nobody actually looks like this. The model gives
+    this patient −2.16 in log-odds, which is 10.4%.</li>
+    <li><strong>Each column’s push is its coefficient × (this patient’s value − the average value),</strong> in
+    log-odds. A category column is several 0/1 columns inside the model, one per category, and its push is the sum of
+    theirs. Plus raises the chance, minus lowers it.</li>
+    <li><strong>The pushes add up exactly</strong> to this patient’s score: −2.16 + 1.31 = −0.85 in log-odds, which is
+    29.9%.</li>
+  </ol>
+  <p><strong>For a forest or a boosted model</strong> a column’s push depends on the other columns, so there is no
+  single formula. SHAP starts from the model’s average score over real patients, switches the columns to this patient’s
+  values one at a time, and averages each column’s change over every order of switching. The pushes still add up
+  exactly. The <code>shap</code> package’s TreeSHAP does this quickly for trees, and it is in our environment for
+  Thursday.</p>
+
+  <h3 id="p3-read">How to read it</h3>
+  <ul>
+    <li><strong>Most columns barely matter for this patient:</strong> 9 of the 20 push by less than 0.03.</li>
+    <li><strong>It explains this one prediction, and it describes the model:</strong> say “being discharged to another
+    facility raises this patient’s score,” not “it raises this patient’s risk.” Patients sent to another facility tend
+    to be sicker; the model learned the link, not a cause.</li>
+  </ul>
+  <details class="more">
+    <summary>Where the name comes from</summary>
+    <p>Lloyd Shapley’s game theory has a fair way to split a team’s payout among its players: add the players in every
+    possible order, record what each one adds when it joins, and average. Here the players are the columns and the
+    payout is this patient’s score minus the typical patient’s. For logistic regression every order gives a column the
+    same push, which is why step 2 is a simple formula.</p>
+  </details>
+  <details class="more">
+    <summary>Why the pushes are in log-odds</summary>
+    <p>The model adds things up in log-odds. Converted to chances, a push depends on the order you add it in: the discharge to
+    another facility adds 8.8 points if it comes first, and 11.2 if it comes after the prior stays. In log-odds it is +0.72 either way.</p>
+  </details>
+  <details class="more">
+    <summary>SHAP or permutation importance?</summary>
+    <p>Permutation importance gives one number per column for the whole model: how much AUC is lost without it. SHAP gives one
+    number per column for each patient. Average the size of the SHAP values over many patients and you get another overall
+    ranking, usually similar but not identical.</p>
+  </details>
+  <details class="more">
+    <summary>Why is the typical patient 10.4% when the average chance is 11.5%?</summary>
+    <p>They are two different averages. The typical patient’s score is the average log-odds, turned into a chance; the
+    11.5% averages the chances themselves. The S-curve bends, so the first comes out lower. SHAP adds in log-odds, so it
+    starts from the log-odds one.</p>
+  </details>
+
+  <h3 id="code">See it in Scikit-Learn</h3>
+<pre class="scroll" tabindex="0"><code>from sklearn.inspection import permutation_importance
+
+imp = permutation_importance(logistic, X_test, y_test, scoring="roc_auc",
+                             n_repeats=5, random_state=764)   # shuffle each column 5 times
+
+ice = curves(logistic, ice_patients, "number_inpatient", stays)   # one row per patient
+partial_dependence = ice.mean(axis=0)                             # the average curve
+
+contributions, base = explain_linear(logistic, patient)           # SHAP values, in log-odds</code></pre>
+</section>
+
+<section class="col">
+  <h2 id="studio" data-toc="Part 4 · Your studio"><span class="part">Part 4 · your turn</span>Your studio</h2>
+  <div class="scroll" tabindex="0" role="group" aria-label="The three studio questions">
+  <table>
+    <thead><tr><th scope="col">question</th><th scope="col">what you do</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · about 10 min</th><td><strong>Do the two models rely on the same columns?</strong> Permutation importance for the forest, beside logistic regression’s.</td></tr>
+      <tr><th scope="row">2 · about 15 min</th><td><strong>Where do they disagree?</strong> Find the patients the two models score very differently, and what they have in common.</td></tr>
+      <tr><th scope="row">3 · about 20 min</th><td><strong>Which model is closer, and why?</strong> Check against what actually happened, then use the tools to explain it.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>All three questions count. Upload the notebook to Canvas under “Studio notebook — Day 19” by
+  <strong>Wednesday, November 11, 3:40 pm</strong>.</p>
+
+  <h2 id="next" data-toc="Next"><span class="part">After class</span>Next: breaking the tools</h2>
+  <p>On Thursday each of today’s tools gets a case where it misleads. Read Rudin (2019) before class.</p>
+  <p class="foot">The Diabetes 130-US Hospitals data (UCI), split by patient as in Meeting 9, with Meeting 16’s sample of
+  15,000 training patients. Every number comes from the Meeting 19 notebook.</p>
+</section>
+</main>
+</div>
+<script>
+(() => {
+  "use strict";
+  const D = {"importance":[["number_inpatient",0.0562],["discharge_disposition_id",0.0513],["medical_specialty",0.0083],["insulin",0.0045],["admission_source_id",0.0035],["A1Cresult",0.003]],"pd":[0.0947,0.1195,0.1497,0.1857,0.2279,0.2763,0.3305,0.3894],"ice":[[0.0738,0.0943,0.1196,0.1506,0.1879,0.232,0.2828,0.3398],[0.1045,0.1322,0.1659,0.2061,0.2531,0.3067,0.3661,0.4298],[0.0705,0.0901,0.1145,0.1444,0.1805,0.2233,0.2729,0.3289],[0.1063,0.1344,0.1685,0.2092,0.2566,0.3106,0.3704,0.4343],[0.0679,0.0869,0.1105,0.1395,0.1747,0.2164,0.265,0.32],[0.0944,0.1198,0.1509,0.1883,0.2324,0.2833,0.3403,0.4024],[0.1148,0.1448,0.181,0.2239,0.2736,0.3296,0.3909,0.4558],[0.1135,0.1432,0.1791,0.2217,0.271,0.3267,0.3878,0.4526],[0.0753,0.096,0.1218,0.1533,0.1911,0.2357,0.287,0.3445],[0.0944,0.1198,0.1509,0.1882,0.2324,0.2832,0.3403,0.4024],[0.0919,0.1167,0.147,0.1837,0.2271,0.2772,0.3336,0.3952],[0.066,0.0845,0.1075,0.1359,0.1703,0.2114,0.2592,0.3135],[0.1309,0.1643,0.2042,0.2509,0.3043,0.3634,0.427,0.4931],[0.0744,0.095,0.1205,0.1517,0.1893,0.2336,0.2846,0.3418],[0.0659,0.0843,0.1072,0.1355,0.1699,0.2108,0.2586,0.3128],[0.1276,0.1603,0.1995,0.2455,0.2981,0.3566,0.4198,0.4857],[0.0965,0.1223,0.1539,0.1919,0.2366,0.288,0.3456,0.4081],[0.0618,0.0792,0.1009,0.1278,0.1606,0.1998,0.2458,0.2985],[0.1566,0.1951,0.2404,0.2923,0.3503,0.4131,0.4788,0.5453],[0.1206,0.1519,0.1895,0.2338,0.2849,0.3421,0.4043,0.4698],[0.0384,0.0496,0.0637,0.0816,0.1039,0.1315,0.165,0.2051],[0.0558,0.0716,0.0914,0.1161,0.1464,0.1829,0.2261,0.2761],[0.1179,0.1486,0.1855,0.2292,0.2796,0.3362,0.398,0.4633],[0.3263,0.3873,0.4521,0.5186,0.5844,0.6473,0.7055,0.7577],[0.0665,0.085,0.1082,0.1367,0.1713,0.2125,0.2605,0.3149],[0.0955,0.1212,0.1525,0.1903,0.2347,0.2859,0.3432,0.4055],[0.1187,0.1495,0.1867,0.2305,0.2811,0.338,0.3999,0.4652],[0.0896,0.1139,0.1436,0.1796,0.2223,0.2717,0.3275,0.3886],[0.1349,0.1691,0.2099,0.2574,0.3116,0.3714,0.4354,0.5016],[0.1099,0.1388,0.1738,0.2154,0.2638,0.3187,0.3791,0.4436],[0.1166,0.147,0.1836,0.2269,0.277,0.3334,0.395,0.4601],[0.0798,0.1017,0.1288,0.1617,0.2012,0.2474,0.3003,0.3591],[0.0893,0.1134,0.1431,0.179,0.2215,0.2708,0.3265,0.3876],[0.0692,0.0884,0.1124,0.1418,0.1775,0.2197,0.2688,0.3243],[0.0891,0.1132,0.1428,0.1787,0.2211,0.2704,0.3261,0.3871],[0.098,0.1242,0.1562,0.1946,0.2398,0.2917,0.3496,0.4123],[0.189,0.2333,0.2843,0.3414,0.4036,0.469,0.5355,0.6008],[0.0756,0.0964,0.1222,0.1538,0.1918,0.2365,0.2879,0.3454],[0.0656,0.0839,0.1068,0.135,0.1692,0.2101,0.2577,0.3118],[0.0689,0.0881,0.112,0.1414,0.1769,0.2191,0.2681,0.3234]],"track":[[0.1037,"a typical patient"],[0.1917,"+ transferred to another inpatient facility"],[0.2548,"+ 2 prior stays"],[0.2994,"+ every other column"]]};
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+  const txt = (p, x, y, s, a = {}) => { const t = el("text", { x, y, "font-size": 13, ...a }, p); t.textContent = s; return t; };
+  const LABEL = { number_inpatient: "prior inpatient stays", discharge_disposition_id: "where discharged to", medical_specialty: "admitting specialty",
+                  insulin: "insulin", admission_source_id: "admission source", A1Cresult: "A1C result" };
+  // Part 1: importance bars
+  { const W = 760, H = 250, m = { l: 190, r: 70, t: 10, b: 36 }, rows = D.importance, max = 0.06;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Prior inpatient stays and where the patient was discharged to each cost about 0.05 of AUC when shuffled; every other column costs under 0.01." }, document.getElementById("imp-plot"));
+    const bh = (H - m.t - m.b) / rows.length, sx = (v) => m.l + (v / max) * (W - m.l - m.r);
+    for (const v of [0, 0.02, 0.04, 0.06]) { el("line", { x1: sx(v), x2: sx(v), y1: m.t, y2: H - m.b, class: "gridline" }, svg); txt(svg, sx(v), H - m.b + 18, v.toFixed(2), { "text-anchor": "middle", class: "muted mono" }); }
+    rows.forEach(([c, v], i) => { const y = m.t + i * bh;
+      el("rect", { x: m.l, y: y + 6, width: Math.max(1, sx(v) - m.l), height: bh - 12, class: "bar-l" }, svg);
+      txt(svg, m.l - 10, y + bh / 2 + 4, LABEL[c] || c, { "text-anchor": "end" });
+      txt(svg, sx(v) + 8, y + bh / 2 + 4, v.toFixed(4), { class: "mono" }); });
+    txt(svg, (m.l + W - m.r) / 2, H - 2, "fall in AUC when the column is shuffled", { "text-anchor": "middle", class: "muted" }); }
+  // Part 2: ICE and partial dependence
+  { const W = 760, H = 330, m = { l: 56, r: 20, t: 12, b: 44 }, X = [0, 1, 2, 3, 4, 5, 6, 7], YH = 0.8;
+    const sx = (x) => m.l + (x / 7) * (W - m.l - m.r), sy = (y) => m.t + (1 - y / YH) * (H - m.t - m.b);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Logistic regression: the average chance rises from 9.5% at no prior stays to 38.9% at seven, while individual patients fan out, from 24% to 56% at seven." }, document.getElementById("pd-plot"));
+    for (const y of [0, 0.2, 0.4, 0.6, 0.8]) { el("line", { x1: m.l, x2: W - m.r, y1: sy(y), y2: sy(y), class: "gridline" }, svg); txt(svg, m.l - 8, sy(y) + 4, `${y * 100}%`, { "text-anchor": "end", class: "muted mono" }); }
+    X.forEach((x) => txt(svg, sx(x), H - m.b + 18, String(x), { "text-anchor": "middle", class: "muted mono" }));
+    txt(svg, (m.l + W - m.r) / 2, H - 6, "prior inpatient stays, set for every patient", { "text-anchor": "middle", class: "muted" });
+    const path = (ys) => ys.map((y, i) => `${i ? "L" : "M"}${sx(X[i]).toFixed(1)} ${sy(y).toFixed(1)}`).join("");
+    D.ice.forEach((ys) => el("path", { d: path(ys), class: "ice-line" }, svg));
+    el("path", { d: path(D.pd), class: "pd-line" }, svg);
+    txt(svg, sx(7) - 6, sy(D.pd[7]) - 10, `average ${(D.pd[7] * 100).toFixed(1)}%`, { "text-anchor": "end", "font-weight": 700 });
+    txt(svg, sx(0) + 6, sy(D.pd[0]) + 22, `${(D.pd[0] * 100).toFixed(1)}%`, { "font-weight": 700 }); }
+  // Part 3: the patient's chance, built up
+  { const ol = document.getElementById("shap-track");
+    D.track.forEach(([chance, label], i) => { const li = document.createElement("li"); if (i === D.track.length - 1) li.className = "end";
+      li.innerHTML = `<b>${(chance * 100).toFixed(1)}%</b><span>${label}</span>`; ol.appendChild(li); }); }
+})();
+</script>
+</body>
+</html>
