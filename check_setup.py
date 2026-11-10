@@ -4,7 +4,7 @@ import sys
 print(f"Python {sys.version.split()[0]}")
 print(f"  at {sys.executable}\n")
 
-need = ["numpy", "pandas", "matplotlib", "sklearn", "statsmodels", "ipykernel"]
+need = ["numpy", "pandas", "matplotlib", "sklearn", "statsmodels", "ipykernel", "shap"]
 missing = []
 for name in need:
     try:
