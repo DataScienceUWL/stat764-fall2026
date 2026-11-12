@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Built from content/lessons/pages/day20_breaking.html in the course repo by tools/build_page.py. Open this file in a web browser. -->
+<title>Breaking the Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* STAT 764 daily pages: the shared theme.
+   Inlined into every page by tools/build_page.py, so each page stays one self-contained file.
+   Edit here, then rebuild the pages; never edit a built page's <style> by hand. */
+
+/* Layout: the tree and forest pages' system (one reading column, figures widen to 1040px), so the three read as a set. */
+:root {
+  --paper: #f1f5f4;
+  --surface: #ffffff;
+  --ink: #13242a;
+  --muted: #485b60;
+  --line: #c6d2d1;
+  --grid: #e2e9e8;
+  --back: #ad3822;          /* came back within 30 days */
+  --stay: #276a6f;          /* did not come back */
+  --accent: #1d4c87;        /* the thing you are steering: a selected question, a path */
+  --accent-soft: #e2ebf6;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --read: 68ch;
+  --wide: 1040px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+    --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+  --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px;
+       line-height: 1.6; margin: 0; }
+.page { padding-inline: 16px; padding-block: 40px 72px; }
+.col { max-width: var(--read); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 700; margin-top: 64px; }
+h3 { font-size: 1.25rem; font-weight: 700; margin-top: 40px; display: flex; gap: 12px; align-items: baseline; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+strong { font-weight: 700; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+           color: var(--muted); margin: 0 0 12px; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+.step { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em;
+        color: var(--accent); border: 1.5px solid var(--accent); border-radius: 999px; padding: 1px 9px;
+        white-space: nowrap; transform: translateY(-2px); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.part { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--muted); display: block; margin-bottom: 6px; font-weight: 500; }
+
+/* Figures */
+figure { margin: 28px auto; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 12px; max-width: var(--read); }
+svg { display: block; max-width: 100%; height: auto; }
+.scroll { overflow-x: auto; }
+.treebox { display: flex; justify-content: center; margin-bottom: 18px; }
+.treebox svg { flex: none; max-width: 100%; }
+.plotbox { display: flex; justify-content: center; }
+svg text { font-family: var(--font-body); fill: var(--ink); }
+svg .mono { font-family: var(--font-mono); }
+svg .muted { fill: var(--muted); }
+svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.axis { stroke: var(--line); stroke-width: 1; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; color: var(--muted); margin: 0 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Controls */
+.controls { display: grid; gap: 14px; margin-bottom: 14px; }
+label, .label { font-weight: 700; font-size: 0.95rem; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.seg { display: inline-flex; border: 1.5px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.92rem; padding: 6px 12px; border: 0; background: var(--surface);
+              color: var(--accent); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 700; }
+.btn { font: inherit; font-size: 0.92rem; font-weight: 700; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+       border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Readouts */
+.readout { display: grid; gap: 10px; }
+.sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.side { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.side .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.side b { display: block; }
+.calc { font-family: var(--font-mono); font-size: 0.9rem; background: var(--paper); border-radius: 6px; padding: 10px 12px;
+        line-height: 1.7; overflow-x: auto; }
+.calc .big { font-size: 1.05rem; font-weight: 500; color: var(--accent); }
+.say { font-size: 1rem; }
+
+/* Stat strip, tables, code */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); margin: 24px 0; }
+.stats div { padding: 12px 12px 12px 0; }
+.stats b { display: block; font-family: var(--font-display); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--ink); font-size: 0.85rem; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px;
+      overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--surface); }
+.card .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.card b { font-family: var(--font-display); font-size: 1.2rem; display: block; margin-top: 2px; }
+details { margin-top: 10px; font-size: 0.92rem; }
+summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.foot { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); margin-top: 64px; padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  .board .bar, .hbars .bar { transition: width 0.25s ease; }
+}
+/* The one-sentence method: the page's thesis */
+.method { margin: 28px 0 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+          border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+.method div { padding: 14px 16px 14px 0; }
+.method div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.method b { display: block; font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 2px; }
+.method span { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 620px) {
+  .method { grid-template-columns: 1fr; }
+  .method div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* Forest page additions */
+.box-note { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 18px 6px; margin: 22px 0 8px; }
+.box-note h4 { font-family: var(--font-display); font-size: 1.1rem; margin: 12px 0 4px; }
+
+/* Boosting page additions */
+.line-model { stroke: var(--accent); stroke-width: 3; fill: none; stroke-linejoin: round; }
+.line-stump { stroke: var(--accent); stroke-width: 3; fill: none; stroke-dasharray: 7 4; }
+.line-truth { stroke: var(--muted); stroke-width: 1.6; fill: none; stroke-dasharray: 2 4; }
+.line-train { stroke: var(--stay); stroke-width: 2.4; fill: none; stroke-dasharray: 6 4; }
+.line-new { stroke: var(--back); stroke-width: 2.8; fill: none; }
+.line-other { stroke: var(--muted); stroke-width: 1.6; fill: none; opacity: 0.7; }
+.line-floor { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.zero { stroke: var(--ink); stroke-width: 1; opacity: 0.5; }
+.pt { fill: var(--ink); }
+.pt-res { fill: var(--back); }
+.stick { stroke: var(--back); stroke-width: 1.4; opacity: 0.8; }
+.now-line { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.dot-new { fill: var(--back); stroke: var(--surface); stroke-width: 1.5; }
+.dot-train { fill: var(--stay); stroke: var(--surface); stroke-width: 1.5; }
+.dot-best { fill: var(--surface); stroke: var(--back); stroke-width: 2.4; }
+.dot-acc { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.sw { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; }
+.sw.model { border-color: var(--accent); }
+.sw.stump { border-top-style: dashed; border-color: var(--accent); }
+.sw.truth { border-top: 2px dotted var(--muted); }
+.sw.train { border-top-style: dashed; border-color: var(--stay); }
+.sw.new { border-color: var(--back); }
+.sw.other { border-top-width: 2px; border-color: var(--muted); }
+.dotsw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.dotsw.res { background: var(--back); }
+tr.is-on th, tr.is-on td { background: var(--accent-soft); font-weight: 700; }
+
+/* Where we are: the course's question, the six units, and last time / today / coming up */
+.where { margin-top: 40px; }
+.spine { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); padding: 14px 0 16px; margin-top: 14px; }
+.spine .q { font-family: var(--font-display); font-size: clamp(1.25rem, 2.6vw, 1.55rem); font-weight: 700; line-height: 1.25; margin: 4px 0 0; }
+.units { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.units li { border-top: 4px solid var(--line); padding: 6px 4px 0 0; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
+.units li b { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; }
+.units li.done { border-top-color: var(--stay); }
+.units li.now { border-top-color: var(--accent); color: var(--ink); font-weight: 700; }
+.units li.now b { color: var(--accent); }
+@media (max-width: 760px) { .units { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.trip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+@media (max-width: 900px) { .trip { grid-template-columns: minmax(0, 1fr); } }
+.trip article { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 16px 10px; }
+.trip article.today { border: 2px solid var(--accent); }
+.trip h3 { margin-top: 12px; font-size: 1.15rem; display: block; }
+.trip .tag { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 0; }
+.trip ul { padding-left: 18px; margin: 8px 0; }
+.trip li { margin: 6px 0; font-size: 0.95rem; }
+.trip p { font-size: 0.95rem; }
+.keep { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; margin: 10px 0 4px; }
+.keep b { display: block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+.dot-muted { fill: var(--muted); }
+
+/* Connecting the dots */
+.recall { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; align-items: start; }
+@media (max-width: 900px) { .recall { grid-template-columns: minmax(0, 1fr); } }
+.recall details { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; margin: 0; font-size: 0.95rem; }
+.recall summary { color: var(--ink); line-height: 1.4; }
+.recall summary::marker { color: var(--accent); }
+.recall details[open] { border-color: var(--accent); }
+.chain caption { font-weight: 700; }
+.chain th[scope="row"] { font-family: var(--font-display); font-size: 1.05rem; white-space: nowrap; }
+.chain .mtg { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0.03em; }
+.chain tr.now th, .chain tr.now td { background: var(--accent-soft); }
+.chain tr.now .mtg { color: var(--accent); }
+.chain tr.later th, .chain tr.later td { color: var(--muted); font-style: italic; }
+.verdicts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+@media (max-width: 900px) { .verdicts { grid-template-columns: minmax(0, 1fr); } }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: 6px; padding: 2px 14px 8px; font-size: 0.95rem; }
+.verdict.yes { border-top-color: var(--stay); }
+.verdict.no { border-top-color: var(--back); }
+.verdict .v-tag { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; margin: 10px 0 0; }
+.verdict.yes .v-tag { color: var(--stay); }
+.verdict.no .v-tag { color: var(--back); }
+.verdict .v-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin: 2px 0 0; font-variant-numeric: tabular-nums; }
+.verdict .v-what { color: var(--muted); margin: 0 0 6px; font-size: 0.9rem; }
+
+/* ---------- Components from the tree and forest pages (Meetings 15-16) ---------- */
+.pt-back { stroke: var(--back); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.pt-stay { fill: var(--stay); }
+.box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.box-shade { fill: var(--back); }
+.cutline { stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.side-no { fill: var(--stay); opacity: 0.08; }
+.side-yes { fill: var(--back); opacity: 0.08; }
+.node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+.edge { stroke: var(--ink); stroke-width: 1.3; fill: none; }
+.on .node, .node.on { stroke: var(--accent); stroke-width: 3; }
+.edge.on { stroke: var(--accent); stroke-width: 3; }
+.newpt { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.region-on { fill: none; stroke: var(--accent); stroke-width: 3; }
+.curve { stroke: var(--accent); stroke-width: 3; fill: none; }
+.dot-accent { fill: var(--accent); }
+.line-tree { stroke: var(--accent); stroke-width: 2.6; fill: none; }
+.line-logit { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
+.band { fill: var(--accent-soft); }
+.pt-num { fill: var(--ink); }
+.resid { stroke: var(--back); stroke-width: 1.6; }
+.meanline { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.box-num { fill: var(--accent); }
+.boundary { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.leafedge { fill: none; stroke: var(--line); stroke-width: 1; }
+
+/* Three boundaries side by side */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+.trio-title { margin: 0 0 6px; }
+.trio-note { margin: 6px 0 0; font-size: 0.92rem; color: var(--muted); }
+/* Leaderboard of candidate questions */
+.board { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.board button { width: 100%; display: grid; grid-template-columns: minmax(0, 11.5em) minmax(0, 1fr) 3.6em; gap: 8px;
+                align-items: center; font: inherit; font-size: 0.85rem; text-align: left; color: var(--ink);
+                background: none; border: 1px solid transparent; border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+.board button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.board .bar { height: 10px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.board button[aria-pressed="true"] .bar { background: var(--accent); }
+.board .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+
+/* Real-data bars */
+.hbars { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 16em) minmax(0, 1fr) 4.4em; gap: 10px; align-items: center; font-size: 0.88rem; }
+.hbars .bar { height: 12px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.hbars li.win { font-weight: 700; }
+.hbars li.win .bar { background: var(--accent); }
+.hbars .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+@media (max-width: 560px) {
+  .hbars li { grid-template-columns: minmax(0, 1fr) 4em; }
+  .hbars li .bar { grid-column: 1 / -1; grid-row: 2; }
+  .board button { grid-template-columns: minmax(0, 1fr) 3.4em; }
+  .board .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+.chips { display: grid; gap: 6px; }
+.chiprow { display: grid; grid-template-columns: 12em minmax(0, 1fr); gap: 10px; align-items: start; }
+.chiprow > span { font-size: 0.85rem; color: var(--muted); padding-top: 2px; }
+.chiprow ul { list-style: none; display: flex; flex-wrap: wrap; gap: 3px; margin: 0; padding: 0; }
+.chip { font-family: var(--font-mono); font-size: 0.72rem; padding: 1px 6px; border: 1px solid var(--line); border-radius: 4px;
+        color: var(--muted); background: var(--paper); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
+@media (max-width: 620px) { .chiprow { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.ghost { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.tally { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.tally li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; font-size: 0.95rem; }
+.tick-tree { stroke: var(--back); stroke-width: 1.4; stroke-opacity: 0.55; }
+.seg-main { fill: var(--accent); }
+.dot-muted { fill: var(--muted); }
+.dot-tree { fill: var(--muted); fill-opacity: 0.45; }
+.hidden-line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ibar { display: inline-block; width: 7em; height: 10px; background: var(--grid); border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.ibar > span { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+.seg-other { fill: var(--muted); }
+.seg-gap { stroke: var(--surface); stroke-width: 2; }
+svg .on-seg { fill: var(--surface); font-weight: 700; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+select { font: inherit; font-size: 0.95rem; padding: 5px 8px; border: 1.5px solid var(--accent); border-radius: 6px;
+         background: var(--surface); color: var(--ink); max-width: 100%; }
+select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- The template's frame: contents bar and section labels ---------- */
+.toc { max-width: var(--wide); margin: 30px auto 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
+       font-size: 0.9rem; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.toc .toc-label { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase;
+                  color: var(--muted); margin-right: 4px; }
+.toc a { text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+         border-radius: 999px; padding: 3px 11px; }
+.toc a b { font-family: var(--font-mono); font-weight: 500; color: var(--accent); margin-right: 5px; }
+.toc a:hover { border-color: var(--accent); color: var(--accent); }
+.toc a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+main h2[id] { scroll-margin-top: 18px; }
+main h2 .part { margin-bottom: 6px; }
+
+/* The "Today's topic" banner: where the review ends and the new material begins */
+.topic { max-width: var(--wide); margin: 80px auto 0; padding: 18px 0 20px; border-top: 4px solid var(--ink);
+         border-bottom: 1px solid var(--line); }
+.topic h2 { font-size: clamp(2.4rem, 6vw, 3.4rem); margin-top: 0; letter-spacing: -0.02em; }
+.topic h2 .part { font-size: 0.85rem; margin-bottom: 8px; }
+.topic .topic-q { font-family: var(--font-display); font-size: clamp(1.15rem, 2.4vw, 1.4rem); color: var(--muted);
+                  margin: 8px 0 16px; max-width: 46ch; }
+.topic-parts { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .topic-parts { grid-template-columns: minmax(0, 1fr); } }
+.topic-parts a { display: block; text-decoration: none; color: var(--ink); background: var(--surface);
+                 border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 8px 12px; }
+.topic-parts a b { display: block; font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500;
+                   letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.topic-parts a:hover { border-color: var(--accent); }
+.topic-parts a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* A ledger: a model's stored lines, with the one a case uses marked (boosting's Step 3) */
+.ledger { max-height: 380px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+.ledger:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ledger table { font-size: 0.86rem; }
+.ledger thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.ledger td.pick { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.ledger td.n, .ledger th.n { white-space: nowrap; }
+.ledger tr.start th, .ledger tr.start td { font-style: italic; color: var(--muted); }
+/* A tree written as nested questions, with one case's path in bold */
+.tree-list, .tree-list ul { list-style: none; margin: 0; padding: 0; }
+.tree-list ul { padding-left: 20px; margin-left: 8px; border-left: 1px dashed var(--line); }
+.tree-list li { margin: 5px 0; }
+.tree-list .ans { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); margin-right: 8px;
+                  border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+.tree-list .q { font-weight: 500; }
+.tree-list .leaf { font-family: var(--font-mono); font-size: 0.9rem; }
+.tree-list .cnt { color: var(--muted); font-size: 0.86rem; }
+.tree-list li.on > .q, .tree-list li.on > .leaf, .tree-list li.on > .ans { font-weight: 700; color: var(--accent); border-color: var(--accent); }
+.tree-list .here { color: var(--accent); font-size: 0.86rem; }
+tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
+
+/* The terse pattern (Jeff, Nov 4): on screen one headline and one figure; the explanation sits in a reveal */
+.headline { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+            line-height: 1.3; margin: 10px 0 12px; }
+details.more { margin: 12px 0; border-left: 3px solid var(--line); padding: 2px 0 2px 12px; font-size: 0.97rem; }
+details.more[open] { border-left-color: var(--accent); }
+details.more summary { color: var(--accent); font-weight: 700; }
+/* One value changing along a line: a prediction moving tree by tree */
+.track { list-style: none; padding: 0; margin: 14px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+.track li { flex: 1 1 86px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.track li b { display: block; font-family: var(--font-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.track li span { color: var(--muted); font-size: 0.82rem; }
+.track li.end { border: 2px solid var(--accent); }
+/* The best value in a column of a scoreboard: bold, with a mark, never colour alone */
+td.best { font-weight: 700; color: var(--accent); white-space: nowrap; }
+td.best::after { content: " ★"; }
+
+/* ---------- This page ---------- */
+.fig svg { width: 100%; height: auto; display: block; }
+.thin-band { fill: var(--line); opacity: 0.45; }
+.band-a { fill: var(--accent); opacity: 0.18; }
+.band-b { fill: var(--muted); opacity: 0.18; }
+.line-c { fill: none; stroke: var(--accent); stroke-width: 3; }
+.line-d { fill: none; stroke: var(--muted); stroke-width: 2.5; stroke-dasharray: 7 5; }
+.vline { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 4; }
+.line-a { fill: none; stroke: var(--ink); stroke-width: 3; }
+.line-b { fill: none; stroke: var(--ink); stroke-width: 3; stroke-dasharray: 7 5; }
+.def { border-left: 3px solid var(--accent); padding: 6px 0 6px 16px; margin: 16px 0 8px; }
+.def dt { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; }
+.def dd { margin: 2px 0 12px; }
+.def dd:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="col">
+  <p class="eyebrow">STAT 764 · Meeting 20 · Breaking the tools</p>
+  <h1>An explanation is a number you computed, too</h1>
+  <p class="lede">Importance, curves and SHAP pushes are always right about the model. Three questions decide whether they are evidence about the patients.</p>
+  <div class="method" role="list" aria-label="Three questions to ask before you believe an explanation">
+    <div role="listitem"><b>Is something else carrying it?</b><span>Look-alike columns split the credit.</span></div>
+    <div role="listitem"><b>Were there patients here?</b><span>Past the data, the model is guessing.</span></div>
+    <div role="listitem"><b>Model, or cause?</b><span>A push moves the score, not the patient.</span></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="On this page"><span class="toc-label">On this page</span><a href="#where"><b>1</b>Where we are</a><a href="#dots"><b>2</b>Connecting the dots</a><a href="#topic"><b>3</b>Today: Three questions</a><a href="#p1"><b>4</b>Part 1 · Something else?</a><a href="#p2"><b>5</b>Part 2 · Patients here?</a><a href="#p3"><b>6</b>Part 3 · Model or cause?</a><a href="#reading"><b>7</b>The reading</a><a href="#studio"><b>8</b>Part 4 · Your studio</a><a href="#next"><b>9</b>Next</a></nav>
+
+<main>
+<section class="wide where" aria-labelledby="where">
+  <h2 id="where" data-toc="Where we are"><span class="part">Start here</span>Where we are</h2>
+  <div class="spine">
+    <p class="eyebrow" style="margin:0">The question the whole course is asking</p>
+    <p class="q">When is a number you computed actually evidence about the future?</p>
+    <ol class="units" aria-label="The six units of the course">
+      <li class="done"><b>Meetings 1–6</b>Can you trust your own number?</li>
+      <li class="done"><b>Meetings 7–8</b>Making models behave</li>
+      <li class="done"><b>Meetings 9–14</b>Decisions, not scores</li>
+      <li class="now" aria-current="step"><b>Meetings 15–20 · now</b>Flexible models, and reading them</li>
+      <li><b>Meetings 21–25</b>Structure without an answer key</li>
+      <li><b>Meetings 26–28</b>Where models fail</li>
+    </ol>
+  </div>
+  <div class="trip">
+    <article aria-labelledby="last">
+      <p class="tag">Last time · Meeting 19</p>
+      <h3 id="last">Same score, different models</h3>
+      <div class="keep"><b>Keep this</b>Choose tied models in order, starting from the decision. Then ask what each one
+      learned.</div>
+    </article>
+    <article class="today" aria-labelledby="today">
+      <p class="tag">Today · Meeting 20</p>
+      <h3 id="today">Breaking the tools</h3>
+      <p><strong>When is an explanation evidence about the patients?</strong> This is what the course is for: thinking
+      critically about predictive models, not collecting methods.</p>
+    </article>
+    <article aria-labelledby="soon">
+      <p class="tag">Coming up</p>
+      <h3 id="soon">PCA</h3>
+      <ul><li><strong>Tue, Nov 17:</strong> principal components, the first meeting on structure without an answer key.</li></ul>
+    </article>
+  </div>
+  <div class="scroll" tabindex="0" role="group" aria-label="What is due soon">
+  <table>
+    <caption>Due soon</caption>
+    <thead><tr><th scope="col">due</th><th scope="col">what</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Fri, Nov 13, 3:40 pm</th><td>Today’s studio notebook</td></tr>
+      <tr><th scope="row">Sun, Nov 15, 11:59 pm</th><td>Capstone Stage 2: your evaluation plan (one per team)</td></tr>
+      <tr><th scope="row">Tue, Nov 17, 11:59 pm</th><td>Lab 9: Explain it to the hospital (uses today’s three questions)</td></tr>
+      <tr><th scope="row">Sun, Nov 22, 11:59 pm</th><td>Peer audit memo 1 (your own memo; the files came in a Canvas message)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="wide dots" aria-labelledby="dots">
+  <h2 id="dots" data-toc="Connecting the dots"><span class="part">Before the new idea · about five minutes</span>Connecting the dots: reading a model</h2>
+  <h3>Try first: answer each in your head, then open it</h3>
+  <div class="recall">
+    <details>
+      <summary>1. Which columns did both models rely on most?</summary>
+      <p>Prior inpatient stays and where the patient was discharged to. Shuffling either cost logistic regression about
+      0.05 of AUC (0.056 and 0.051), and the forest about the same.</p>
+    </details>
+    <details>
+      <summary>2. Where did the two models disagree?</summary>
+      <p>On patients with many prior stays: 592 test stays got chances more than 10 points apart, with 3.7 prior stays on
+      average against 0.6 overall. Logistic regression kept climbing; the forest levelled off.</p>
+    </details>
+    <details>
+      <summary>3. Lab 8 asked: does the made-up 5% matter?</summary>
+      <p>More than the model does. The chart is just below.</p>
+    </details>
+  </div>
+
+  <h3 id="price">The number we made up</h3>
+  <p class="headline">The number we made up moves the money far more than anything we measured.</p>
+  <figure class="fig">
+    <div id="price-plot"></div>
+    <figcaption>Net dollars per 1,000 stays as the made-up share runs from 1% to 25%. Solid: visit the patients logistic
+    regression puts above the break-even. Dashed: visit everyone. Shading: the middle 95% when the test patients are
+    redrawn.</figcaption>
+  </figure>
+  <p>At our 5%, the model nets $6,965 per 1,000 stays and visiting everyone loses $51,886. From about 15%, visiting
+  everyone does as well as the model: the gap between them is no longer real.</p>
+  <p>Capstone Stage 2, due Sunday, asks every team for this (item 8): the prices you assumed, the range you will try,
+  and the result that would change your decision.</p>
+  <details class="more">
+    <summary>The four rows, for all four models (Lab 8)</summary>
+  <div class="scroll" tabindex="0" role="group" aria-label="Net dollars per 1,000 stays at four values of the made-up prevention rate">
+  <table>
+    <caption>The $150 visit at four values of the share of readmissions a visit prevents; the range is across the four models from Meeting 18</caption>
+    <thead><tr><th scope="col">share of readmissions a visit prevents</th><th scope="col" class="n">break-even</th><th scope="col" class="n">share of stays above break-even</th><th scope="col" class="n">net per 1,000 stays</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">2.5%</th><td class="num">0.339</td><td class="num">0–2%</td><td class="num">−$30 to $385</td></tr>
+      <tr><th scope="row">5% (the one we made up)</th><td class="num">0.169</td><td class="num">11–15%</td><td class="num">$6,751 to $7,555</td></tr>
+      <tr><th scope="row">10%</th><td class="num">0.085</td><td class="num">49–65%</td><td class="num">$59,475 to $62,048</td></tr>
+      <tr><th scope="row">20%</th><td class="num">0.042</td><td class="num">88–100%</td><td class="num">$237,293 to $242,458</td></tr>
+    </tbody>
+  </table>
+  </div>
+  </details>
+  <details class="more">
+    <summary>How the figure is made</summary>
+    <p>For each share a visit might prevent, from 1% to 25%:</p>
+    <ol>
+      <li><strong>Break-even:</strong> $150 ÷ (share × $17,700). At 5% that is 0.169.</li>
+      <li><strong>Apply the model:</strong> visit every test stay whose predicted chance is at least the break-even.</li>
+      <li><strong>Net per 1,000 stays:</strong> readmissions among the visited × share × $17,700, minus $150 per visit,
+      scaled to 1,000 stays. “Visit everyone” is the same sum with every stay visited.</li>
+      <li><strong>Bands:</strong> redraw the test patients 300 times (each with all their stays, as in Meeting 18),
+      redo steps 2–3, and keep the middle 95%.</li>
+      <li><strong>“No real gap”:</strong> the first share where the middle 95% of model minus everyone includes 0.</li>
+    </ol>
+  </details>
+
+  <h3>The chain, so far</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="The chain of methods">
+  <table class="chain">
+    <caption>Meetings 15–20: what each method fixes, and what is still wrong</caption>
+    <thead><tr><th scope="col">method</th><th scope="col">what it fixes</th><th scope="col">the evidence</th><th scope="col">what is still wrong</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">One tree<span class="mtg">Meeting 15</span></th><td>Rules anyone can read.</td><td>AUC <span class="num">0.640</span></td><td><strong>Unstable.</strong></td></tr>
+      <tr><th scope="row">Random forest<span class="mtg">Meeting 16</span></th><td>Instability: average many different trees.</td><td><span class="num">0.651</span></td><td><strong>Hard to read.</strong></td></tr>
+      <tr><th scope="row">Boosting<span class="mtg">Meeting 17</span></th><td>Another way to combine trees.</td><td><span class="num">0.647</span></td><td><strong>Hard to read.</strong></td></tr>
+      <tr><th scope="row">The bake-off<span class="mtg">Meeting 18</span></th><td>Judging models on several yardsticks.</td><td>no dollar gap real</td><td><strong>We do not know what they learned.</strong></td></tr>
+      <tr><th scope="row">Same score, different models<span class="mtg">Meeting 19</span></th><td>Three tools: importance, curves, SHAP pushes.</td><td>592 stays 10+ points apart</td><td><strong>Each tool’s answer can mislead.</strong></td></tr>
+      <tr class="now"><th scope="row">Breaking the tools<span class="mtg">Meeting 20 · today</span></th><td colspan="3">When a true answer about the model misleads you about the patients, and what to do instead.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="topic" aria-labelledby="topic">
+  <h2 id="topic" data-toc="Today: Three questions"><span class="part">Today’s topic</span>Three questions before you believe an explanation</h2>
+  <p class="topic-q">Each one asked of our models, and each one breaks one of Tuesday’s tools.</p>
+  <ol class="topic-parts" aria-label="Today in four parts">
+    <li><a href="#p1"><b>Part 1</b>Is something else carrying it?</a></li>
+    <li><a href="#p2"><b>Part 2</b>Were there patients here?</a></li>
+    <li><a href="#p3"><b>Part 3</b>Model, or cause?</a></li>
+    <li><a href="#studio"><b>Part 4</b>Your studio</a></li>
+  </ol>
+</section>
+
+<section class="col">
+  <h2 id="p1" data-toc="Part 1 · Something else?"><span class="part">Part 1 · look-alike columns · breaks permutation importance</span>Is something else carrying the same information?</h2>
+  <p class="headline">Add a near-copy of prior stays, and each looks a third as important. Drop either one and the forest
+  loses nothing; drop both and it loses 0.036.</p>
+  <dl class="def">
+    <dt>Look-alike columns</dt>
+    <dd>Two columns carrying nearly the same information: here prior stays and Meeting 16’s noisy copy of it,
+    <code>inpatient_stays_last_year</code> (correlation 0.97).</dd>
+  </dl>
+  <div class="scroll" tabindex="0" role="group" aria-label="The forest's importance table, with and without the look-alike">
+  <table>
+    <caption>The forest’s importance table: fall in test AUC when each column is shuffled</caption>
+    <thead><tr><th scope="col">column</th><th scope="col" class="n">no copy (Tuesday)</th><th scope="col" class="n">with the copy</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">where discharged to</th><td class="num">0.055</td><td class="num">0.051</td></tr>
+      <tr><th scope="row"><strong>prior inpatient stays</strong></th><td class="num"><strong>0.057</strong></td><td class="num"><strong>0.018</strong></td></tr>
+      <tr><th scope="row">the copy</th><td class="num">—</td><td class="num">0.017</td></tr>
+      <tr><th scope="row">admitting specialty</th><td class="num">0.004</td><td class="num">0.003</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Now drop and refit:</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="Dropping prior stays, its copy, or both, and refitting">
+  <table>
+    <caption>The forest with the copy: fall in test AUC when columns are dropped and the forest refitted</caption>
+    <thead><tr><th scope="col">drop and refit</th><th scope="col" class="n">AUC lost</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">the copy</th><td class="num">−0.001</td></tr>
+      <tr><th scope="row">prior stays</th><td class="num">0.002</td></tr>
+      <tr><th scope="row"><strong>both</strong></th><td class="num"><strong>0.036</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>“Prior stays: 0.018” is right about the model, and invites the wrong reading, that prior stays barely matters.</p>
+  <p><strong>In practice:</strong> before you read an importance table, look for columns that move together. Judge
+  look-alikes as a group: shuffle or drop them together.</p>
+  <details class="more">
+    <summary>Where look-alikes come from in real data</summary>
+    <p>Two systems recording the same thing; a count and a total built from it; age and anything that rises with age.
+    Capstone data has them too: Stage 2 is the time to look.</p>
+  </details>
+  <details class="more">
+    <summary>Why does shuffling cost more than dropping?</summary>
+    <p><strong>Shuffling</strong> prior stays (0.057, with no copy) keeps the fitted model and feeds it someone else’s count: it is misled, not just
+    uninformed. It measures what <em>this model</em> relies on.</p>
+    <p><strong>Dropping and refitting</strong> it and its copy (0.036) lets the forest lean on columns that carry part of the same signal.
+    It measures what the column adds that nothing else can replace.</p>
+  </details>
+  <details class="more">
+    <summary>Does SHAP have the same problem?</summary>
+    <p>Yes: with two look-alikes in the model, SHAP splits the credit between them. Studio question 1 tries the copy
+    in logistic regression.</p>
+  </details>
+</section>
+
+<section class="col">
+  <h2 id="p2" data-toc="Part 2 · Patients here?"><span class="part">Part 2 · thin data · breaks partial dependence and ICE</span>Were there patients here?</h2>
+  <p class="headline">Run Tuesday’s partial dependence for prior stays (it stopped at 7) out to 15, and the patients run
+  out long before the curve does.</p>
+  <figure class="fig">
+    <div id="thin-plot"></div>
+    <figcaption>Solid line: logistic regression’s partial dependence. Dashed line: the forest’s. The numbers under the
+    axis: how many training stays had each number of prior stays.</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Where the patients are:</strong> 96 training stays had 8 or more prior stays, 40 had 10 or more, and 8
+    had 15 or more.</li>
+    <li>In the shaded region, <strong>both curves are the model talking, not the data</strong>.</li>
+  </ul>
+  <p><strong>In practice:</strong> draw a curve only where there are patients (Lab 9 stops at the 99th percentile),
+  print the counts beside it, and say so when a prediction lands where few patients were.</p>
+  <details class="more">
+    <summary>Why the ruler climbs and the staircase stops</summary>
+    <p><strong>Logistic regression is a ruler:</strong> every prior stay adds the same +0.27 to the log-odds, learned where
+    the patients are, and it keeps adding past them: 58% at 10 stays, 83% at 15.</p>
+    <p><strong>The forest is a staircase:</strong> each box needs at least 5 training patients, so the steps stop where the
+    patients thin out, and every count beyond gets the same average, near 31%.</p>
+  </details>
+  <details class="more">
+    <summary>Didn’t Tuesday say the forest was closer?</summary>
+    <p>For the 592 stays where the models disagreed, yes: 27.9% came back, against 35.8% from logistic regression and
+    24.4% from the forest. Studio question 2 checks both models against what happened, group by group.</p>
+  </details>
+</section>
+
+<section class="col">
+  <h2 id="p3" data-toc="Part 3 · Model or cause?"><span class="part">Part 3 · not a cause · breaks SHAP values</span>Am I describing the model, or claiming a cause?</h2>
+  <p class="headline">A push says what moved the model’s score. It does not say what would change the patient.</p>
+  <p>Tuesday’s biggest disagreement, stay 18506: 12 prior stays, logistic regression 91.8%, the forest 28.5%.</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="The forest's SHAP values for stay 18506">
+  <table>
+    <caption>Stay 18506, the forest’s pushes, in percentage points</caption>
+    <thead><tr><th scope="col">step</th><th scope="col" class="n">the forest’s chance</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">a typical patient</th><td class="num">11.6%</td></tr>
+      <tr><th scope="row">+ 12 prior stays</th><td class="num">+12.8 points</td></tr>
+      <tr><th scope="row">+ where discharged to</th><td class="num">+3.8</td></tr>
+      <tr><th scope="row">+ emergency visits</th><td class="num">+3.4</td></tr>
+      <tr><th scope="row">+ every other column</th><td class="num">−3.0</td></tr>
+      <tr><th scope="row"><strong>stay 18506</strong></th><td class="num"><strong>28.5%</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Holding everything else fixed</strong> is what the model does when it moves one column, and what the
+  hospital cannot do for a real patient. So “prior stays push the score up” is a fact about the model; “preventing
+  earlier stays would lower this patient’s risk” is a claim nothing in the data tested.</p>
+  <p><strong>In practice:</strong> say “raises the model’s score,” never “raises the risk.” A claim about what an action
+  would do needs an experiment, or a causal analysis, not a SHAP value.</p>
+  <details class="more">
+    <summary>Two exact explanations, two models</summary>
+    <p>Twelve prior stays push the forest up 13 points, and push logistic regression up +3.03 in log-odds, which alone
+    takes Tuesday’s 10.4% typical patient to about 71%. The forest’s pushes are in chances, because it averages its
+    trees’ chances, computed by the <code>shap</code> package’s TreeSHAP.</p>
+  </details>
+  <details class="more">
+    <summary>Why the forest’s typical patient is 11.6%</summary>
+    <p>It is the forest’s average chance over its training patients. Logistic regression’s typical patient (Tuesday,
+    10.4%) is an average in log-odds turned into a chance, which comes out lower.</p>
+  </details>
+</section>
+
+<section class="col" aria-labelledby="reading">
+  <h2 id="reading" data-toc="The reading"><span class="part">Before the studio · the reading · about three minutes</span>Which model would you hand the hospital?</h2>
+  <div class="keep"><b>The reading in three sentences: Rudin (2019)</b>An explanation added after the fact only
+  approximates the black box, and today showed three ways that misleads. On tables like ours, a model you can read
+  often ties the black box: her best-known example, a few rules on age and prior offenses, predicted re-arrest about as
+  well as COMPAS, a commercial tool used in courts. So for high-stakes decisions, when one ties, use the one you can
+  read.</div>
+  <p class="headline">Your turn: our two models tied. Which one would Rudin hand the hospital? And does a model you can
+  read still need today’s three questions?</p>
+  <details class="more">
+    <summary>Follow-up: does their disagreement change the decision?</summary>
+    <p>Start from the decision, the first of Tuesday’s five steps for picking a model. Do the patients the two models
+    disagree about most end up with a different decision about the $150 visit? Your exit ticket asks you this.</p>
+  </details>
+</section>
+
+<section class="col">
+  <h2 id="studio" data-toc="Part 4 · Your studio"><span class="part">Part 4 · your turn</span>Your studio</h2>
+  <div class="scroll" tabindex="0" role="group" aria-label="The three studio questions">
+  <table>
+    <thead><tr><th scope="col">question</th><th scope="col">what you do</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · about 15 min</th><td><strong>Look-alike columns, in logistic regression.</strong> Refit with
+      the copy; compare coefficients, shuffling and dropping.</td></tr>
+      <tr><th scope="row">2 · about 15 min</th><td><strong>Thin data.</strong> Check each model’s chances against what
+      happened, group by number of prior stays.</td></tr>
+      <tr><th scope="row">3 · about 15 min</th><td><strong>Not a cause.</strong> The forest’s pushes for stay 710 (sent to
+      another inpatient facility); send it home; then see who gets sent where.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>All three questions count. Question 3 needs <code>shap</code>: <code>git pull</code>, <code>uv sync</code>,
+  restart; if it won’t install, the notebook uses saved values. Upload to “Studio notebook — Day 20” by
+  <strong>Friday, November 13, 3:40 pm</strong>.</p>
+
+  <h2 id="next" data-toc="Next"><span class="part">After class</span>Next: PCA</h2>
+  <div class="keep"><b>Before you believe any explanation, ask</b>Is something else carrying the same information? Were
+  there patients here? Am I describing the model, or claiming a cause? Lab 9, due Tuesday night, asks
+  you to put these in a memo to the hospital.</div>
+  <p>Tuesday starts the next unit, structure without an answer key: principal components on county health data, and
+  the leakage trap of fitting them on every row.</p>
+  <p class="foot">The Diabetes 130-US Hospitals data (UCI), split by patient as in Meeting 9, with Meeting 16’s sample of
+  15,000 training patients. Parts 1–3 come from the Meeting 20 notebook (also recorded by tools/day20_numbers.py); the
+  price table from Meeting 18’s models, rerun on November 11.</p>
+</section>
+</main>
+</div>
+<script>
+(() => {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+  const txt = (p, x, y, s, a = {}) => { const t = el("text", { x, y, "font-size": 13, ...a }, p); t.textContent = s; return t; };
+  // [prior stays, training stays, logistic partial dependence, forest partial dependence], from the Meeting 20 notebook
+  const THIN = [[0,14224,0.095,0.098],[1,4129,0.12,0.124],[2,1579,0.15,0.155],[3,683,0.186,0.195],[4,315,0.228,0.236],[5,177,0.276,0.251],[6,93,0.33,0.256],[7,56,0.389,0.264],[8,35,0.452,0.271],[9,21,0.515,0.273],[10,11,0.579,0.294],[11,7,0.64,0.307],[12,6,0.697,0.307],[13,3,0.748,0.307],[14,5,0.794,0.307],[15,6,0.833,0.307]];
+  const W = 780, H = 372, m = { l: 122, r: 24, t: 14, b: 78 }, YH = 0.9, XMAX = 15;
+  const sx = (x) => m.l + (x / XMAX) * (W - m.l - m.r), sy = (y) => m.t + (1 - y / YH) * (H - m.t - m.b);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": "Fewer than 100 training stays had each value past 5 prior stays: 93 had 6, and only 3 to 11 had each value from 10 to 15. Over that range logistic regression's curve keeps climbing to 83% at 15, while the forest's levels off near 31%." },
+    document.getElementById("thin-plot"));
+  // The thin region: past 5 prior stays, fewer than 100 training stays at each value.
+  el("rect", { x: sx(5.5), y: m.t, width: sx(XMAX) - sx(5.5) + 12, height: sy(0) - m.t, class: "thin-band" }, svg);
+  txt(svg, sx(5.5) + 8, sy(0.05), "fewer than 100 training stays at each value", { class: "muted" });
+  for (const y of [0, 0.2, 0.4, 0.6, 0.8]) { el("line", { x1: m.l, x2: W - m.r, y1: sy(y), y2: sy(y), class: "gridline" }, svg);
+    txt(svg, m.l - 8, sy(y) + 4, `${Math.round(y * 100)}%`, { "text-anchor": "end", class: "muted mono" }); }
+  txt(svg, 70, (m.t + sy(0)) / 2, "predicted chance", { class: "muted", transform: `rotate(-90 70 ${(m.t + sy(0)) / 2})`, "text-anchor": "middle" });
+  const k = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+  THIN.forEach(([x, n]) => {
+    txt(svg, sx(x), sy(0) + 18, String(x), { "text-anchor": "middle", class: "mono" });
+    txt(svg, sx(x), sy(0) + 38, k(n), { "text-anchor": "middle", class: "muted mono", "font-size": 12 }); });
+  txt(svg, m.l - 30, sy(0) + 18, "prior stays", { "text-anchor": "end", class: "muted", "font-size": 12 });
+  txt(svg, m.l - 30, sy(0) + 38, "training stays", { "text-anchor": "end", class: "muted", "font-size": 12 });
+  txt(svg, (m.l + W - m.r) / 2, sy(0) + 64, "prior inpatient stays, set for every patient", { "text-anchor": "middle", class: "muted" });
+  const path = (j) => THIN.map((r, i) => `${i ? "L" : "M"}${sx(r[0]).toFixed(1)} ${sy(r[j]).toFixed(1)}`).join("");
+  el("path", { d: path(2), class: "line-a" }, svg);
+  el("path", { d: path(3), class: "line-b" }, svg);
+  txt(svg, sx(15) - 6, sy(0.833) - 10, "logistic regression 83%", { "text-anchor": "end", "font-weight": 700 });
+  txt(svg, sx(15) - 6, sy(0.307) - 10, "forest 31%", { "text-anchor": "end", "font-weight": 700 });
+  // Price curve: net per 1,000 stays as the made-up share runs 1%–25% (tools/day20_price_curve.py)
+  { const P = {"shares":[0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05,0.055,0.06,0.065,0.07,0.075,0.08,0.085,0.09,0.095,0.1,0.105,0.11,0.115,0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.155,0.16,0.165,0.17,0.175,0.18,0.185,0.19,0.195,0.2,0.205,0.21,0.215,0.22,0.225,0.23,0.235,0.24,0.245,0.25],"model":[-5.0,-86.3,-26.0,-30.1,334.9,1304.6,2772.7,4509.3,6964.5,9508.4,13116.9,16876.3,21381.6,26026.0,33020.9,38469.2,45152.4,52842.2,59475.4,67048.1,75426.7,84344.9,93342.4,102080.0,110900.7,119935.7,127920.0,136609.6,145547.2,154804.1,164395.3,174899.9,184413.1,194128.1,203418.6,212928.8,222279.3,231928.4,241957.4,251592.7,261283.7,271178.3,281232.8,291296.6,301284.0,310967.1,320711.0,330448.8,340341.4],"model_lo":[-18.2,-157.6,-199.4,-370.3,-294.4,413.8,1615.8,3129.6,5129.4,7066.8,10454.3,13745.0,17810.7,22139.7,28776.9,33972.9,40532.7,47873.5,54356.8,61425.8,69230.5,77755.9,86036.2,94720.1,102671.7,111314.7,119165.1,127271.7,135749.2,144812.3,153951.5,163807.4,172793.6,182573.4,191385.2,200688.4,209652.2,218772.5,228151.8,237349.9,246783.2,256410.6,266003.1,275602.2,285319.1,294677.1,304066.5,313466.7,322894.9],"model_hi":[3.3,-10.3,144.8,296.2,850.7,2136.4,3992.9,5967.7,8632.2,11811.4,15632.8,19895.1,24701.5,30095.9,37353.2,43455.8,51154.8,59233.0,66492.8,74507.9,83272.7,92894.5,102529.6,111552.6,120858.9,130331.5,138491.8,147660.5,156914.8,166465.9,176008.8,187281.5,197440.6,207261.7,216972.3,226939.8,236625.3,246623.9,257075.6,267163.3,277099.3,287435.8,297999.3,308510.6,318875.9,328952.8,339075.2,349201.7,359396.9],"everyone":[-130377.1,-120565.7,-110754.2,-100942.8,-91131.3,-81319.9,-71508.5,-61697.0,-51885.6,-42074.1,-32262.7,-22451.2,-12639.8,-2828.4,6983.1,16794.5,26606.0,36417.4,46228.9,56040.3,65851.7,75663.2,85474.6,95286.1,105097.5,114908.9,124720.4,134531.8,144343.3,154154.7,163966.2,173777.6,183589.0,193400.5,203211.9,213023.4,222834.8,232646.3,242457.7,252269.1,262080.6,271892.0,281703.5,291514.9,301326.4,311137.8,320949.2,330760.7,340572.1],"everyone_lo":[-131079.7,-121619.5,-112159.4,-102699.2,-93239.1,-83778.9,-74318.8,-64858.6,-55398.5,-45938.3,-36478.2,-27018.0,-17557.9,-8097.7,1362.4,10822.6,20282.7,29742.9,39203.1,48663.2,58123.4,67583.5,77043.7,86503.8,95964.0,105424.1,114884.3,124344.4,133804.6,143264.7,152724.9,162185.0,171645.2,181105.3,190565.5,200025.6,209485.8,218945.9,228406.1,237866.3,247326.4,256786.6,266246.7,275706.9,285167.0,294627.2,304087.3,313547.5,323007.6],"everyone_hi":[-129618.5,-119427.8,-109237.1,-99046.4,-88855.6,-78664.9,-68474.2,-58283.5,-48092.7,-37902.0,-27711.3,-17520.6,-7329.8,2860.9,13051.6,23242.3,33433.1,43623.8,53814.5,64005.2,74196.0,84386.7,94577.4,104768.1,114958.9,125149.6,135340.3,145531.0,155721.8,165912.5,176103.2,186293.9,196484.7,206675.4,216866.1,227056.8,237247.6,247438.3,257629.0,267819.7,278010.5,288201.2,298391.9,308582.6,318773.4,328964.1,339154.8,349345.5,359536.3]};
+    const W2 = 780, H2 = 360, n = { l: 86, r: 24, t: 16, b: 48 }, X0 = 0.01, X1 = 0.25, Y0 = -150000, Y1 = 350000;
+    const px = (x) => n.l + (x - X0) / (X1 - X0) * (W2 - n.l - n.r), py = (y) => n.t + (1 - (y - Y0) / (Y1 - Y0)) * (H2 - n.t - n.b);
+    const g = el("svg", { viewBox: `0 0 ${W2} ${H2}`, role: "img",
+      "aria-label": "Net per 1,000 stays rises from about zero to 340,000 dollars as the share of readmissions a visit prevents goes from 1% to 25%. At the 5% we made up, the model nets 6,965 dollars and visiting everyone loses 51,886. From about 15%, visiting everyone does as well as the model." },
+      document.getElementById("price-plot"));
+    for (const y of [-100000, 0, 100000, 200000, 300000]) { el("line", { x1: n.l, x2: W2 - n.r, y1: py(y), y2: py(y), class: "gridline" }, g);
+      txt(g, n.l - 8, py(y) + 4, (y === 0 ? "$0" : (y < 0 ? "−$" : "$") + Math.abs(y / 1000) + "k"), { "text-anchor": "end", class: "muted mono" }); }
+    for (const x of [0.05, 0.10, 0.15, 0.20, 0.25]) txt(g, px(x), H2 - n.b + 18, `${Math.round(x * 100)}%`, { "text-anchor": "middle", class: "muted mono" });
+    txt(g, (n.l + W2 - n.r) / 2, H2 - 6, "share of readmissions a visit prevents", { "text-anchor": "middle", class: "muted" });
+    const area = (lo, hi) => P.shares.map((x, i) => `${i ? "L" : "M"}${px(x).toFixed(1)} ${py(hi[i]).toFixed(1)}`).join("")
+      + P.shares.slice().reverse().map((x, i) => `L${px(x).toFixed(1)} ${py(lo[lo.length - 1 - i]).toFixed(1)}`).join("") + "Z";
+    const line = (ys) => P.shares.map((x, i) => `${i ? "L" : "M"}${px(x).toFixed(1)} ${py(ys[i]).toFixed(1)}`).join("");
+    el("path", { d: area(P.everyone_lo, P.everyone_hi), class: "band-b" }, g);
+    el("path", { d: area(P.model_lo, P.model_hi), class: "band-a" }, g);
+    el("path", { d: line(P.everyone), class: "line-d" }, g);
+    el("path", { d: line(P.model), class: "line-c" }, g);
+    for (const [x, label, dy] of [[0.05, "our 5%", 0], [0.15, "from here, no real gap", 0]]) {
+      el("line", { x1: px(x), x2: px(x), y1: n.t, y2: H2 - n.b, class: "vline" }, g);
+      txt(g, px(x) + 6, n.t + 14 + dy, label, { class: "muted" }); }
+    txt(g, px(0.058), py(62000), "use the model", { "font-weight": 700 });
+    txt(g, px(0.06), py(-95000), "visit everyone", { "font-weight": 700, class: "muted" }); }
+})();
+</script>
+</body>
+</html>
