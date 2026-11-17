@@ -988,9 +988,32 @@ mtd.r { text-align: right; } mtd.l { text-align: left; }
     </tbody>
   </table>
   </div>
-  <p>The highest scores: East Carroll Parish, Louisiana, and Dimmit and Starr Counties, Texas, with life expectancies of
-  71 to 74. The lowest: Los Alamos, New Mexico, Douglas, Colorado, and Washington, Minnesota, at 81 to 83. Component 1
-  correlates −0.80 with life expectancy.</p>
+  <p><strong>The other end.</strong> The largest negative correlations: high school completion −0.80, some college
+  −0.78, median household income −0.77.</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="Component 1, both ends">
+  <table>
+    <caption>Component 1 (38.8%), both ends</caption>
+    <thead><tr><th scope="col"></th><th scope="col">high scores</th><th scope="col">low scores</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">what they mean</th><td>sicker, poorer, less schooling</td><td>healthier, richer, more schooling</td></tr>
+      <tr><th scope="row">the counties at the end</th><td>East Carroll Parish, LA; Dimmit and Starr Counties, TX</td><td>Los Alamos, NM; Douglas, CO; Washington, MN</td></tr>
+      <tr><th scope="row">their life expectancy</th><td>71 to 74 years</td><td>81 to 83 years</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Name: <strong>sickness and poverty</strong>. It correlates −0.80 with life expectancy, a variable the PCA never
+  saw.</p>
+  <ul>
+    <li><strong>What it says nothing about:</strong> its correlations with % 65 and older (−0.11), housing cost burden
+    (0.12) and air pollution (0.13) are near zero. Two counties with the same score can differ a lot on those.</li>
+    <li><strong>Nearly an equal-weight average:</strong> its scores correlate 0.985 with the plain average of all 39
+    standardized measures, each turned to point the same way. Most measures move together, so PCA’s weights come out
+    nearly equal.</li>
+    <li><strong>Stable:</strong> across 200 bootstrap resamples of the counties, its direction barely moves (cosine with
+    the original at least 0.999 in 95% of them). Components 4 and 5 tilt noticeably (down to about 0.93): their
+    eigenvalues, 2.16 and 1.93, are nearly tied, so name them with care.</li>
+  </ul>
+  <p>Components 2 and 3 are studio question 1.</p>
   <details class="more">
     <summary>Why the sign does not matter</summary>
     <p>A direction can point either way. PCA could as well have made “healthy and well off” the positive end; the
