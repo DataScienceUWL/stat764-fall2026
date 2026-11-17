@@ -1,0 +1,1280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Built from content/lessons/pages/day21_pca.html in the course repo by tools/build_page.py. Open this file in a web browser. -->
+<title>Thirty-Nine Measures, a Few Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* STAT 764 daily pages: the shared theme.
+   Inlined into every page by tools/build_page.py, so each page stays one self-contained file.
+   Edit here, then rebuild the pages; never edit a built page's <style> by hand. */
+
+/* Layout: the tree and forest pages' system (one reading column, figures widen to 1040px), so the three read as a set. */
+:root {
+  --paper: #f1f5f4;
+  --surface: #ffffff;
+  --ink: #13242a;
+  --muted: #485b60;
+  --line: #c6d2d1;
+  --grid: #e2e9e8;
+  --back: #ad3822;          /* came back within 30 days */
+  --stay: #276a6f;          /* did not come back */
+  --accent: #1d4c87;        /* the thing you are steering: a selected question, a path */
+  --accent-soft: #e2ebf6;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --read: 68ch;
+  --wide: 1040px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+    --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+  --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px;
+       line-height: 1.6; margin: 0; }
+.page { padding-inline: 16px; padding-block: 40px 72px; }
+.col { max-width: var(--read); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 700; margin-top: 64px; }
+h3 { font-size: 1.25rem; font-weight: 700; margin-top: 40px; display: flex; gap: 12px; align-items: baseline; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+strong { font-weight: 700; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+           color: var(--muted); margin: 0 0 12px; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+.step { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em;
+        color: var(--accent); border: 1.5px solid var(--accent); border-radius: 999px; padding: 1px 9px;
+        white-space: nowrap; transform: translateY(-2px); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.part { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--muted); display: block; margin-bottom: 6px; font-weight: 500; }
+
+/* Figures */
+figure { margin: 28px auto; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 12px; max-width: var(--read); }
+svg { display: block; max-width: 100%; height: auto; }
+.scroll { overflow-x: auto; }
+.treebox { display: flex; justify-content: center; margin-bottom: 18px; }
+.treebox svg { flex: none; max-width: 100%; }
+.plotbox { display: flex; justify-content: center; }
+svg text { font-family: var(--font-body); fill: var(--ink); }
+svg .mono { font-family: var(--font-mono); }
+svg .muted { fill: var(--muted); }
+svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.axis { stroke: var(--line); stroke-width: 1; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; color: var(--muted); margin: 0 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Controls */
+.controls { display: grid; gap: 14px; margin-bottom: 14px; }
+label, .label { font-weight: 700; font-size: 0.95rem; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.seg { display: inline-flex; border: 1.5px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.92rem; padding: 6px 12px; border: 0; background: var(--surface);
+              color: var(--accent); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 700; }
+.btn { font: inherit; font-size: 0.92rem; font-weight: 700; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+       border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Readouts */
+.readout { display: grid; gap: 10px; }
+.sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.side { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.side .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.side b { display: block; }
+.calc { font-family: var(--font-mono); font-size: 0.9rem; background: var(--paper); border-radius: 6px; padding: 10px 12px;
+        line-height: 1.7; overflow-x: auto; }
+.calc .big { font-size: 1.05rem; font-weight: 500; color: var(--accent); }
+.say { font-size: 1rem; }
+
+/* Stat strip, tables, code */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); margin: 24px 0; }
+.stats div { padding: 12px 12px 12px 0; }
+.stats b { display: block; font-family: var(--font-display); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--ink); font-size: 0.85rem; }
+td.n, th.n, td.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px;
+      overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--surface); }
+.card .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.card b { font-family: var(--font-display); font-size: 1.2rem; display: block; margin-top: 2px; }
+details { margin-top: 10px; font-size: 0.92rem; }
+summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.foot { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); margin-top: 64px; padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  .board .bar, .hbars .bar { transition: width 0.25s ease; }
+}
+/* The one-sentence method: the page's thesis */
+.method { margin: 28px 0 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+          border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+.method div { padding: 14px 16px 14px 0; }
+.method div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.method b { display: block; font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 2px; }
+.method span { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 620px) {
+  .method { grid-template-columns: 1fr; }
+  .method div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* Forest page additions */
+.box-note { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 18px 6px; margin: 22px 0 8px; }
+.box-note h4 { font-family: var(--font-display); font-size: 1.1rem; margin: 12px 0 4px; }
+
+/* Boosting page additions */
+.line-model { stroke: var(--accent); stroke-width: 3; fill: none; stroke-linejoin: round; }
+.line-stump { stroke: var(--accent); stroke-width: 3; fill: none; stroke-dasharray: 7 4; }
+.line-truth { stroke: var(--muted); stroke-width: 1.6; fill: none; stroke-dasharray: 2 4; }
+.line-train { stroke: var(--stay); stroke-width: 2.4; fill: none; stroke-dasharray: 6 4; }
+.line-new { stroke: var(--back); stroke-width: 2.8; fill: none; }
+.line-other { stroke: var(--muted); stroke-width: 1.6; fill: none; opacity: 0.7; }
+.line-floor { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.zero { stroke: var(--ink); stroke-width: 1; opacity: 0.5; }
+.pt { fill: var(--ink); }
+.pt-res { fill: var(--back); }
+.stick { stroke: var(--back); stroke-width: 1.4; opacity: 0.8; }
+.now-line { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.dot-new { fill: var(--back); stroke: var(--surface); stroke-width: 1.5; }
+.dot-train { fill: var(--stay); stroke: var(--surface); stroke-width: 1.5; }
+.dot-best { fill: var(--surface); stroke: var(--back); stroke-width: 2.4; }
+.dot-acc { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.sw { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; }
+.sw.model { border-color: var(--accent); }
+.sw.stump { border-top-style: dashed; border-color: var(--accent); }
+.sw.truth { border-top: 2px dotted var(--muted); }
+.sw.train { border-top-style: dashed; border-color: var(--stay); }
+.sw.new { border-color: var(--back); }
+.sw.other { border-top-width: 2px; border-color: var(--muted); }
+.dotsw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.dotsw.res { background: var(--back); }
+tr.is-on th, tr.is-on td { background: var(--accent-soft); font-weight: 700; }
+
+/* Where we are: the course's question, the six units, and last time / today / coming up */
+.where { margin-top: 40px; }
+.spine { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); padding: 14px 0 16px; margin-top: 14px; }
+.spine .q { font-family: var(--font-display); font-size: clamp(1.25rem, 2.6vw, 1.55rem); font-weight: 700; line-height: 1.25; margin: 4px 0 0; }
+.units { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.units li { border-top: 4px solid var(--line); padding: 6px 4px 0 0; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
+.units li b { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; }
+.units li.done { border-top-color: var(--stay); }
+.units li.now { border-top-color: var(--accent); color: var(--ink); font-weight: 700; }
+.units li.now b { color: var(--accent); }
+@media (max-width: 760px) { .units { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.trip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+@media (max-width: 900px) { .trip { grid-template-columns: minmax(0, 1fr); } }
+.trip article { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 16px 10px; }
+.trip article.today { border: 2px solid var(--accent); }
+.trip h3 { margin-top: 12px; font-size: 1.15rem; display: block; }
+.trip .tag { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 0; }
+.trip ul { padding-left: 18px; margin: 8px 0; }
+.trip li { margin: 6px 0; font-size: 0.95rem; }
+.trip p { font-size: 0.95rem; }
+.keep { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; margin: 10px 0 4px; }
+.keep b { display: block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+.dot-muted { fill: var(--muted); }
+
+/* Connecting the dots */
+.recall { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; align-items: start; }
+@media (max-width: 900px) { .recall { grid-template-columns: minmax(0, 1fr); } }
+.recall details { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; margin: 0; font-size: 0.95rem; }
+.recall summary { color: var(--ink); line-height: 1.4; }
+.recall summary::marker { color: var(--accent); }
+.recall details[open] { border-color: var(--accent); }
+.chain caption { font-weight: 700; }
+.chain th[scope="row"] { font-family: var(--font-display); font-size: 1.05rem; white-space: nowrap; }
+.chain .mtg { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0.03em; }
+.chain tr.now th, .chain tr.now td { background: var(--accent-soft); }
+.chain tr.now .mtg { color: var(--accent); }
+.chain tr.later th, .chain tr.later td { color: var(--muted); font-style: italic; }
+.verdicts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+@media (max-width: 900px) { .verdicts { grid-template-columns: minmax(0, 1fr); } }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: 6px; padding: 2px 14px 8px; font-size: 0.95rem; }
+.verdict.yes { border-top-color: var(--stay); }
+.verdict.no { border-top-color: var(--back); }
+.verdict .v-tag { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; margin: 10px 0 0; }
+.verdict.yes .v-tag { color: var(--stay); }
+.verdict.no .v-tag { color: var(--back); }
+.verdict .v-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin: 2px 0 0; font-variant-numeric: tabular-nums; }
+.verdict .v-what { color: var(--muted); margin: 0 0 6px; font-size: 0.9rem; }
+
+/* ---------- Components from the tree and forest pages (Meetings 15-16) ---------- */
+.pt-back { stroke: var(--back); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.pt-stay { fill: var(--stay); }
+.box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.box-shade { fill: var(--back); }
+.cutline { stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.side-no { fill: var(--stay); opacity: 0.08; }
+.side-yes { fill: var(--back); opacity: 0.08; }
+.node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+.edge { stroke: var(--ink); stroke-width: 1.3; fill: none; }
+.on .node, .node.on { stroke: var(--accent); stroke-width: 3; }
+.edge.on { stroke: var(--accent); stroke-width: 3; }
+.newpt { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.region-on { fill: none; stroke: var(--accent); stroke-width: 3; }
+.curve { stroke: var(--accent); stroke-width: 3; fill: none; }
+.dot-accent { fill: var(--accent); }
+.line-tree { stroke: var(--accent); stroke-width: 2.6; fill: none; }
+.line-logit { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
+.band { fill: var(--accent-soft); }
+.pt-num { fill: var(--ink); }
+.resid { stroke: var(--back); stroke-width: 1.6; }
+.meanline { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.box-num { fill: var(--accent); }
+.boundary { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.leafedge { fill: none; stroke: var(--line); stroke-width: 1; }
+
+/* Three boundaries side by side */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+.trio-title { margin: 0 0 6px; }
+.trio-note { margin: 6px 0 0; font-size: 0.92rem; color: var(--muted); }
+/* Leaderboard of candidate questions */
+.board { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.board button { width: 100%; display: grid; grid-template-columns: minmax(0, 11.5em) minmax(0, 1fr) 3.6em; gap: 8px;
+                align-items: center; font: inherit; font-size: 0.85rem; text-align: left; color: var(--ink);
+                background: none; border: 1px solid transparent; border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+.board button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.board .bar { height: 10px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.board button[aria-pressed="true"] .bar { background: var(--accent); }
+.board .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+
+/* Real-data bars */
+.hbars { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 16em) minmax(0, 1fr) 4.4em; gap: 10px; align-items: center; font-size: 0.88rem; }
+.hbars .bar { height: 12px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.hbars li.win { font-weight: 700; }
+.hbars li.win .bar { background: var(--accent); }
+.hbars .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+@media (max-width: 560px) {
+  .hbars li { grid-template-columns: minmax(0, 1fr) 4em; }
+  .hbars li .bar { grid-column: 1 / -1; grid-row: 2; }
+  .board button { grid-template-columns: minmax(0, 1fr) 3.4em; }
+  .board .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+.chips { display: grid; gap: 6px; }
+.chiprow { display: grid; grid-template-columns: 12em minmax(0, 1fr); gap: 10px; align-items: start; }
+.chiprow > span { font-size: 0.85rem; color: var(--muted); padding-top: 2px; }
+.chiprow ul { list-style: none; display: flex; flex-wrap: wrap; gap: 3px; margin: 0; padding: 0; }
+.chip { font-family: var(--font-mono); font-size: 0.72rem; padding: 1px 6px; border: 1px solid var(--line); border-radius: 4px;
+        color: var(--muted); background: var(--paper); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
+@media (max-width: 620px) { .chiprow { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.ghost { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.tally { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.tally li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; font-size: 0.95rem; }
+.tick-tree { stroke: var(--back); stroke-width: 1.4; stroke-opacity: 0.55; }
+.seg-main { fill: var(--accent); }
+.dot-muted { fill: var(--muted); }
+.dot-tree { fill: var(--muted); fill-opacity: 0.45; }
+.hidden-line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ibar { display: inline-block; width: 7em; height: 10px; background: var(--grid); border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.ibar > span { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+.seg-other { fill: var(--muted); }
+.seg-gap { stroke: var(--surface); stroke-width: 2; }
+svg .on-seg { fill: var(--surface); font-weight: 700; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+select { font: inherit; font-size: 0.95rem; padding: 5px 8px; border: 1.5px solid var(--accent); border-radius: 6px;
+         background: var(--surface); color: var(--ink); max-width: 100%; }
+select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- The template's frame: contents bar and section labels ---------- */
+.toc { max-width: var(--wide); margin: 30px auto 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
+       font-size: 0.9rem; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.toc .toc-label { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase;
+                  color: var(--muted); margin-right: 4px; }
+.toc a { text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+         border-radius: 999px; padding: 3px 11px; }
+.toc a b { font-family: var(--font-mono); font-weight: 500; color: var(--accent); margin-right: 5px; }
+.toc a:hover { border-color: var(--accent); color: var(--accent); }
+.toc a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+main h2[id] { scroll-margin-top: 18px; }
+main h2 .part { margin-bottom: 6px; }
+
+/* The "Today's topic" banner: where the review ends and the new material begins */
+.topic { max-width: var(--wide); margin: 80px auto 0; padding: 18px 0 20px; border-top: 4px solid var(--ink);
+         border-bottom: 1px solid var(--line); }
+.topic h2 { font-size: clamp(2.4rem, 6vw, 3.4rem); margin-top: 0; letter-spacing: -0.02em; }
+.topic h2 .part { font-size: 0.85rem; margin-bottom: 8px; }
+.topic .topic-q { font-family: var(--font-display); font-size: clamp(1.15rem, 2.4vw, 1.4rem); color: var(--muted);
+                  margin: 8px 0 16px; max-width: 46ch; }
+.topic-parts { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .topic-parts { grid-template-columns: minmax(0, 1fr); } }
+.topic-parts a { display: block; text-decoration: none; color: var(--ink); background: var(--surface);
+                 border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 8px 12px; }
+.topic-parts a b { display: block; font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500;
+                   letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.topic-parts a:hover { border-color: var(--accent); }
+.topic-parts a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* A ledger: a model's stored lines, with the one a case uses marked (boosting's Step 3) */
+.ledger { max-height: 380px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+.ledger:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ledger table { font-size: 0.86rem; }
+.ledger thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.ledger td.pick { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.ledger td.n, .ledger th.n { white-space: nowrap; }
+.ledger tr.start th, .ledger tr.start td { font-style: italic; color: var(--muted); }
+/* A tree written as nested questions, with one case's path in bold */
+.tree-list, .tree-list ul { list-style: none; margin: 0; padding: 0; }
+.tree-list ul { padding-left: 20px; margin-left: 8px; border-left: 1px dashed var(--line); }
+.tree-list li { margin: 5px 0; }
+.tree-list .ans { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); margin-right: 8px;
+                  border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+.tree-list .q { font-weight: 500; }
+.tree-list .leaf { font-family: var(--font-mono); font-size: 0.9rem; }
+.tree-list .cnt { color: var(--muted); font-size: 0.86rem; }
+.tree-list li.on > .q, .tree-list li.on > .leaf, .tree-list li.on > .ans { font-weight: 700; color: var(--accent); border-color: var(--accent); }
+.tree-list .here { color: var(--accent); font-size: 0.86rem; }
+tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
+
+/* The terse pattern (Jeff, Nov 4): on screen one headline and one figure; the explanation sits in a reveal */
+.headline { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+            line-height: 1.3; margin: 10px 0 12px; }
+details.more { margin: 12px 0; border-left: 3px solid var(--line); padding: 2px 0 2px 12px; font-size: 0.97rem; }
+details.more[open] { border-left-color: var(--accent); }
+details.more summary { color: var(--accent); font-weight: 700; }
+/* One value changing along a line: a prediction moving tree by tree */
+.track { list-style: none; padding: 0; margin: 14px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+.track li { flex: 1 1 86px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.track li b { display: block; font-family: var(--font-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.track li span { color: var(--muted); font-size: 0.82rem; }
+.track li.end { border: 2px solid var(--accent); }
+/* The best value in a column of a scoreboard: bold, with a mark, never colour alone */
+td.best { font-weight: 700; color: var(--accent); white-space: nowrap; }
+td.best::after { content: " ★"; }
+
+/* ---------- This page ---------- */
+.fig svg { width: 100%; height: auto; display: block; }
+.dot { fill: var(--muted); opacity: 0.45; }
+.arrow { stroke: var(--accent); stroke-width: 3.5; }
+.bar { fill: var(--accent); }
+.def { border-left: 3px solid var(--accent); padding: 6px 0 6px 16px; margin: 16px 0 8px; }
+.def dt { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; }
+.def dd { margin: 2px 0 12px; }
+.def dd:last-child { margin-bottom: 0; }
+.fig.narrow { max-width: 560px; }
+.pc1-line { stroke: var(--stay); stroke-width: 4; stroke-linecap: round; }
+.pc2-line { stroke: var(--back); stroke-width: 4; stroke-linecap: round; }
+.pc1-text { fill: var(--stay); font-weight: 700; }
+.pc2-text { fill: var(--back); font-weight: 700; }
+.pc3-line { stroke: var(--muted); stroke-width: 3; stroke-linecap: round; }
+.pc3-text { fill: var(--muted); font-weight: 700; }
+.axlabel-halo { paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+#pcs3d svg { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+#pcs3d svg:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cloud { fill: var(--accent-soft); stroke: var(--muted); stroke-dasharray: 5 4; stroke-width: 1.2; }
+.idea-dot { fill: var(--accent); opacity: 0.8; }
+.mean-dot { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+.drop { stroke: var(--ink); stroke-width: 1.6; stroke-dasharray: 4 3; }
+.axis { stroke: var(--muted); stroke-width: 1.5; }
+.pcs strong.pc1 { color: var(--stay); }
+.pcs strong.pc2 { color: var(--back); }
+.formula { font-family: var(--font-mono); font-size: 1.05rem; padding: 8px 14px; background: var(--accent-soft);
+  border-radius: 6px; display: inline-block; }
+.mat3 { display: inline-grid; grid-template-columns: repeat(3, auto); gap: 0 14px; padding: 0 8px; margin: 0 4px;
+  border-left: 2px solid currentColor; border-right: 2px solid currentColor; border-radius: 5px;
+  vertical-align: middle; font-family: var(--font-mono); line-height: 1.35; text-align: right; }
+.formula.big { font-size: 1.35rem; font-weight: 700; }
+math.m { font-size: 1.05em; color: inherit; }
+.eq { text-align: center; margin: 12px 0; }
+mrow.dim { color: var(--muted); }
+.eq .eqin { display: inline-block; font-size: 1.15em; }
+.eq.boxed .eqin { border: 1.5px solid var(--accent); border-radius: 6px; padding: 6px 18px; }
+mtd.r { text-align: right; } mtd.l { text-align: left; }
+.eq mtd { math-style: normal; padding-block: 2px; }
+.story { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 8px; padding: 0; margin: 14px 0; font-weight: 700; }
+.story li + li::before { content: "→ "; color: var(--muted); font-weight: 400; }
+@media (max-width: 520px) { .eq .eqin { font-size: 0.9em; } .eq.boxed .eqin { padding: 6px 10px; } }
+.flow { list-style: none; padding: 0; margin: 14px auto 6px; max-width: 600px; }
+.flow li { text-align: center; padding: 10px 16px; border-radius: 8px; }
+.flow li + li { margin-top: 28px; position: relative; }
+.flow li + li::before { content: "↓"; position: absolute; top: -26px; left: 0; right: 0; color: var(--muted); }
+.flow li.key { background: var(--accent-soft); border: 1px solid var(--line); }
+.flow b { display: block; font-family: var(--font-display); }
+.flow .what { display: block; font-size: 0.88rem; color: var(--muted); margin-top: 2px; }
+.flow-math { font-size: 1.25em; margin: 4px 0; }
+@media (max-width: 520px) { .flow-math { font-size: 1.05em; } .flow li { padding: 10px 6px; } }
+.formula.mathbox { font-family: inherit; font-size: 1.2rem; }
+.view-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; align-items: center; }
+.layers-label { margin-right: 2px; }
+.btn.layer[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+.btn.layer::before { content: ""; display: inline-block; width: 1.1em; text-align: left; }
+.btn.layer[aria-pressed="true"]::before { content: "✓"; }
+.hint { font-size: 0.9rem; color: var(--muted); margin: 6px 0 0; }
+#cloud3d svg { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+#cloud3d svg:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.plane { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.2; stroke-dasharray: 5 4; opacity: 0.85; }
+.ax { stroke: var(--muted); stroke-width: 1.2; }
+.unit { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; fill: none; }
+.shadow { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.shadow-drop { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 3; }
+.cdrop { stroke: var(--muted); stroke-width: 0.8; stroke-dasharray: 3 3; opacity: 0.7; }
+.cdot { fill: var(--stay); }
+.cdot.hl { fill: var(--back); }
+.shadow-label { fill: var(--accent); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+.axlabel { fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+.mat { display: inline-grid; grid-template-columns: auto auto; gap: 0 12px; padding: 0 8px; margin: 0 4px;
+  border-left: 2px solid currentColor; border-right: 2px solid currentColor; border-radius: 5px;
+  vertical-align: middle; font-family: var(--font-mono); line-height: 1.3; }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="col">
+  <p class="eyebrow">STAT 764 · Meeting 21 · PCA</p>
+  <h1>Thirty-nine measures, a few directions</h1>
+  <p class="lede">Counties differ in many ways at once, and most of those ways move together. Principal component
+  analysis finds the few directions that carry most of the differences.</p>
+  <div class="method" role="list" aria-label="PCA in three moves">
+    <div role="listitem"><b>A new basis</b><span>Orthonormal axes through the average point.</span></div>
+    <div role="listitem"><b>Uncorrelated, ordered</b><span>The eigenvectors of S, largest variance first.</span></div>
+    <div role="listitem"><b>Interpret</b><span>Read the loadings; name the components.</span></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="On this page"><span class="toc-label">On this page</span><a href="#where"><b>1</b>Where we are</a><a href="#dots"><b>2</b>Connecting the dots</a><a href="#topic"><b>3</b>Today: PCA</a><a href="#p1"><b>4</b>Part 1 · A better coordinate system</a><a href="#p2"><b>5</b>Part 2 · The colleges, computed</a><a href="#p3"><b>6</b>Part 3 · The counties</a><a href="#p4"><b>7</b>Part 4 · Does compressing help?</a><a href="#studio"><b>8</b>Part 5 · Your studio</a><a href="#next"><b>9</b>Next</a></nav>
+
+<main>
+<section class="wide where" aria-labelledby="where">
+  <h2 id="where" data-toc="Where we are"><span class="part">Start here</span>Where we are</h2>
+  <div class="spine">
+    <p class="eyebrow" style="margin:0">The question the whole course is asking</p>
+    <p class="q">When is a number you computed actually evidence about the future?</p>
+    <ol class="units" aria-label="The six units of the course">
+      <li class="done"><b>Meetings 1–6</b>Can you trust your own number?</li>
+      <li class="done"><b>Meetings 7–8</b>Making models behave</li>
+      <li class="done"><b>Meetings 9–14</b>Decisions, not scores</li>
+      <li class="done"><b>Meetings 15–20</b>Flexible models, and reading them</li>
+      <li class="now" aria-current="step"><b>Meetings 21–25 · now</b>Structure without an answer key</li>
+      <li><b>Meetings 26–28</b>Where models fail</li>
+    </ol>
+  </div>
+  <div class="trip">
+    <article aria-labelledby="last">
+      <p class="tag">Last time · Meeting 20</p>
+      <h3 id="last">Breaking the tools</h3>
+      <div class="keep"><b>Keep this</b>An explanation is a number you computed. Before believing one, ask: is something
+      else carrying the same information, were there patients here, and am I describing the model or claiming a
+      cause?</div>
+    </article>
+    <article class="today" aria-labelledby="today">
+      <p class="tag">Today · Meeting 21</p>
+      <h3 id="today">Thirty-nine measures, a few directions</h3>
+      <p>A new unit, with no outcome to check against. <strong>What do 39 county health measures have in common?</strong></p>
+    </article>
+    <article aria-labelledby="soon">
+      <p class="tag">Coming up</p>
+      <h3 id="soon">Missing data, and your capstone data</h3>
+      <ul><li><strong>Thu, Nov 19:</strong> why values go missing, and a clinic on your own capstone data. Bring it.</li></ul>
+    </article>
+  </div>
+  <div class="scroll" tabindex="0" role="group" aria-label="What is due soon">
+  <table>
+    <caption>Due soon</caption>
+    <thead><tr><th scope="col">due</th><th scope="col">what</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Tue, Nov 17, 11:59 pm</th><td>Lab 9: Explain it to the hospital</td></tr>
+      <tr><th scope="row">Wed, Nov 18, 3:40 pm</th><td>Today’s studio notebook</td></tr>
+      <tr><th scope="row">Sun, Nov 22, 11:59 pm</th><td>Peer audit memo 1 (your own memo)</td></tr>
+      <tr><th scope="row">Tue, Nov 24</th><td>Lab 10 · Capstone Stage 3 checkpoint</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="wide dots" aria-labelledby="dots">
+  <h2 id="dots" data-toc="Connecting the dots"><span class="part">Before the new idea · about three minutes</span>Connecting the dots: breaking the tools</h2>
+  <h3>Try first: answer each in your head, then open it</h3>
+  <div class="recall">
+    <details>
+      <summary>1. With a near-copy of prior stays, the copy’s coefficient was −0.10. Do more stays last year lower the risk?</summary>
+      <p>No. Refit on another sample of patients and the split between the two moves a lot; their sum, 0.333, barely
+      does, and matches prior stays alone (0.336). The data pin down the sum, not the split.</p>
+    </details>
+    <details>
+      <summary>2. At 7 to 9 prior stays, which model was off?</summary>
+      <p>The forest: 28.8% against the 45.0% who came back. At 10 or more, both were just outside a wide range: there were
+      only 35 such stays.</p>
+    </details>
+    <details>
+      <summary>3. Sending stay 710 home lowers the model’s chance. Should the hospital send fewer patients to facilities?</summary>
+      <p>Nothing here can say. Patients sent to facilities are older and stay longer: the discharge marks who they are. A
+      push is not a cause.</p>
+    </details>
+  </div>
+  <h3>The chain, this unit</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="The chain of methods in this unit">
+  <table class="chain">
+    <caption>Meetings 21–25: what each method finds, and its catch</caption>
+    <thead><tr><th scope="col">method</th><th scope="col">what it finds</th><th scope="col">the catch</th></tr></thead>
+    <tbody>
+      <tr class="now"><th scope="row">PCA<span class="mtg">Meeting 21 · today</span></th><td>The few directions in many measures that move together.</td><td><strong>Two of them, in today’s studio.</strong></td></tr>
+      <tr class="later"><th scope="row">Missing data<span class="mtg">Meeting 22</span></th><td colspan="2">Which values are missing, and what that says.</td></tr>
+      <tr class="later"><th scope="row">Clustering<span class="mtg">Meetings 24–25</span></th><td colspan="2">Groups of counties, and how to tell a real pattern from a story.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="topic" aria-labelledby="topic">
+  <h2 id="topic" data-toc="Today: PCA"><span class="part">Today’s topic</span>A few directions in many measures</h2>
+  <p class="topic-q">What do 39 measures of 2,954 counties have in common?</p>
+  <p>First the tool, on made-up data small enough to see whole (Parts 1–2). Then the counties (Parts 3–4).</p>
+  <ol class="topic-parts" aria-label="Today in five parts">
+    <li><a href="#p1"><b>Part 1</b>A better coordinate system</a></li>
+    <li><a href="#p2"><b>Part 2</b>The colleges, computed</a></li>
+    <li><a href="#p3"><b>Part 3</b>The counties: 39 measures</a></li>
+    <li><a href="#p4"><b>Part 4</b>Does compressing help?</a></li>
+    <li><a href="#studio"><b>Part 5</b>Your studio</a></li>
+  </ol>
+</section>
+
+<section class="col">
+  <h2 id="p1" data-toc="Part 1 · A better coordinate system"><span class="part">Part 1 · the idea, derived</span>Finding a better coordinate system</h2>
+  <p>Suppose we have n observations, each described by p numerical features. Think of them as points in a
+  p-dimensional feature space. The features are often correlated: colleges with high graduation rates tend to have high
+  SAT scores.</p>
+  <div class="keep"><b>Principal component analysis</b>finds a new orthonormal basis for the feature space in which the
+  new variables are <strong>uncorrelated</strong>, ordered so that the first has the greatest variance, the second the
+  next greatest, and so on. The new variables are the <strong>principal components</strong>.</div>
+  <figure class="fig narrow">
+    <div id="idea-plot"></div>
+    <figcaption>Two correlated features (made-up data). PC1 and PC2 are the new orthonormal basis, through the average
+    point (white). In these coordinates the points are uncorrelated, and PC1 carries the most variance. The dashed line
+    drops one point onto PC1: where it lands is its coordinate, its <strong>score</strong>, on PC1.</figcaption>
+  </figure>
+  <ol class="story" aria-label="The story of PCA">
+    <li>Find a better basis</li><li>construct uncorrelated features</li><li>order them by variance</li><li>interpret the results</li>
+  </ol>
+
+  <h3 id="d1">1 · We are looking for a new basis</h3>
+  <p>Start with n observations of p standardized features, <math class="m"><mi>X</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>n</mi><mo>×</mo><mi>p</mi></mrow></msup></math>.
+  Each row is an observation, a vector in <math class="m"><msup><mi>ℝ</mi><mi>p</mi></msup></math>; each column is an original feature. We want
+  to describe the same observations with different coordinate axes. Let the columns of Φ be an orthonormal basis of
+  <math class="m"><msup><mi>ℝ</mi><mi>p</mi></msup></math>:</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><munder><mrow><mi mathvariant="normal">Φ</mi></mrow><mrow class="dim"><mi>p</mi><mo>×</mo><mi>p</mi></mrow></munder><mo>=</mo><mrow><mo>(</mo><mtable><mtr><mtd><mo>|</mo></mtd><mtd><mo>|</mo></mtd><mtd></mtd><mtd><mo>|</mo></mtd></mtr><mtr><mtd><msub><mi>φ</mi><mn>1</mn></msub></mtd><mtd><msub><mi>φ</mi><mn>2</mn></msub></mtd><mtd><mo>⋯</mo></mtd><mtd><msub><mi>φ</mi><mi>p</mi></msub></mtd></mtr><mtr><mtd><mo>|</mo></mtd><mtd><mo>|</mo></mtd><mtd></mtd><mtd><mo>|</mo></mtd></mtr></mtable><mo>)</mo></mrow></math></span></div>
+  <p>Each φₘ is a unit vector in ℝ<sup>p</sup>, a p × 1 column, and they are at right angles to each other:
+  <math class="m"><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup><mi mathvariant="normal">Φ</mi><mo>=</mo><mi mathvariant="normal">I</mi></math>, the p × p identity.</p>
+  <p><strong>One observation, one new coordinate.</strong> Take the three standardized college features of Part 2: SAT,
+  graduation rate and tuition. College 52 is one row of X, a 1 × 3 row:</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><msub><mi>x</mi><mn>52</mn></msub><mo>=</mo><mrow><mo>(</mo><mtable><mtr><mtd><mn>2.17</mn></mtd><mtd><mn>1.13</mn></mtd><mtd><mo>−</mo><mn>0.45</mn></mtd></mtr></mtable><mo>)</mo></mrow></math></span></div>
+  <p>For these colleges, the first principal component direction (found in Part 2) is the 3 × 1 column</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><msub><mi>φ</mi><mn>1</mn></msub><mo>=</mo><mrow><mo>(</mo><mtable><mtr><mtd><mn>0.61</mn></mtd></mtr><mtr><mtd><mn>0.63</mn></mtd></mtr><mtr><mtd><mn>0.49</mn></mtd></mtr></mtable><mo>)</mo></mrow></math></span></div>
+  <p>College 52’s score on PC1 is the dot product:</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><mtable><mtr><mtd class="r"><msub><mi>z</mi><mrow><mn>52</mn><mo>,</mo><mn>1</mn></mrow></msub></mtd><mtd class="l"><mo>=</mo><msub><mi>x</mi><mn>52</mn></msub><msub><mi>φ</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd class="r"></mtd><mtd class="l"><mo>=</mo><mn>2.17</mn><mo stretchy="false">(</mo><mn>0.61</mn><mo stretchy="false">)</mo><mo>+</mo><mn>1.13</mn><mo stretchy="false">(</mo><mn>0.63</mn><mo stretchy="false">)</mo><mo>−</mo><mn>0.45</mn><mo stretchy="false">(</mo><mn>0.49</mn><mo stretchy="false">)</mo></mtd></mtr><mtr><mtd class="r"></mtd><mtd class="l"><mo>≈</mo><mn>1.82</mn></mtd></mtr></mtable></math></span></div>
+  <p>That number says where the college lies along the PC1 axis. Do the same with φ₂ for PC2, φ₃ for PC3, and for
+  every row of X. Matrix multiplication does all of those dot products at once:</p>
+  <div class="eq boxed"><span class="eqin"><math class="m" displaystyle="true"><munder><mrow><mi>Z</mi></mrow><mrow class="dim"><mi>n</mi><mo>×</mo><mi>p</mi></mrow></munder><mo>=</mo><mi>X</mi><mi mathvariant="normal">Φ</mi></math></span></div>
+  <p>Row i of Z is observation i in the new coordinates; column m of Z is the new variable PCm. <strong>The question:
+  how should we choose Φ?</strong></p>
+
+  <h3 id="d2">2 · We want the new features to be uncorrelated</h3>
+  <p>The covariance matrix of the standardized original features is</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><munder><mrow><mi>S</mi></mrow><mrow class="dim"><mi>p</mi><mo>×</mo><mi>p</mi></mrow></munder><mo>=</mo><mfrac><mn>1</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac><msup><mi>X</mi><mi mathvariant="normal">T</mi></msup><mi>X</mi></math></span></div>
+  <p>and the covariance matrix of the new features is</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><mtable><mtr><mtd class="r"><munder><mrow><mi>Cov</mi><mo stretchy="false">(</mo><mi>Z</mi><mo stretchy="false">)</mo></mrow><mrow class="dim"><mi>p</mi><mo>×</mo><mi>p</mi></mrow></munder></mtd><mtd class="l"><mo>=</mo><mfrac><mn>1</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac><msup><mi>Z</mi><mi mathvariant="normal">T</mi></msup><mi>Z</mi></mtd></mtr><mtr><mtd class="r"></mtd><mtd class="l"><mo>=</mo><mfrac><mn>1</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup><msup><mi>X</mi><mi mathvariant="normal">T</mi></msup><mi>X</mi><mi mathvariant="normal">Φ</mi></mtd></mtr><mtr><mtd class="r"></mtd><mtd class="l"><mo>=</mo><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup><mi>S</mi><mi mathvariant="normal">Φ</mi></mtd></mtr></mtable></math></span></div>
+  <p>Uncorrelated means that covariance matrix is diagonal. So we want an orthonormal Φ with</p>
+  <div class="eq boxed"><span class="eqin"><math class="m" displaystyle="true"><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup><mi>S</mi><mi mathvariant="normal">Φ</mi><mo>=</mo><munder><mrow><mi mathvariant="normal">Λ</mi></mrow><mrow class="dim"><mi>p</mi><mo>×</mo><mi>p</mi></mrow></munder></math></span></div>
+  <p>where Λ is diagonal. That is exactly what an orthonormal basis of <strong>eigenvectors of S</strong> does. S is symmetric, so the
+  spectral theorem guarantees one exists.</p>
+
+  <h3 id="d3">3 · The eigenvectors give us the basis</h3>
+  <p>Find the eigenvectors of S,</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><mi>S</mi><msub><mi>φ</mi><mi>m</mi></msub><mo>=</mo><munder><mrow><msub><mi>λ</mi><mi>m</mi></msub></mrow><mrow class="dim"><mtext>a number</mtext></mrow></munder><msub><mi>φ</mi><mi>m</mi></msub></math></span></div>
+  <p>choose them orthonormal, and arrange them so their eigenvalues decrease, <math class="m"><msub><mi>λ</mi><mn>1</mn></msub><mo>≥</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>≥</mo><mo>⋯</mo><mo>≥</mo><msub><mi>λ</mi><mi>p</mi></msub></math>. Now put all p of these
+  equations side by side as columns. Column m of SΦ is Sφₘ, and column m of ΦΛ is λₘφₘ, where
+  <math class="m"><mi mathvariant="normal">Λ</mi><mo>=</mo><mi>diag</mi><mo stretchy='false'>(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mo>…</mo><mo>,</mo><msub><mi>λ</mi><mi>p</mi></msub><mo stretchy='false'>)</mo></math>:</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><mi>S</mi><mi mathvariant="normal">Φ</mi><mo>=</mo><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">Λ</mi></math></span></div>
+  <p>Multiply both sides on the right by Φᵀ. Φ is square with ΦᵀΦ = I, so Φᵀ is its inverse and ΦΦᵀ = I too:</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><mi>S</mi><mo>=</mo><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">Λ</mi><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup></math></span></div>
+  <p>Substitute that into Cov(Z) = ΦᵀSΦ from section 2:</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><mtable><mtr><mtd class="r"><mi>Cov</mi><mo stretchy="false">(</mo><mi>Z</mi><mo stretchy="false">)</mo></mtd><mtd class="l"><mo>=</mo><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup><mi>S</mi><mi mathvariant="normal">Φ</mi></mtd></mtr><mtr><mtd class="r"></mtd><mtd class="l"><mo>=</mo><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup><mo stretchy="false">(</mo><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">Λ</mi><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup><mo stretchy="false">)</mo><mi mathvariant="normal">Φ</mi></mtd></mtr><mtr><mtd class="r"></mtd><mtd class="l"><mo>=</mo><mo stretchy="false">(</mo><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup><mi mathvariant="normal">Φ</mi><mo stretchy="false">)</mo><mi mathvariant="normal">Λ</mi><mo stretchy="false">(</mo><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup><mi mathvariant="normal">Φ</mi><mo stretchy="false">)</mo></mtd></mtr><mtr><mtd class="r"></mtd><mtd class="l"><mo>=</mo><mi mathvariant="normal">I</mi><mi mathvariant="normal">Λ</mi><mi mathvariant="normal">I</mi></mtd></mtr><mtr><mtd class="r"></mtd><mtd class="l"><mo>=</mo><mi mathvariant="normal">Λ</mi></mtd></mtr></mtable></math></span></div>
+  <p>So the eigenvectors do exactly what section 2 asked for:</p>
+  <div class="eq boxed"><span class="eqin"><math class="m" displaystyle="true"><mi>Cov</mi><mo stretchy="false">(</mo><mi>Z</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">Λ</mi></math></span></div>
+  <p>The columns of Z are uncorrelated, and their variances are the eigenvalues:
+  <math class="m"><mi>Var</mi><mo stretchy="false">(</mo><msub><mi>Z</mi><mi>m</mi></msub><mo stretchy="false">)</mo><mo>=</mo><msub><mi>λ</mi><mi>m</mi></msub></math>. These new variables are the <strong>principal components</strong>.</p>
+
+  <h3 id="d4">4 · Why order them by variance?</h3>
+  <p>Ordering by decreasing eigenvalue gives <math class="m"><mi>Var</mi><mo stretchy="false">(</mo><msub><mi>Z</mi><mn>1</mn></msub><mo stretchy="false">)</mo><mo>≥</mo><mi>Var</mi><mo stretchy="false">(</mo><msub><mi>Z</mi><mn>2</mn></msub><mo stretchy="false">)</mo><mo>≥</mo><mo>⋯</mo><mo>≥</mo><mi>Var</mi><mo stretchy="false">(</mo><msub><mi>Z</mi><mi>p</mi></msub><mo stretchy="false">)</mo></math>. Then the first k components capture as much variance as
+  any k-dimensional subspace can. That is what makes PCA useful beyond decorrelating: if the last eigenvalues are small,
+  drop those components and lose little variance.</p>
+  <div class="keep"><b>New variables, not new correlations</b>PCA does not make the original features uncorrelated; it
+  cannot. It builds new features, each a linear combination of the original ones, whose correlations are zero. And it
+  takes the eigenvectors of S: an arbitrary orthonormal basis would not do it.</div>
+  <details class="more">
+    <summary>Why the first component has the most variance (optional)</summary>
+    <p>Along a unit vector w the new variable is Xw, with variance wᵀSw. Maximizing wᵀSw subject to wᵀw = 1 (a Lagrange
+    multiplier) gives Sw = λw, and then the variance is wᵀSw = λ: the best direction is the eigenvector with the largest
+    eigenvalue. The second does the same at right angles to the first, and so on.</p>
+  </details>
+  <details class="more">
+    <summary>Repeated eigenvalues (optional)</summary>
+    <p>If two eigenvalues are equal, any orthonormal basis of their eigenspace gives the same diagonal covariance, so the
+    individual components are not unique. The subspace they span, and its variance, still are.</p>
+  </details>
+  <details class="more">
+    <summary>Why the eigenvalues add up to p (optional)</summary>
+    <p>Write out entry (j, j) of S = ΦΛΦᵀ: row j of Φ, times Λ, times column j of Φᵀ.</p>
+    <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><msub><mi>S</mi><mrow><mi>j</mi><mi>j</mi></mrow></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></munderover><msub><mi>λ</mi><mi>m</mi></msub><msubsup><mi>φ</mi><mrow><mi>j</mi><mi>m</mi></mrow><mn>2</mn></msubsup></math></span></div>
+    <p>Add these up over the p variables and swap the order of the sums. Each column φₘ is a unit vector, so its squared
+    entries add to 1:</p>
+    <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><mtable><mtr><mtd class="r"><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></munderover><msub><mi>S</mi><mrow><mi>j</mi><mi>j</mi></mrow></msub></mtd><mtd class="l"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></munderover><msub><mi>λ</mi><mi>m</mi></msub><mrow><mo>(</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></munderover><msubsup><mi>φ</mi><mrow><mi>j</mi><mi>m</mi></mrow><mn>2</mn></msubsup><mo>)</mo></mrow></mtd></mtr><mtr><mtd class="r"></mtd><mtd class="l"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></munderover><msub><mi>λ</mi><mi>m</mi></msub><mo>·</mo><mn>1</mn></mtd></mtr><mtr><mtd class="r"></mtd><mtd class="l"><mo>=</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>+</mo><mo>⋯</mo><mo>+</mo><msub><mi>λ</mi><mi>p</mi></msub></mtd></mtr></mtable></math></span></div>
+    <p>On the left, each Sⱼⱼ is the variance of a standardized variable, which is 1, so the left side is p. Hence
+    λ₁ + ⋯ + λₚ = p. Each term λₘφⱼₘ² is the squared correlation of variable j with component m: the correlation table in Part 2’s
+    reveal “Interpreting the components”, where each row adds to 1 (a variable’s variance, shared out among the components) and each column to its
+    eigenvalue (what a component collects from the variables).</p>
+  </details>
+
+  <h3 id="d5">5 · In ISLP’s words</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="Linear algebra terms and their ISLP names">
+  <table>
+    <caption>The same objects, in linear algebra and in the textbook</caption>
+    <thead><tr><th scope="col">linear algebra</th><th scope="col">ISLP / statistics</th><th scope="col">scikit-learn</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">orthonormal eigenvectors φₘ (columns of Φ, in feature space)</th><td>principal component loading vectors</td><td><code>pca.components_.T</code></td></tr>
+      <tr><th scope="row">entries φⱼₘ (feature j, component m)</th><td>loadings</td><td></td></tr>
+      <tr><th scope="row">new coordinates Z = XΦ</th><td>principal component scores</td><td><code>pca.transform(X)</code></td></tr>
+      <tr><th scope="row">eigenvalues λₘ</th><td>variances of the components</td><td><code>pca.explained_variance_</code></td></tr>
+      <tr><th scope="row">λₘ / (λ₁ + ⋯ + λₚ)</th><td>proportion of variance explained</td><td><code>pca.explained_variance_ratio_</code></td></tr>
+      <tr><th scope="row">rows of Φ, first two entries</th><td>biplot arrows: the original axes in the new basis</td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>scikit-learn stores one component per <em>row</em>, so Φ is <code>pca.components_.T</code>. Part 2 computes every
+  one of these objects for 60 made-up colleges.</p>
+  <details class="more">
+    <summary>n or n − 1? (if you check the numbers)</summary>
+    <p>scikit-learn mixes the two. <code>StandardScaler</code> divides by n (the population standard deviation), while
+    <code>PCA</code> computes S, and <code>explained_variance_</code>, with n − 1. So after <code>StandardScaler</code>
+    each column’s variance is n/(n − 1), a little above 1, and the eigenvalues add up to p · n/(n − 1): 39.01 for the
+    2,954 counties, not 39. The loadings and the shares of variance are the same either way. (The colleges in Part 2 are
+    standardized with n − 1, so their eigenvalues add to exactly 3.)</p>
+  </details>
+  <details class="more">
+    <summary>The recipe in one picture (optional)</summary>
+    <ol class="flow" aria-label="The steps of PCA, from data to scores">
+      <li><b>Original data</b><math class="m flow-math" display="block" aria-label="X, n by p"><mi>X</mi><mspace width="0.8em"></mspace><mo stretchy="false">(</mo><mi>n</mi><mo>×</mo><mi>p</mi><mo stretchy="false">)</mo></math>
+        <span class="what">Rows = observations, columns = variables</span></li>
+      <li><b>Center, and standardize, the columns</b><math class="m flow-math" display="block" aria-label="X sub c"><msub><mi>X</mi><mi>c</mi></msub></math>
+        <span class="what">Each column minus its mean, divided by its standard deviation. Part 1 writes X for this.</span></li>
+      <li><b>Sample covariance matrix</b><math class="m flow-math" display="block" aria-label="S equals 1 over n minus 1, times X c transpose X c"><mi>S</mi><mo>=</mo><mfrac><mn>1</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac><msubsup><mi>X</mi><mi>c</mi><mi mathvariant="normal">T</mi></msubsup><msub><mi>X</mi><mi>c</mi></msub></math>
+        <span class="what">p × p; standardized, it is the correlation matrix</span></li>
+      <li class="key"><b>Eigendecomposition</b><math class="m flow-math" display="block" aria-label="S equals Phi Lambda Phi transpose"><mi>S</mi><mo>=</mo><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">Λ</mi><msup><mi mathvariant="normal">Φ</mi><mi mathvariant="normal">T</mi></msup></math>
+        <span class="what">Columns of Φ (eigenvectors) = loadings; Λ = diag(λ₁, …, λₚ) (eigenvalues) = the components’ variances</span></li>
+      <li><b>Principal component scores</b><math class="m flow-math" display="block" aria-label="Z equals X c Phi"><mi>Z</mi><mo>=</mo><msub><mi>X</mi><mi>c</mi></msub><mi mathvariant="normal">Φ</mi></math>
+        <span class="what">n × p: every observation in the new variables</span></li>
+      <li><b>Keep the first k</b><math class="m flow-math" display="block" aria-label="Z k equals X c Phi k"><msub><mi>Z</mi><mi>k</mi></msub><mo>=</mo><msub><mi>X</mi><mi>c</mi></msub><msub><mi mathvariant="normal">Φ</mi><mi>k</mi></msub></math><math class="m flow-math" display="block" aria-label="the share of component m is lambda m over the sum of the eigenvalues"><mtext>share of component&#160;</mtext><mi>m</mi><mo>=</mo><mfrac><msub><mi>λ</mi><mi>m</mi></msub><mrow><msub><mi>λ</mi><mn>1</mn></msub><mo>+</mo><mo>⋯</mo><mo>+</mo><msub><mi>λ</mi><mi>p</mi></msub></mrow></mfrac></math>
+        <span class="what">The first k columns of Φ; k = 2 gives the biplot</span></li>
+    </ol>
+    <p class="hint">In practice scikit-learn gets Φ and Λ from the singular value decomposition of X<sub>c</sub>, without
+    forming S; the result is the same.</p>
+  </details>
+</section>
+
+<section class="col">
+  <h2 id="p2" data-toc="Part 2 · The colleges, computed"><span class="part">Part 2 · the derivation, computed</span>Sixty colleges, step by step</h2>
+  <p class="headline">Every object from Part 1, computed: X, S, Φ, Z = XΦ and the eigenvalues; then two components, a biplot, and what the components mean.</p>
+  <p>One running example: 60 <strong>made-up</strong> colleges, each with an SAT average, a graduation rate and a
+  tuition.</p>
+
+  <h3 id="c1"><span class="step">Step 1</span>The data matrix X</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="The first rows of the data">
+  <table>
+    <caption>X: one row per college, one column per variable (60 rows)</caption>
+    <thead><tr><th scope="col">college</th><th scope="col" class="n">SAT</th><th scope="col" class="n">graduation</th><th scope="col" class="n">tuition</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1</th><td class="num">1360</td><td class="num">74%</td><td class="num">$40,600</td></tr>
+      <tr><th scope="row">2</th><td class="num">1150</td><td class="num">64%</td><td class="num">$50,000</td></tr>
+      <tr><th scope="row">3</th><td class="num">1430</td><td class="num">87%</td><td class="num">$46,100</td></tr>
+      <tr><th scope="row">⋮</th><td class="num">⋮</td><td class="num">⋮</td><td class="num">⋮</td></tr>
+      <tr><th scope="row">52</th><td class="num">1450</td><td class="num">77%</td><td class="num">$22,600</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>X has n = 60 rows and 3 columns; row i, written xᵢ, is college i. Standardize each column (subtract its mean,
+  divide by its standard deviation), so no variable wins by its units. Each row describes a college with three
+  measurements; PCA will describe the same colleges with new ones.</p>
+
+  <h3 id="c2"><span class="step">Step 2</span>The covariance matrix S: how the variables move together</h3>
+  <p class="formula">S = XᵀX / (n − 1) = <span class="mat3" role="img" aria-label="the 3 by 3 correlation matrix: SAT with graduation 0.83, SAT with tuition 0.44, graduation with tuition 0.52, ones on the diagonal"><span>1</span><span>0.83</span><span>0.44</span><span>0.83</span><span>1</span><span>0.52</span><span>0.44</span><span>0.52</span><span>1</span></span></p>
+  <p>Standardized, it is the correlation matrix: SAT and graduation move together strongly (0.83), tuition less so. By
+  Part 1, its orthonormal eigenvectors are the new basis.</p>
+
+  <h3 id="c3"><span class="step">Step 3</span>The loading matrix Φ: definitions of the new variables</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="The loading matrix">
+  <table>
+    <caption>Φ: each column is an eigenvector of S and defines one new variable</caption>
+    <thead><tr><th scope="col"></th><th scope="col" class="n">PC1</th><th scope="col" class="n">PC2</th><th scope="col" class="n">PC3</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">SAT</th><td class="num">0.61</td><td class="num">−0.42</td><td class="num">0.67</td></tr>
+      <tr><th scope="row">graduation</th><td class="num">0.63</td><td class="num">−0.27</td><td class="num">−0.73</td></tr>
+      <tr><th scope="row">tuition</th><td class="num">0.49</td><td class="num">0.87</td><td class="num">0.10</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li><strong>PC1</strong> is roughly an average of all three: high on everything.</li>
+    <li><strong>PC2</strong> sets tuition against SAT and graduation: high means pricier than its academics.</li>
+    <li><strong>PC3</strong> sets SAT against graduation.</li>
+  </ul>
+  <p>Read a column to define a new variable; read a row to see how one original variable feeds the new ones. Write
+  φⱼₘ for the entry in row j (an original variable) and column m (a component), as ISLP does.</p>
+  <figure class="fig">
+    <div id="pcs3d"></div>
+    <p class="hint">Drag the cloud to turn it (or focus it and use the arrow keys). Turn it until PC1 points at you: the
+    cloud is thin in that view.</p>
+    <figcaption>The 60 standardized colleges on their original axes. The three arrows are the columns of Φ. Each runs
+    from the center out to two standard deviations of the colleges’ positions along that direction (drop every college
+    onto the axis; take the standard deviation of where they land): 2.97 for PC1, 1.59 for PC2, 0.81 for PC3, in
+    standardized units. PC1 runs down the length of the cloud, PC2 across it, PC3 through its thinnest direction.</figcaption>
+  </figure>
+
+  <h3 id="c4"><span class="step">Step 4</span>Z = XΦ: every college in the new variables</h3>
+  <p class="formula big">Z<sub>n×3</sub> = X<sub>n×3</sub> Φ<sub>3×3</sub></p>
+  <p>The rows of Z are still colleges; its columns are now PC1, PC2 and PC3. Its entry zᵢₘ is college i’s
+  <strong>score</strong> on component m. College 52 (SAT 1450, 77%, $22,600) standardizes to x₅₂ = (2.17, 1.13, −0.45).
+  Part 1 found its PC1 score with one dot product; one row times all of Φ gives all three:</p>
+  <p class="formula">PC1 = 2.17(0.61) + 1.13(0.63) − 0.45(0.49) ≈ 1.82<br>PC2 = 2.17(−0.42) + 1.13(−0.27) − 0.45(0.87) ≈ −1.61<br>PC3 = 2.17(0.67) + 1.13(−0.73) − 0.45(0.10) ≈ 0.58</p>
+  <p>College 52 is well above average overall (PC1), <strong>a bargain for its academics</strong> (PC2), and its SAT runs a
+  little ahead of its graduation rate (PC3). Keep all three columns and nothing is lost: only the description changed.</p>
+
+  <h3 id="c5"><span class="step">Step 5</span>Eigenvalues: how much each new variable varies</h3>
+  <p>The eigenvalues λₘ (“lambda m”), largest first, are the variances of the columns of Z (Part 1, section 3): how
+  much the colleges vary along each component.</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="Eigenvalues and shares of the variance">
+  <table>
+    <caption>Each eigenvalue is a variance; standardized, they add up to 3</caption>
+    <thead><tr><th scope="col">component</th><th scope="col" class="n">λₘ (variance)</th><th scope="col" class="n">share, λₘ / 3</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">PC1</th><td class="num">2.21</td><td class="num">73.6%</td></tr>
+      <tr><th scope="row">PC2</th><td class="num">0.63</td><td class="num">21.0%</td></tr>
+      <tr><th scope="row">PC3</th><td class="num">0.16</td><td class="num">5.4%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Shares of what?</strong> Of the <strong>total variance</strong>: the variances of the standardized variables
+  added up, 1 + 1 + 1 = 3. It is also the average squared distance of a college from the average college, in
+  standard-deviation units. Φ only rotates the axes, so no distance changes: College 52 is 2.17² + 1.13² + 0.45² ≈ 6.2
+  from the average in the old coordinates and 1.81² + 1.60² + 0.59² ≈ 6.2 in the new. In the new coordinates each
+  squared distance splits into one piece per component; averaged over the colleges, the pieces are λ₁, λ₂ and λ₃.</p>
+  <p>Three new variables, <strong>uncorrelated</strong> with each other, ordered from most to least variable.</p>
+  <details class="more">
+    <summary>With just two variables: the shares come from the correlation</summary>
+    <p>Two standardized variables with correlation r have S = <span class="mat" role="img" aria-label="the 2 by 2 matrix with 1 on the diagonal and r off it"><span>1</span><span>r</span><span>r</span><span>1</span></span>. Its eigenvalues are 1 + r and 1 − r, with
+    eigenvectors (1, 1)/<math class="m"><msqrt><mn>2</mn></msqrt></math> and (1, −1)/<math class="m"><msqrt><mn>2</mn></msqrt></math>, so PC1 weighs the two equally and carries (1 + r)/2 of the
+    variance. Your notebook’s Section 1 does this with smoking and inactivity: r = 0.79, so 90%.</p>
+  </details>
+  <details class="more">
+    <summary>The shares depend on how distance is measured</summary>
+    <p>Standardizing makes a one-standard-deviation difference count the same on every variable. Change the units, or
+    enter a look-alike variable twice, and the total and every share change with it. Studio question 2 shows how much.</p>
+  </details>
+
+  <h3 id="c6"><span class="step">Step 6</span>Keep two columns, and look</h3>
+  <p class="formula">Z₂ = XΦ₂ &nbsp;(the first two columns of Φ: 73.6% + 21.0% = 94.6% of the variance)</p>
+  <p>Geometrically, keeping two columns is an <strong>orthogonal projection</strong> of the 3-D cloud onto the plane
+  spanned by PC1 and PC2. Start with the colleges and their axes, add the layers one at a time while you turn the
+  cloud, then look straight down at the plane.</p>
+  <figure class="fig">
+    <div class="view-controls" role="group" aria-label="Show or hide parts of the figure">
+      <span class="label layers-label">Add:</span>
+      <button type="button" class="btn layer" data-layer="pcs" aria-pressed="false">1 · Principal components</button>
+      <button type="button" class="btn layer" data-layer="plane" aria-pressed="false">2 · Plane + residuals</button>
+      <button type="button" class="btn layer" data-layer="units" aria-pressed="false">3 · Unit vectors + shadows</button>
+    </div>
+    <div class="view-controls" role="group" aria-label="Choose a view">
+      <button type="button" class="btn" id="v-side" aria-pressed="true">Side view</button>
+      <button type="button" class="btn primary" id="v-top" aria-pressed="false">Look straight down at the PC1–PC2 plane</button>
+    </div>
+    <div id="cloud3d"></div>
+    <p class="hint" id="view-note" aria-live="polite">Drag the cloud, or focus it and use the arrow keys, to turn it.</p>
+    <figcaption>Standardized colleges in 3-D on their original axes (SAT, graduation, tuition). Layer 1: the principal
+    components, as in Step 3 (PC1 and PC2 lie in the plane; PC3 sticks straight out of it). Layer 2: the PC1–PC2 plane,
+    shaded, with each college’s residual dashed, parallel to PC3. Layer 3: unit vectors along the original axes, and
+    their shadows on the plane in blue.</figcaption>
+  </figure>
+  <p><strong>Looking straight down is the biplot.</strong> The colleges land at the rows of Z₂; the axes’ unit vectors
+  land at the rows of Φ₂.</p>
+  <figure class="fig narrow">
+    <div id="biplot"></div>
+    <figcaption>The biplot, drawn at true scale. Points: rows of Z₂ (one per college). Arrows: rows of Φ₂ (one per
+    original variable).</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Which colleges are alike?</strong> Points close together.</li>
+    <li><strong>What separates them?</strong> The arrows: SAT and graduation point almost the same way (correlation
+    0.83); tuition points up, along PC2.</li>
+    <li><strong>How good is the picture?</strong> 94.6% of the variance lies in the plane. Tuition’s arrow has length
+    0.99 (its axis lies almost in the plane); SAT’s 0.74 and graduation’s 0.68 are shorter because their axes tilt out
+    of it, along PC3.</li>
+  </ul>
+  <details class="more">
+    <summary>Reading values off the biplot, and going back</summary>
+    <p>A college’s score times an arrow, zᵢ · φₖ, is its value of that variable as the plane sees it. All at once:
+    X̂ = Z₂Φ₂ᵀ = XΦ₂Φ₂ᵀ. What X̂ misses is PC3, 5.4% of the variance.</p>
+  </details>
+
+  <details class="more interp" id="interpret">
+    <summary>Interpreting the components (your reference for studio question 1)</summary>
+  <p><strong>To name a component: turn its loadings into correlations, name both ends, then check the name on the
+  colleges at each end.</strong></p>
+
+  <p><strong>1 · Loadings to correlations.</strong> A loading is one entry of a unit vector, so its size depends on how
+  many variables there are. Multiplied by <math class="m"><msqrt><mi>λ</mi></msqrt></math>, it becomes the correlation between that variable and the component’s
+  scores:</p>
+  <p class="formula mathbox"><math class="m" aria-label="correlation of variable j with component m equals phi j m times the square root of lambda m"><mi>corr</mi><mo stretchy="false">(</mo><mtext>variable</mtext><mspace width="0.3em"></mspace><mi>j</mi><mo>,</mo><mspace width="0.3em"></mspace><mtext>PC</mtext><mi>m</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>φ</mi><mrow><mi>j</mi><mi>m</mi></mrow></msub><mspace width="0.15em"></mspace><msqrt><msub><mi>λ</mi><mi>m</mi></msub></msqrt></math></p>
+  <details class="more">
+    <summary>Why the square root of λ? (optional)</summary>
+    <p>Take column j of X, xⱼ (standardized: standard deviation 1), and the scores on component m, zₘ = Xφₘ (standard
+    deviation <math class="m"><msqrt><msub><mi>λ</mi><mi>m</mi></msub></msqrt></math>). Their covariance uses Sφₘ = λₘφₘ; dividing by the two standard deviations gives the correlation:</p>
+    <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><mtable><mtr><mtd class="r"><mi>Cov</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mi>j</mi></msub><mo>,</mo><msub><mi>z</mi><mi>m</mi></msub><mo stretchy="false">)</mo></mtd><mtd class="l"><mo>=</mo><mfrac><mn>1</mn><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac><msubsup><mi>x</mi><mi>j</mi><mi mathvariant="normal">T</mi></msubsup><mi>X</mi><msub><mi>φ</mi><mi>m</mi></msub><mo>=</mo><msub><mrow><mo stretchy="false">(</mo><mi>S</mi><msub><mi>φ</mi><mi>m</mi></msub><mo stretchy="false">)</mo></mrow><mi>j</mi></msub><mo>=</mo><msub><mi>λ</mi><mi>m</mi></msub><msub><mi>φ</mi><mrow><mi>j</mi><mi>m</mi></mrow></msub></mtd></mtr><mtr><mtd class="r"><mi>corr</mi><mo stretchy="false">(</mo><msub><mi>x</mi><mi>j</mi></msub><mo>,</mo><msub><mi>z</mi><mi>m</mi></msub><mo stretchy="false">)</mo></mtd><mtd class="l"><mo>=</mo><mfrac><mrow><msub><mi>λ</mi><mi>m</mi></msub><msub><mi>φ</mi><mrow><mi>j</mi><mi>m</mi></mrow></msub></mrow><mrow><mn>1</mn><mo>·</mo><msqrt><msub><mi>λ</mi><mi>m</mi></msub></msqrt></mrow></mfrac><mo>=</mo><msqrt><msub><mi>λ</mi><mi>m</mi></msub></msqrt><msub><mi>φ</mi><mrow><mi>j</mi><mi>m</mi></mrow></msub></mtd></mtr></mtable></math></span></div>
+  </details>
+  <div class="scroll" tabindex="0" role="group" aria-label="Correlations of each variable with each component">
+  <table>
+    <caption>Correlation of each original variable with each component’s scores</caption>
+    <thead><tr><th scope="col"></th><th scope="col" class="n">PC1</th><th scope="col" class="n">PC2</th><th scope="col" class="n">PC3</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">SAT</th><td class="num">0.90</td><td class="num">−0.33</td><td class="num">0.27</td></tr>
+      <tr><th scope="row">graduation</th><td class="num">0.93</td><td class="num">−0.21</td><td class="num">−0.29</td></tr>
+      <tr><th scope="row">tuition</th><td class="num">0.72</td><td class="num">0.69</td><td class="num">0.04</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>PC1 tracks SAT and graduation closely and tuition less; PC2 is mostly tuition. Squared, each row adds to 1: tuition’s
+  variance splits about evenly between PC1 (52%) and PC2 (47%), while SAT’s and graduation’s sit mostly in PC1 (82%,
+  87%). Each column of squares adds to that component’s eigenvalue.</p>
+
+  <p><strong>2 · Name both ends.</strong></p>
+  <div class="scroll" tabindex="0" role="group" aria-label="Names for both ends of each component">
+  <table>
+    <caption>A name has two ends</caption>
+    <thead><tr><th scope="col">component</th><th scope="col">high scores</th><th scope="col">low scores</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">PC1 · 73.6%</th><td>selective, high-graduating and expensive</td><td>the reverse on all three</td></tr>
+      <tr><th scope="row">PC2 · 21.0%</th><td>pricey for its academics</td><td>a bargain for its academics</td></tr>
+      <tr><th scope="row">PC3 · 5.4%</th><td>SAT ahead of its graduation rate</td><td>graduation ahead of its SAT</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>PC2 is uncorrelated with PC1, so it compares colleges <strong>at about the same overall level</strong>. Later
+  components are almost always contrasts like this.</p>
+
+  <p><strong>3 · Check the names on the colleges at each end.</strong></p>
+  <div class="scroll" tabindex="0" role="group" aria-label="The colleges at the ends of PC1 and PC2">
+  <table>
+    <caption>The colleges at each end of PC1 and PC2</caption>
+    <thead><tr><th scope="col"></th><th scope="col" class="n">SAT</th><th scope="col" class="n">graduation</th><th scope="col" class="n">tuition</th><th scope="col" class="n">PC1</th><th scope="col" class="n">PC2</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">highest PC1 · College 7</th><td class="num">1340</td><td class="num">90%</td><td class="num">$60,500</td><td class="num">3.24</td><td class="num">0.85</td></tr>
+      <tr><th scope="row">lowest PC1 · College 25</th><td class="num">900</td><td class="num">29%</td><td class="num">$4,000</td><td class="num">−3.96</td><td class="num">0.14</td></tr>
+      <tr><th scope="row">highest PC2 · College 20</th><td class="num">1110</td><td class="num">57%</td><td class="num">$49,100</td><td class="num">0.06</td><td class="num">1.63</td></tr>
+      <tr><th scope="row">lowest PC2 · College 11</th><td class="num">1160</td><td class="num">72%</td><td class="num">$4,000</td><td class="num">−0.52</td><td class="num">−1.67</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Colleges 20 and 11 sit near the middle on PC1 with similar SATs, yet one charges $49,100 and the other $4,000:
+  PC2’s name holds.</p>
+  <details class="more">
+    <summary>Before trusting a name</summary>
+    <p>The sign is arbitrary: flip a column of Φ and its two ends swap names, nothing else changes. Check that the
+    direction is stable: here all three barely move across 500 bootstrap resamples of the colleges. And the name depends
+    on what went in: add two more cost measures and PC1 would lean toward price.</p>
+  </details>
+  </details>
+</section>
+
+<section class="col">
+  <h2 id="p3" data-toc="Part 3 · The counties"><span class="part">Part 3 · the real data</span>The counties: 39 measures, a few directions</h2>
+  <p class="headline">One direction carries 39% of the differences between counties, and it is sickness and poverty.</p>
+  <p>The same steps, on real data: County Health Rankings 2025, 39 rates (health, behavior, care, money, housing,
+  environment and who lives there) for the n = 2,954 counties that have all of them. X is 2,954 × 39, standardized; S
+  and Φ are 39 × 39; there are 39 eigenvalues, λ₁ ≥ λ₂ ≥ ⋯ ≥ λ₃₉.</p>
+
+
+  <h3 id="k2">How the bars are made</h3>
+  <figure class="fig">
+    <div id="scree-plot"></div>
+    <figcaption>Share of the variance carried by each of the first 12 components. Nine of them carry 80%.</figcaption>
+  </figure>
+  <ol>
+    <li>Standardize the 39 measures, so each adds 1 to the total variance: the total is 39 (39.01 in scikit-learn; see “n or n − 1?” in Part 1).</li>
+    <li>Find the 39 eigenvalues of S, the 39 × 39 correlation matrix.</li>
+    <li>Each bar is λₘ / 39 (scikit-learn: <code>pca.explained_variance_ratio_</code>).</li>
+  </ol>
+  <p>λ₁ = 15.1, so component 1’s share is 15.1 / 39 = 38.8%: as much variance as about 15 of the measures. Then
+  λ₂ = 4.8 (12.2%) and λ₃ = 3.3 (8.4%).</p>
+
+  <h3 id="k3">Reading component 1</h3>
+  <p>As in Part 2’s reveal “Interpreting the components”: turn the loadings into correlations, name both ends, check the counties at each
+  end.</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="Component 1's largest loadings and correlations">
+  <table>
+    <caption>Component 1’s seven largest loadings, and each as a correlation (loading × <math class="m"><msqrt><msub><mi>λ</mi><mn>1</mn></msub></msqrt></math> = loading × 3.89)</caption>
+    <thead><tr><th scope="col">measure</th><th scope="col" class="n">loading</th><th scope="col" class="n">correlation with PC1</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Poor or fair health</th><td class="num">0.249</td><td class="num">0.967</td></tr>
+      <tr><th scope="row">Disability: functional limitations</th><td class="num">0.242</td><td class="num">0.942</td></tr>
+      <tr><th scope="row">Frequent physical distress</th><td class="num">0.242</td><td class="num">0.941</td></tr>
+      <tr><th scope="row">Diabetes prevalence</th><td class="num">0.234</td><td class="num">0.909</td></tr>
+      <tr><th scope="row">Physical inactivity</th><td class="num">0.233</td><td class="num">0.905</td></tr>
+      <tr><th scope="row">Poor physical health days</th><td class="num">0.232</td><td class="num">0.901</td></tr>
+      <tr><th scope="row">Children in poverty</th><td class="num">0.222</td><td class="num">0.862</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The highest scores: East Carroll Parish, Louisiana, and Dimmit and Starr Counties, Texas, with life expectancies of
+  71 to 74. The lowest: Los Alamos, New Mexico, Douglas, Colorado, and Washington, Minnesota, at 81 to 83. Component 1
+  correlates −0.80 with life expectancy.</p>
+  <details class="more">
+    <summary>Why the sign does not matter</summary>
+    <p>A direction can point either way. PCA could as well have made “healthy and well off” the positive end; the
+    loadings would all flip, and nothing else would change.</p>
+  </details>
+  <details class="more">
+    <summary>Why standardize first?</summary>
+    <p>PCA looks for the largest spread in the units it is handed. Studio question 2 shows what it finds when the
+    measures are left in their own units.</p>
+  </details>
+</section>
+
+<section class="col">
+  <h2 id="p4" data-toc="Part 4 · Does compressing help?"><span class="part">Part 4 · a use</span>Does compressing help a prediction?</h2>
+  <p class="headline">Five components miss life expectancy by about 2.0 years, on counties from states the model never
+  saw. Guessing the average misses by 3.6.</p>
+  <p><strong>The model: principal components regression.</strong> Replace the 39 measures by the first k columns of
+  Z = XΦ, the scores, and regress life expectancy on them. With k = 5:</p>
+  <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><mover><mi>y</mi><mo>^</mo></mover><mo>=</mo><msub><mi>b</mi><mn>0</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><msub><mi>z</mi><mn>1</mn></msub><mo>+</mo><msub><mi>b</mi><mn>2</mn></msub><msub><mi>z</mi><mn>2</mn></msub><mo>+</mo><mo>⋯</mo><mo>+</mo><msub><mi>b</mi><mn>5</mn></msub><msub><mi>z</mi><mn>5</mn></msub></math></span></div>
+  <p>Fitted to all counties, b₁ = −0.72: a county one unit further along “sickness and poverty” is predicted to live
+  0.72 fewer years. The scores are uncorrelated, so their coefficients do not fight the way look-alike columns’ did in
+  Meeting 20 (prior stays and its near-copy).</p>
+  <pre class="code" tabindex="0" aria-label="Code: the pipeline that standardizes, keeps five components, and fits a regression">make_pipeline(StandardScaler(), PCA(n_components=5), LinearRegression())</pre>
+  <ul>
+    <li><strong>Inside the pipeline:</strong> the scaler, Φ and the regression are learned on the training counties
+    only. The held-out counties are scaled, projected with that Φ, and predicted.</li>
+    <li><strong>Split by state:</strong> counties in one state share laws, Medicaid rules and climate, so each of the 5
+    folds holds out about 10 whole states, about 590 counties (the grouped split from Meeting 4, where whole patients
+    were held out).</li>
+    <li><strong>The score:</strong> RMSE, the typical miss in years on the held-out counties, averaged over the 5
+    folds.</li>
+  </ul>
+  <div class="scroll" tabindex="0" role="group" aria-label="Five components against guessing the average, fold by fold">
+  <table>
+    <caption>RMSE in years on the held-out states, fold by fold</caption>
+    <thead><tr><th scope="col">fold</th><th scope="col" class="n">5 components</th><th scope="col" class="n">guess the training states’ average</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1</th><td class="num">2.08</td><td class="num">3.65</td></tr>
+      <tr><th scope="row">2</th><td class="num">2.13</td><td class="num">3.45</td></tr>
+      <tr><th scope="row">3</th><td class="num">1.98</td><td class="num">3.52</td></tr>
+      <tr><th scope="row">4</th><td class="num">1.74</td><td class="num">3.45</td></tr>
+      <tr><th scope="row">5</th><td class="num">2.01</td><td class="num">3.72</td></tr>
+      <tr><th scope="row">average</th><td class="num"><strong>1.99</strong></td><td class="num"><strong>3.56</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Guessing the average misses by about the standard deviation of life expectancy across counties, 3.5 years. Your
+  notebook’s Section 3 runs the five-component model. <strong>Studio question 3 asks the real question: is five
+  enough?</strong> It tries every number of components, 1 to 39, against all 39 measures.</p>
+  <details class="more">
+    <summary>Fitting PCA on every county first: a leak?</summary>
+    <p>Here it moves the error by 0.004 years: PCA never sees the outcome, so there is little to leak. Keep it inside
+    the pipeline anyway; the same habit stops the leaks that do matter (Meeting 4).</p>
+  </details>
+</section>
+
+<section class="col">
+  <h2 id="studio" data-toc="Part 5 · Your studio"><span class="part">Part 5 · your turn</span>Your studio</h2>
+  <h3 id="have">Before you start: what you have</h3>
+  <p>Every question gives the code it needs, and the notebook’s <strong>Stuck?</strong> table covers the usual errors.
+  Lean on these:</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="What to use for each studio question">
+  <table>
+    <caption>Where to look, question by question</caption>
+    <thead><tr><th scope="col">question</th><th scope="col">in your notebook (after Run All)</th><th scope="col">on this page</th><th scope="col">in ISLP §12.2</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · name the components</th><td><code>loadings</code> (the columns of Φ), <code>scores</code> (Z = XΦ), <code>pca</code> (its <code>explained_variance_</code> are the λₘ), <code>complete</code> (county names), <code>y</code></td><td>Part 2’s reveal “Interpreting the components”: correlations, both ends, the extremes; Part 3, “Reading component 1”, done for you</td><td>§12.2.1: how the book names USArrests’ two components, and reads states at each end</td></tr>
+      <tr><th scope="row">2 · without standardizing</th><td><code>X</code> (the 39 measures in their own units), <code>MEASURES</code></td><td>Part 3’s reveal “Why standardize first?”; Part 2, Step 1</td><td>§12.2.4 and Figure 12.4: the same data, scaled and unscaled</td></tr>
+      <tr><th scope="row">3 · does compressing pay?</th><td><code>cv_rmse</code> (5 folds, grouped by state), <code>X</code>, <code>y</code></td><td>Part 4: the pipeline, how it is scored, five components at 1.99 years</td><td>end of §12.2.4: choosing the number of components by cross-validation</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The notebook’s Section 2 also does Z = XΦ by hand and checks it against <code>pca</code>, if you want to see the
+  pieces line up.</p>
+
+  <h3 id="questions">The three questions</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="The three studio questions">
+  <table>
+    <thead><tr><th scope="col">question</th><th scope="col">what you do</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · about 14 min</th><td><strong>Name the components.</strong> Components 2 and 3 the way Part 2’s reveal “Interpreting the components”
+      does it: correlations, both ends, the counties at each end. Then which components relate to life expectancy.</td></tr>
+      <tr><th scope="row">2 · about 8 min</th><td><strong>Without standardizing.</strong> What PCA finds when each measure
+      keeps its own units.</td></tr>
+      <tr><th scope="row">3 · about 10 min</th><td><strong>Does compressing pay?</strong> Every number of components
+      against all 39 measures, counties grouped by state.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>All three questions count: about 32 minutes in class, the rest at home. Upload to “Studio notebook — Day 21” by <strong>Wednesday, November 18, 3:40 pm</strong>.</p>
+
+  <h2 id="next" data-toc="Next"><span class="part">After class</span>Next: missing data</h2>
+  <p>Today used the 2,954 counties with every measure; 198 had something missing. Thursday asks which ones, and why it
+  matters, then opens a clinic on your own capstone data.</p>
+  <p class="foot">County Health Rankings &amp; Roadmaps 2025 (University of Wisconsin Population Health Institute), 39
+  county rates. Every number comes from the Meeting 21 notebook (also recorded by tools/day21_numbers.py).</p>
+</section>
+</main>
+</div>
+<script>
+(() => {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+  const txt = (p, x, y, s, a = {}) => { const t = el("text", { x, y, "font-size": 13, ...a }, p); t.textContent = s; return t; };
+  // Part 1: made-up data, 70 points drawn (seeded, so the picture never changes) from a long, tilted cloud
+  { let seed = 764; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const normal = () => Math.sqrt(-2 * Math.log(rand())) * Math.cos(2 * Math.PI * rand());
+    const tilt = 35 * Math.PI / 180, pts = [];
+    for (let i = 0; i < 70; i++) { const u = 1.5 * normal(), v = 0.42 * normal();
+      pts.push([u * Math.cos(tilt) - v * Math.sin(tilt), u * Math.sin(tilt) + v * Math.cos(tilt)]); }
+    const mx = pts.reduce((a, p) => a + p[0], 0) / pts.length, my = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+    const C = pts.map(([a, b]) => [a - mx, b - my]);                  // each point measured from the average point
+    const mean = (f) => C.reduce((a, p) => a + f(p), 0) / C.length;
+    const sxx = mean((p) => p[0] * p[0]), syy = mean((p) => p[1] * p[1]), sxy = mean((p) => p[0] * p[1]);
+    const th = 0.5 * Math.atan2(2 * sxy, sxx - syy);                  // PC1's angle: the 2x2 eigenvector, in closed form
+    const d1 = [Math.cos(th), Math.sin(th)], d2 = [-Math.sin(th), Math.cos(th)];
+    const dot = (p, d) => p[0] * d[0] + p[1] * d[1];
+    const var1 = mean((p) => dot(p, d1) ** 2), var2 = mean((p) => dot(p, d2) ** 2);
+    const share = Math.round(100 * var1 / (var1 + var2));
+    const W = 520, H = 400, ox = 60, oy = H - 44, k = 44, cx = 5.2, cy = 3.9;   // data units to pixels; the average sits at (cx, cy)
+    const X = (a) => ox + (a + cx) * k, Y = (b) => oy - (b + cy) * k;
+    const g = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `A long cloud of points tilted upward. PC1 runs along the length of the cloud and carries ${share}% of the spread; PC2 crosses it at a right angle through the average point and carries ${100 - share}%. A dashed line drops one point onto PC1, marking its score.` }, document.getElementById("idea-plot"));
+    el("ellipse", { cx: X(0), cy: Y(0), rx: 2.3 * Math.sqrt(var1) * k, ry: 2.3 * Math.sqrt(var2) * k, transform: `rotate(${-th * 180 / Math.PI} ${X(0)} ${Y(0)})`, class: "cloud" }, g);
+    el("line", { x1: ox, y1: oy, x2: W - 16, y2: oy, class: "axis" }, g);
+    el("line", { x1: ox, y1: oy, x2: ox, y2: 14, class: "axis" }, g);
+    txt(g, W - 18, oy + 24, "x₁", { "text-anchor": "end", class: "muted", "font-size": 17 });
+    txt(g, ox - 12, 28, "x₂", { "text-anchor": "end", class: "muted", "font-size": 17 });
+    C.forEach(([a, b]) => el("circle", { cx: X(a), cy: Y(b), r: 4, class: "idea-dot" }, g));
+    // Each arrow is drawn through the average point, from -L to +L along its direction, with an arrowhead at +L.
+    const arrow = (d, L, cls) => {
+      el("line", { x1: X(-L * d[0]), y1: Y(-L * d[1]), x2: X(L * d[0]), y2: Y(L * d[1]), class: cls }, g);
+      const tx = X(L * d[0]), ty = Y(L * d[1]), a = Math.atan2(ty - Y(0), tx - X(0)), hl = 15;
+      const wing = (s) => `${tx - hl * Math.cos(a + s * 0.45)},${ty - hl * Math.sin(a + s * 0.45)}`;
+      el("polyline", { points: `${wing(1)} ${tx},${ty} ${wing(-1)}`, fill: "none", class: cls }, g);
+      return [tx, ty]; };
+    const [p1x, p1y] = arrow(d1, 2.7 * Math.sqrt(var1), "pc1-line");
+    const [p2x, p2y] = arrow(d2, 2.7 * Math.sqrt(var2) + 0.6, "pc2-line");
+    // One point dropped onto PC1, at a right angle: where it lands is its score.
+    let j = -1;
+    C.forEach((p, i) => { const s = dot(p, d1), o = dot(p, d2);
+      if (s > 0.6 && s < 2.4 && o > 0 && (j < 0 || o > dot(C[j], d2))) j = i; });   // the point farthest above PC1
+    if (j >= 0) { const s = dot(C[j], d1), fx = s * d1[0], fy = s * d1[1];        // (fx, fy): where it lands on PC1
+      el("line", { x1: X(C[j][0]), y1: Y(C[j][1]), x2: X(fx), y2: Y(fy), class: "drop" }, g);
+      el("circle", { cx: X(C[j][0]), cy: Y(C[j][1]), r: 6.5, fill: "none", stroke: "var(--ink)", "stroke-width": 2 }, g);
+      el("circle", { cx: X(fx), cy: Y(fy), r: 5, fill: "none", stroke: "var(--ink)", "stroke-width": 2 }, g);
+      const lx = fx - 1.15 * d2[0], ly = fy - 1.15 * d2[1];                       // label below the line, outside the cloud
+      el("line", { x1: X(fx), y1: Y(fy), x2: X(lx), y2: Y(ly), stroke: "var(--ink)", "stroke-width": 1 }, g);
+      txt(g, X(lx) + 4, Y(ly) + 16, "its score on PC1", { "font-weight": 700 }); }
+    txt(g, p1x, p1y - 14, `PC1 · ${share}%`, { class: "pc1-text", "font-size": 16, "text-anchor": "middle" });
+    txt(g, p2x - 10, p2y - 6, `PC2 · ${100 - share}%`, { class: "pc2-text", "font-size": 16, "text-anchor": "end" });
+    el("circle", { cx: X(0), cy: Y(0), r: 6, class: "mean-dot" }, g); }
+  // Part 2: the 60 made-up colleges from tools/day21_colleges.py (data embedded below; nothing here is random)
+  { const D = {"lam":[2.2077, 0.63, 0.1623],"X":[[1.44,0.893,0.841],[-0.264,0.093,1.516],[2.009,1.932,1.236],[0.061,0.733,0.002],[1.359,1.213,-0.558],[0.71,0.973,-1.204],[1.278,2.172,2.269],[-0.183,0.013,-0.379],[1.116,1.053,1.86],[-0.669,-0.147,-0.278],[-0.183,0.733,-1.785],[0.872,1.053,-0.429],[0.142,1.053,0.554],[-0.101,-0.786,-0.63],[-1.562,-1.986,-1.01],[0.304,0.093,0.124],[-0.264,0.173,0.648],[-0.588,-0.946,-0.795],[-0.264,0.173,0.353],[-0.588,-0.466,1.451],[-0.101,0.813,-0.651],[-1.238,-1.186,0.059],[1.44,0.093,-0.443],[-0.913,-0.866,-0.422],[-2.292,-2.705,-1.785],[-1.075,-1.186,-0.544],[-1.643,-1.186,-1.505],[1.684,0.973,0.009],[1.035,1.053,0.411],[0.061,0.813,-0.142],[-0.588,-0.786,0.605],[-0.02,-0.706,-1.785],[-1.806,-0.387,-0.982],[1.197,0.493,-0.702],[0.304,0.013,1.078],[1.684,0.973,0.784],[0.223,0.333,-0.214],[0.791,0.573,1.394],[-0.264,0.413,0.389],[-1.724,-2.305,-1.785],[-0.101,0.333,1.667],[-0.264,0.493,0.36],[-1.481,-1.106,-1.111],[0.629,0.173,1.157],[-0.345,-1.106,-0.931],[0.467,0.253,-0.4],[-0.345,-0.786,-0.185],[-1.643,-1.186,-1.785],[0.386,1.133,0.353],[-0.345,-0.946,0.798],[-0.588,-1.186,0.009],[2.171,1.133,-0.45],[-0.588,-0.067,1.573],[-1.075,-1.346,-0.63],[0.061,-0.067,-0.149],[0.629,0.253,-0.321],[0.142,0.253,1.243],[0.791,0.173,0.038],[-0.101,-0.626,0.03],[0.223,0.973,1.179]],"Z":[[1.845,-0.113,0.403],[0.637,1.401,-0.095],[3.035,-0.287,0.065],[0.497,-0.221,-0.495],[1.315,-1.379,-0.026],[0.455,-1.603,-0.353],[3.245,0.851,-0.5],[-0.287,-0.256,-0.171],[2.245,0.864,0.168],[-0.634,0.078,-0.372],[-0.521,-1.669,-0.837],[0.981,-1.02,-0.224],[1.016,0.139,-0.619],[-0.862,-0.293,0.444],[-2.687,0.31,0.298],[0.304,-0.045,0.149],[0.264,0.626,-0.24],[-1.338,-0.19,0.216],[0.12,0.371,-0.269],[0.057,1.631,0.089],[0.131,-0.741,-0.728],[-1.467,0.888,0.039],[0.718,-1.013,0.859],[-1.304,0.249,-0.024],[-3.959,0.137,0.254],[-1.662,0.297,0.088],[-2.476,-0.299,-0.391],[1.638,-0.959,0.425],[1.489,-0.359,-0.031],[0.478,-0.366,-0.568],[-0.556,0.982,0.238],[-1.325,-1.351,0.325],[-1.818,0.009,-1.033],[0.695,-1.242,0.377],[0.719,0.804,0.303],[2.015,-0.286,0.502],[0.24,-0.368,-0.114],[1.519,0.724,0.254],[0.288,0.337,-0.441],[-3.364,-0.208,0.345],[0.959,1.399,-0.146],[0.325,0.291,-0.503],[-2.135,-0.047,-0.301],[1.055,0.694,0.413],[-1.357,-0.367,0.483],[0.247,-0.611,0.09],[-0.793,0.195,0.324],[-2.612,-0.542,-0.419],[1.117,-0.159,-0.533],[-0.414,1.091,0.539],[-1.097,0.572,0.471],[1.81,-1.604,0.591],[0.367,1.629,-0.191],[-1.804,0.265,0.196],[-0.077,-0.137,0.075],[0.385,-0.61,0.207],[0.851,0.951,0.035],[0.608,-0.345,0.411],[-0.44,0.237,0.393],[1.32,0.668,-0.444]],"Phi":[[0.6078,-0.4189,0.6746],[0.627,-0.2681,-0.7314],[0.4873,0.8675,0.0997]],"highlight":51};
+    const X = D.X, P = D.Phi, Z = D.Z, hl = D.highlight, NAMES = ["SAT", "graduation", "tuition"];
+    const col = (j) => [P[0][j], P[1][j], P[2][j]], v1 = col(0), v2 = col(1);
+    const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+    const comb = (a, s, b, t) => [s * a[0] + t * b[0], s * a[1] + t * b[1], s * a[2] + t * b[2]];
+    const proj = (p) => comb(v1, dot(p, v1), v2, dot(p, v2));             // orthogonal projection onto the PC1-PC2 plane
+    const E = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+    // R's rows are the screen's right, up and toward-the-viewer directions, written in data coordinates.
+    const mul = (A, B) => A.map((r) => [0, 1, 2].map((j) => r[0] * B[0][j] + r[1] * B[1][j] + r[2] * B[2][j]));
+    const rotX = (t) => [[1, 0, 0], [0, Math.cos(t), -Math.sin(t)], [0, Math.sin(t), Math.cos(t)]];
+    const rotY = (t) => [[Math.cos(t), 0, Math.sin(t)], [0, 1, 0], [-Math.sin(t), 0, Math.cos(t)]];
+    const TOP = [v1, v2, cross(v1, v2)];                                   // screen right = PC1, up = PC2: the biplot
+    const SIDE = mul(rotY(0.45), mul(rotX(-1.12), TOP));                   // the same, tipped back ~64° and turned a little
+    const ortho = (R) => { const a = R[0], n = Math.hypot(...a), x = a.map((v) => v / n);
+      let y = comb(R[1], 1, x, -dot(R[1], x)); const m = Math.hypot(...y); y = y.map((v) => v / m); return [x, y, cross(x, y)]; };
+    const toQ = (m) => { const tr = m[0][0] + m[1][1] + m[2][2]; let S;
+      if (tr > 0) { S = Math.sqrt(tr + 1) * 2; return [S / 4, (m[2][1] - m[1][2]) / S, (m[0][2] - m[2][0]) / S, (m[1][0] - m[0][1]) / S]; }
+      if (m[0][0] > m[1][1] && m[0][0] > m[2][2]) { S = Math.sqrt(1 + m[0][0] - m[1][1] - m[2][2]) * 2; return [(m[2][1] - m[1][2]) / S, S / 4, (m[0][1] + m[1][0]) / S, (m[0][2] + m[2][0]) / S]; }
+      if (m[1][1] > m[2][2]) { S = Math.sqrt(1 + m[1][1] - m[0][0] - m[2][2]) * 2; return [(m[0][2] - m[2][0]) / S, (m[0][1] + m[1][0]) / S, S / 4, (m[1][2] + m[2][1]) / S]; }
+      S = Math.sqrt(1 + m[2][2] - m[0][0] - m[1][1]) * 2; return [(m[1][0] - m[0][1]) / S, (m[0][2] + m[2][0]) / S, (m[1][2] + m[2][1]) / S, S / 4]; };
+    const fromQ = ([w, x, y, z]) => [[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+      [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)], [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)]];
+    const slerp = (a, b, t) => { let d = a.reduce((s, v, i) => s + v * b[i], 0); if (d < 0) { b = b.map((v) => -v); d = -d; }
+      if (d > 0.9995) { const r = a.map((v, i) => v + t * (b[i] - v)), n = Math.hypot(...r); return r.map((v) => v / n); }
+      const th = Math.acos(d), s = Math.sin(th); return a.map((v, i) => (Math.sin((1 - t) * th) * v + Math.sin(t * th) * b[i]) / s); };
+
+    const W = 600, H = 470, cx = W / 2, cy = H / 2 + 6, k = 58;
+    const host = document.getElementById("cloud3d");
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", tabindex: 0,
+      "aria-label": "A 3-D cloud of 60 made-up colleges in standardized SAT, graduation and tuition, with the PC1–PC2 plane shaded. Each college drops onto the plane; the unit vectors along the three axes drop onto the plane as shorter blue arrows. Looking straight down at the plane turns the picture into the biplot." }, host);
+    const g = el("g", {}, svg);
+    let R = SIDE;
+    const sc = (p) => { const s = [dot(R[0], p), dot(R[1], p), dot(R[2], p)]; return [cx + k * s[0], cy - k * s[1], s[2]]; };
+    const line = (a, b, cls) => { const A = sc(a), B = sc(b); el("line", { x1: A[0], y1: A[1], x2: B[0], y2: B[1], class: cls }, g); };
+    const arrow = (a, b, cls) => { const A = sc(a), B = sc(b); el("line", { x1: A[0], y1: A[1], x2: B[0], y2: B[1], class: cls }, g);
+      const L = Math.hypot(B[0] - A[0], B[1] - A[1]); if (L < 8) return; const ang = Math.atan2(B[1] - A[1], B[0] - A[0]);
+      const w = (s) => `${B[0] - 11 * Math.cos(ang + s * 0.45)},${B[1] - 11 * Math.sin(ang + s * 0.45)}`;
+      el("polyline", { points: `${w(1)} ${B[0]},${B[1]} ${w(-1)}`, class: cls }, g); };
+    const show = { pcs: false, plane: false, units: false };            // layers: points and axes are always on
+    function draw() {
+      g.replaceChildren();
+      const a = 4.3, b = 2.4, C = [comb(v1, a, v2, b), comb(v1, a, v2, -b), comb(v1, -a, v2, -b), comb(v1, -a, v2, b)].map(sc);
+      if (show.plane) el("polygon", { points: C.map((c) => `${c[0]},${c[1]}`).join(" "), class: "plane" }, g);
+      E.forEach((e, i) => { line(comb(e, -2.6, e, 0), comb(e, 2.6, e, 0), "ax");
+        const T = sc(comb(e, 2.95, e, 0)); txt(g, T[0], T[1] + 4, NAMES[i], { "text-anchor": "middle", "font-weight": 700, class: "axlabel" }); });
+      if (show.plane) X.forEach((x) => line(x, proj(x), "cdrop"));
+      const order = X.map((x, i) => [sc(x)[2], i]).sort((p, q) => p[0] - q[0]);
+      const zs = order.map((o) => o[0]), zmin = Math.min(...zs), zmax = Math.max(...zs);
+      order.forEach(([z, i]) => { const s = sc(X[i]);
+        el("circle", { cx: s[0], cy: s[1], r: i === hl ? 6.5 : 4, class: i === hl ? "cdot hl" : "cdot", opacity: 0.45 + 0.55 * (z - zmin) / (zmax - zmin + 1e-9) }, g); });
+      if (show.pcs) [0, 1, 2].forEach((j) => { const v = col(j), L = 2 * Math.sqrt(D.lam[j]), cls = ["pc1-line", "pc2-line", "pc3-line"][j];
+        arrow(comb(v, -L, v, 0), comb(v, L, v, 0), cls); const T = sc(comb(v, L + 0.35, v, 0));
+        txt(g, T[0], T[1] + 5, `PC${j + 1}`, { "text-anchor": "middle", "font-size": 15, class: ["pc1-text", "pc2-text", "pc3-text"][j] + " axlabel-halo" }); });
+      if (show.units) { E.forEach((e) => line(e, proj(e), "shadow-drop"));
+        E.forEach((e) => arrow([0, 0, 0], e, "unit"));
+        E.forEach((e) => arrow([0, 0, 0], proj(e), "shadow")); }
+      const h = sc(X[hl]); txt(g, h[0] + 6, h[1] + 22, "College 52", { "font-weight": 700, class: "axlabel" });
+    }
+    draw();
+    const note = document.getElementById("view-note"), bSide = document.getElementById("v-side"), bTop = document.getElementById("v-top");
+    const press = (which) => { bSide.setAttribute("aria-pressed", String(which === "side")); bTop.setAttribute("aria-pressed", String(which === "top")); };
+    const turn = (A) => { R = ortho(mul(A, R)); press(null); note.textContent = "Turned by hand. The button above returns to the view straight down at the plane."; draw(); };
+    let anim = 0;
+    function goTo(target, which, msg) {
+      cancelAnimationFrame(anim); const q0 = toQ(R), q1 = toQ(target);
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches, t0 = performance.now(), dur = 1400;
+      const step = (now) => { const t = still ? 1 : Math.min(1, (now - t0) / dur), e = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+        R = fromQ(slerp(q0, q1, e)); draw(); if (t < 1) anim = requestAnimationFrame(step); else { R = target; draw(); press(which); note.textContent = typeof msg === "function" ? msg() : msg; } };
+      anim = requestAnimationFrame(step); }
+    const topNote = () => "Looking straight down at the PC1–PC2 plane: the colleges sit at their scores, as in the biplot below." +
+      (show.pcs ? " PC1 runs left to right, PC2 up and down, and PC3 points straight at you." : "") +
+      (show.plane ? " The residuals have shrunk to points." : "") +
+      (show.units ? " Each unit vector sits exactly on its blue shadow: the biplot's arrows." : "");
+    bTop.addEventListener("click", () => goTo(TOP, "top", topNote));
+    document.querySelectorAll(".layer").forEach((btn) => btn.addEventListener("click", () => {
+      const key = btn.dataset.layer; show[key] = !show[key]; btn.setAttribute("aria-pressed", String(show[key])); draw();
+      if (bTop.getAttribute("aria-pressed") === "true") note.textContent = topNote(); }));
+    bSide.addEventListener("click", () => goTo(SIDE, "side", "Side view. Drag the cloud, or use the arrow keys, to turn it."));
+    let drag = null;
+    svg.addEventListener("pointerdown", (ev) => { drag = [ev.clientX, ev.clientY]; svg.setPointerCapture(ev.pointerId); svg.style.cursor = "grabbing"; });
+    svg.addEventListener("pointermove", (ev) => { if (!drag) return; const dx = ev.clientX - drag[0], dy = ev.clientY - drag[1]; drag = [ev.clientX, ev.clientY];
+      turn(mul(rotX(dy * 0.008), rotY(dx * 0.008))); });
+    const end = () => { drag = null; svg.style.cursor = ""; };
+    svg.addEventListener("pointerup", end); svg.addEventListener("pointercancel", end);
+    svg.addEventListener("keydown", (ev) => { const d = 0.12, m = { ArrowLeft: rotY(-d), ArrowRight: rotY(d), ArrowUp: rotX(-d), ArrowDown: rotX(d) }[ev.key];
+      if (m) { ev.preventDefault(); turn(m); } });
+
+    // Step 3's view: the plain cloud on its original axes, with the three columns of Phi as arrows (length 2*sqrt(lambda))
+    { const W3 = 600, H3 = 460, c3x = W3 / 2, c3y = H3 / 2, k3 = 58, LAM = D.lam;
+      const host3 = document.getElementById("pcs3d");
+      const svg3 = el("svg", { viewBox: `0 0 ${W3} ${H3}`, role: "img", tabindex: 0,
+        "aria-label": "A 3-D cloud of the 60 made-up colleges on their standardized SAT, graduation and tuition axes. Three arrows from the center show the principal components: PC1, the longest, runs along the length of the cloud; PC2 is shorter and at right angles to it; PC3 is shortest." }, host3);
+      const g3 = el("g", {}, svg3);
+      let R3 = mul(rotX(0.38), mul(rotY(-0.62), [[1, 0, 0], [0, 0, 1], [0, -1, 0]]));   // SAT right, tuition up, turned a little
+      const s3 = (p) => [c3x + k3 * dot(R3[0], p), c3y - k3 * dot(R3[1], p), dot(R3[2], p)];
+      const seg = (a, b, attrs) => { const A = s3(a), B = s3(b); el("line", { x1: A[0], y1: A[1], x2: B[0], y2: B[1], ...attrs }, g3); return [A, B]; };
+      const head = (A, B, attrs) => { const ang = Math.atan2(B[1] - A[1], B[0] - A[0]); if (Math.hypot(B[0] - A[0], B[1] - A[1]) < 8) return;
+        const w = (s) => `${B[0] - 12 * Math.cos(ang + s * 0.45)},${B[1] - 12 * Math.sin(ang + s * 0.45)}`;
+        el("polyline", { points: `${w(1)} ${B[0]},${B[1]} ${w(-1)}`, fill: "none", ...attrs }, g3); };
+      const PCCLS = ["pc1-line", "pc2-line", "pc3-line"], PCTXT = ["pc1-text", "pc2-text", "pc3-text"];
+      function draw3() {
+        g3.replaceChildren();
+        E.forEach((e, i) => { seg(comb(e, -2.6, e, 0), comb(e, 2.6, e, 0), { class: "ax" });
+          const T = s3(comb(e, 2.95, e, 0)); txt(g3, T[0], T[1] + 4, NAMES[i], { "text-anchor": "middle", "font-weight": 700, class: "axlabel" }); });
+        const order = X.map((x, i) => [s3(x)[2], i]).sort((p, q) => p[0] - q[0]);
+        const zs = order.map((o) => o[0]), zmin = Math.min(...zs), zmax = Math.max(...zs);
+        order.forEach(([z, i]) => { const s = s3(X[i]);
+          el("circle", { cx: s[0], cy: s[1], r: i === hl ? 6.5 : 4, class: i === hl ? "cdot hl" : "cdot", opacity: 0.4 + 0.6 * (z - zmin) / (zmax - zmin + 1e-9) }, g3); });
+        [0, 1, 2].forEach((j) => { const v = col(j), L = 2 * Math.sqrt(LAM[j]);
+          const [A, B] = seg(comb(v, -L, v, 0), comb(v, L, v, 0), { class: PCCLS[j] }); head(A, B, { class: PCCLS[j] });
+          txt(g3, B[0] + 8, B[1] - 6, `PC${j + 1}`, { class: PCTXT[j] + " axlabel-halo", "font-size": 15 }); });
+      }
+      draw3();
+      const turn3 = (A) => { R3 = ortho(mul(A, R3)); draw3(); };
+      let drag3 = null;
+      svg3.addEventListener("pointerdown", (ev) => { drag3 = [ev.clientX, ev.clientY]; svg3.setPointerCapture(ev.pointerId); svg3.style.cursor = "grabbing"; });
+      svg3.addEventListener("pointermove", (ev) => { if (!drag3) return; const dx = ev.clientX - drag3[0], dy = ev.clientY - drag3[1]; drag3 = [ev.clientX, ev.clientY];
+        turn3(mul(rotX(dy * 0.008), rotY(dx * 0.008))); });
+      const end3 = () => { drag3 = null; svg3.style.cursor = ""; };
+      svg3.addEventListener("pointerup", end3); svg3.addEventListener("pointercancel", end3);
+      svg3.addEventListener("keydown", (ev) => { const d = 0.12, m = { ArrowLeft: rotY(-d), ArrowRight: rotY(d), ArrowUp: rotX(-d), ArrowDown: rotX(d) }[ev.key];
+        if (m) { ev.preventDefault(); turn3(m); } }); }
+
+    // The biplot: rows of Z2 as points, rows of Phi2 as arrows, same units (true scale)
+    { const BW = 600, BH = 330, m = { l: 46, r: 16, t: 16, b: 46 }, x0 = -4.4, x1 = 3.8, y0 = -2.2, y1 = 2.2;
+      const kx = (BW - m.l - m.r) / (x1 - x0), ky = (BH - m.t - m.b) / (y1 - y0), kk = Math.min(kx, ky);
+      const bx = (v) => m.l + (v - x0) * kk, by = (v) => BH - m.b - (v - y0) * kk;
+      const b = el("svg", { viewBox: `0 0 ${BW} ${BH}`, role: "img", "aria-label": "The biplot. Colleges spread mostly left to right along PC1. The SAT and graduation arrows point right and slightly down, almost together; the tuition arrow points up and to the right, along PC2, and is the longest. College 52 sits right and low: high overall, cheap for its academics." }, document.getElementById("biplot"));
+      for (let v = -4; v <= 3; v++) { el("line", { x1: bx(v), x2: bx(v), y1: by(y0), y2: by(y1), class: "gridline" }, b); txt(b, bx(v), by(y0) + 16, String(v), { "text-anchor": "middle", class: "muted mono" }); }
+      for (let v = -2; v <= 2; v++) { el("line", { x1: bx(x0), x2: bx(x1), y1: by(v), y2: by(v), class: "gridline" }, b); txt(b, bx(x0) - 6, by(v) + 4, String(v), { "text-anchor": "end", class: "muted mono" }); }
+      txt(b, (bx(x0) + bx(x1)) / 2, BH - 8, "PC1 (73.6% of the variance)", { "text-anchor": "middle", class: "muted" });
+      txt(b, 12, by(0), "PC2 (21.0%)", { class: "muted", transform: `rotate(-90 12 ${by(0)})`, "text-anchor": "middle" });
+      Z.forEach((z, i) => el("circle", { cx: bx(z[0]), cy: by(z[1]), r: i === hl ? 6.5 : 4, class: i === hl ? "cdot hl" : "cdot", opacity: 0.85 }, b));
+      txt(b, bx(Z[hl][0]) + 9, by(Z[hl][1]) + 4, "College 52", { "font-weight": 700 });
+      P.forEach((row, i) => { const X2 = bx(row[0]), Y2 = by(row[1]), X0 = bx(0), Y0 = by(0), ang = Math.atan2(Y2 - Y0, X2 - X0);
+        el("line", { x1: X0, y1: Y0, x2: X2, y2: Y2, class: "shadow" }, b);
+        const w = (s) => `${X2 - 11 * Math.cos(ang + s * 0.45)},${Y2 - 11 * Math.sin(ang + s * 0.45)}`;
+        el("polyline", { points: `${w(1)} ${X2},${Y2} ${w(-1)}`, class: "shadow" }, b);
+        // label beyond the tip, nudged sideways away from the nearest other arrow so close arrows don't collide
+        const angs = P.map((r) => Math.atan2(-r[1], r[0])), diff = (a, c) => Math.atan2(Math.sin(a - c), Math.cos(a - c));
+        const near = angs.map((a, j) => [Math.abs(diff(ang, a)), j]).filter(([, j]) => j !== i).sort((u, v) => u[0] - v[0])[0][1];
+        const side = diff(ang, angs[near]) >= 0 ? 1 : -1, px = -Math.sin(ang) * side, py = Math.cos(ang) * side;
+        txt(b, X2 + 10 * Math.cos(ang) + 11 * px, Y2 + 10 * Math.sin(ang) + 11 * py + 4, `${NAMES[i]} (${Math.hypot(row[0], row[1]).toFixed(2)})`,
+          { "text-anchor": Math.cos(ang) < -0.3 ? "end" : "start", "font-weight": 700, class: "shadow-label" }); }); }
+  }
+  // Part 3: share of variance, components 1-12
+  { const S = [0.3879, 0.1219, 0.0843, 0.0554, 0.0495, 0.032, 0.0284, 0.0253, 0.0203, 0.0193, 0.017, 0.0153];
+    const W = 760, H = 260, m = { l: 56, r: 16, t: 14, b: 44 }, YH = 0.4, bw = (W - m.l - m.r) / S.length;
+    const sy = (v) => m.t + (1 - v / YH) * (H - m.t - m.b);
+    const g = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Component 1 carries 39% of the variance, component 2 12%, component 3 8%, and each later one less; nine components carry 80%." }, document.getElementById("scree-plot"));
+    for (const v of [0, 0.1, 0.2, 0.3, 0.4]) { el("line", { x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v), class: "gridline" }, g);
+      txt(g, m.l - 8, sy(v) + 4, `${Math.round(v * 100)}%`, { "text-anchor": "end", class: "muted mono" }); }
+    S.forEach((v, i) => { const x = m.l + i * bw + bw * 0.15;
+      el("rect", { x, y: sy(v), width: bw * 0.7, height: sy(0) - sy(v), class: "bar" }, g);
+      txt(g, x + bw * 0.35, sy(0) + 18, String(i + 1), { "text-anchor": "middle", class: "muted mono" });
+      if (i < 3) txt(g, x + bw * 0.35, sy(v) - 6, `${(v * 100).toFixed(0)}%`, { "text-anchor": "middle", "font-weight": 700 }); });
+    txt(g, (m.l + W - m.r) / 2, H - 6, "component", { "text-anchor": "middle", class: "muted" }); }
+})();
+</script>
+</body>
+</html>
