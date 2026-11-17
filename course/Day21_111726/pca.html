@@ -927,9 +927,34 @@ mtd.r { text-align: right; } mtd.l { text-align: left; }
 <section class="col">
   <h2 id="p3" data-toc="Part 3 · The counties"><span class="part">Part 3 · the real data</span>The counties: 39 measures, a few directions</h2>
   <p class="headline">One direction carries 39% of the differences between counties, and it is sickness and poverty.</p>
-  <p>The same steps, on real data: County Health Rankings 2025, 39 rates (health, behavior, care, money, housing,
-  environment and who lives there) for the n = 2,954 counties that have all of them. X is 2,954 × 39, standardized; S
-  and Φ are 39 × 39; there are 39 eigenvalues, λ₁ ≥ λ₂ ≥ ⋯ ≥ λ₃₉.</p>
+  <p><strong>The data.</strong> County Health Rankings is a yearly release from the University of Wisconsin Population
+  Health Institute that describes the health of every US county. The 2025 file has a row for each of 3,152 counties and
+  90 measures. We use 39 of them, all <em>rates</em>, in very different units: shares (adults who smoke, 0.18 in the
+  typical county), averages (poor physical health days a month, 4.4), dollars (median household income, $62,851), and
+  counts per 100,000 (preventable hospital stays per 100,000 Medicare enrollees, 2,743). That is why we standardize.
+  The numbers come from surveys, the census, Medicare records and death records, many averaged over several years.
+  <strong>Life expectancy</strong> (75.3 years in the typical county) stays out of the PCA; Part 4 predicts it.</p>
+  <p>We use the n = 2,954 counties that have all 39 measures and life expectancy; the other 198 are Thursday’s topic.
+  The same steps as the colleges: X is 2,954 × 39, standardized; S and Φ are 39 × 39; there are 39 eigenvalues,
+  λ₁ ≥ λ₂ ≥ ⋯ ≥ λ₃₉.</p>
+  <details class="more">
+    <summary>The 39 measures</summary>
+    <div class="scroll" tabindex="0" role="group" aria-label="The 39 county measures, in seven groups">
+    <table>
+      <caption>The 39 county measures, grouped</caption>
+      <thead><tr><th scope="col">group</th><th scope="col">measures</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">health (7)</th><td>poor or fair health; poor physical health days; poor mental health days; frequent physical distress; frequent mental distress; diabetes; disability</td></tr>
+        <tr><th scope="row">behavior (5)</th><td>adult obesity; adult smoking; physical inactivity; excessive drinking; insufficient sleep</td></tr>
+        <tr><th scope="row">care (6)</th><td>uninsured; uninsured adults; uninsured children; flu vaccinations; mammography screening; preventable hospital stays</td></tr>
+        <tr><th scope="row">money and schooling (7)</th><td>high school completion; some college; unemployment; children in poverty; median household income; income inequality; food insecurity</td></tr>
+        <tr><th scope="row">family and community (3)</th><td>children in single-parent households; social associations; broadband access</td></tr>
+        <tr><th scope="row">housing and environment (6)</th><td>homeownership; severe housing problems; severe housing cost burden; air pollution (particulate matter); driving alone to work; long commute driving alone</td></tr>
+        <tr><th scope="row">who lives there (5)</th><td>% rural; % 65 and older; % under 18; % non-Hispanic white; % Hispanic</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
 
 
   <h3 id="k2">How the bars are made</h3>
