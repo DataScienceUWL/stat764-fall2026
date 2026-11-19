@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Built from content/lessons/pages/day22_missing.html in the course repo by tools/build_page.py. Open this file in a web browser. -->
+<title>Why Is It Blank?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* STAT 764 daily pages: the shared theme.
+   Inlined into every page by tools/build_page.py, so each page stays one self-contained file.
+   Edit here, then rebuild the pages; never edit a built page's <style> by hand. */
+
+/* Layout: the tree and forest pages' system (one reading column, figures widen to 1040px), so the three read as a set. */
+:root {
+  --paper: #f1f5f4;
+  --surface: #ffffff;
+  --ink: #13242a;
+  --muted: #485b60;
+  --line: #c6d2d1;
+  --grid: #e2e9e8;
+  --back: #ad3822;          /* came back within 30 days */
+  --stay: #276a6f;          /* did not come back */
+  --accent: #1d4c87;        /* the thing you are steering: a selected question, a path */
+  --accent-soft: #e2ebf6;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --read: 68ch;
+  --wide: 1040px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+    --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+  --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px;
+       line-height: 1.6; margin: 0; }
+.page { padding-inline: 16px; padding-block: 40px 72px; }
+.col { max-width: var(--read); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 700; margin-top: 64px; }
+h3 { font-size: 1.25rem; font-weight: 700; margin-top: 40px; display: flex; gap: 12px; align-items: baseline; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+strong { font-weight: 700; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+           color: var(--muted); margin: 0 0 12px; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+.step { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em;
+        color: var(--accent); border: 1.5px solid var(--accent); border-radius: 999px; padding: 1px 9px;
+        white-space: nowrap; transform: translateY(-2px); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.part { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--muted); display: block; margin-bottom: 6px; font-weight: 500; }
+
+/* Figures */
+figure { margin: 28px auto; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 12px; max-width: var(--read); }
+svg { display: block; max-width: 100%; height: auto; }
+.scroll { overflow-x: auto; }
+.treebox { display: flex; justify-content: center; margin-bottom: 18px; }
+.treebox svg { flex: none; max-width: 100%; }
+.plotbox { display: flex; justify-content: center; }
+svg text { font-family: var(--font-body); fill: var(--ink); }
+svg .mono { font-family: var(--font-mono); }
+svg .muted { fill: var(--muted); }
+svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.axis { stroke: var(--line); stroke-width: 1; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; color: var(--muted); margin: 0 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Controls */
+.controls { display: grid; gap: 14px; margin-bottom: 14px; }
+label, .label { font-weight: 700; font-size: 0.95rem; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.seg { display: inline-flex; border: 1.5px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.92rem; padding: 6px 12px; border: 0; background: var(--surface);
+              color: var(--accent); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 700; }
+.btn { font: inherit; font-size: 0.92rem; font-weight: 700; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+       border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Readouts */
+.readout { display: grid; gap: 10px; }
+.sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.side { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.side .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.side b { display: block; }
+.calc { font-family: var(--font-mono); font-size: 0.9rem; background: var(--paper); border-radius: 6px; padding: 10px 12px;
+        line-height: 1.7; overflow-x: auto; }
+.calc .big { font-size: 1.05rem; font-weight: 500; color: var(--accent); }
+.say { font-size: 1rem; }
+
+/* Stat strip, tables, code */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); margin: 24px 0; }
+.stats div { padding: 12px 12px 12px 0; }
+.stats b { display: block; font-family: var(--font-display); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--ink); font-size: 0.85rem; }
+td.n, th.n, td.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px;
+      overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--surface); }
+.card .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.card b { font-family: var(--font-display); font-size: 1.2rem; display: block; margin-top: 2px; }
+details { margin-top: 10px; font-size: 0.92rem; }
+summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.foot { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); margin-top: 64px; padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  .board .bar, .hbars .bar { transition: width 0.25s ease; }
+}
+/* The one-sentence method: the page's thesis */
+.method { margin: 28px 0 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+          border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+.method div { padding: 14px 16px 14px 0; }
+.method div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.method b { display: block; font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 2px; }
+.method span { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 620px) {
+  .method { grid-template-columns: 1fr; }
+  .method div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* Forest page additions */
+.box-note { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 18px 6px; margin: 22px 0 8px; }
+.box-note h4 { font-family: var(--font-display); font-size: 1.1rem; margin: 12px 0 4px; }
+
+/* Boosting page additions */
+.line-model { stroke: var(--accent); stroke-width: 3; fill: none; stroke-linejoin: round; }
+.line-stump { stroke: var(--accent); stroke-width: 3; fill: none; stroke-dasharray: 7 4; }
+.line-truth { stroke: var(--muted); stroke-width: 1.6; fill: none; stroke-dasharray: 2 4; }
+.line-train { stroke: var(--stay); stroke-width: 2.4; fill: none; stroke-dasharray: 6 4; }
+.line-new { stroke: var(--back); stroke-width: 2.8; fill: none; }
+.line-other { stroke: var(--muted); stroke-width: 1.6; fill: none; opacity: 0.7; }
+.line-floor { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.zero { stroke: var(--ink); stroke-width: 1; opacity: 0.5; }
+.pt { fill: var(--ink); }
+.pt-res { fill: var(--back); }
+.stick { stroke: var(--back); stroke-width: 1.4; opacity: 0.8; }
+.now-line { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.dot-new { fill: var(--back); stroke: var(--surface); stroke-width: 1.5; }
+.dot-train { fill: var(--stay); stroke: var(--surface); stroke-width: 1.5; }
+.dot-best { fill: var(--surface); stroke: var(--back); stroke-width: 2.4; }
+.dot-acc { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.sw { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; }
+.sw.model { border-color: var(--accent); }
+.sw.stump { border-top-style: dashed; border-color: var(--accent); }
+.sw.truth { border-top: 2px dotted var(--muted); }
+.sw.train { border-top-style: dashed; border-color: var(--stay); }
+.sw.new { border-color: var(--back); }
+.sw.other { border-top-width: 2px; border-color: var(--muted); }
+.dotsw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.dotsw.res { background: var(--back); }
+tr.is-on th, tr.is-on td { background: var(--accent-soft); font-weight: 700; }
+
+/* Where we are: the course's question, the six units, and last time / today / coming up */
+.where { margin-top: 40px; }
+.spine { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); padding: 14px 0 16px; margin-top: 14px; }
+.spine .q { font-family: var(--font-display); font-size: clamp(1.25rem, 2.6vw, 1.55rem); font-weight: 700; line-height: 1.25; margin: 4px 0 0; }
+.units { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.units li { border-top: 4px solid var(--line); padding: 6px 4px 0 0; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
+.units li b { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; }
+.units li.done { border-top-color: var(--stay); }
+.units li.now { border-top-color: var(--accent); color: var(--ink); font-weight: 700; }
+.units li.now b { color: var(--accent); }
+@media (max-width: 760px) { .units { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.trip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+@media (max-width: 900px) { .trip { grid-template-columns: minmax(0, 1fr); } }
+.trip article { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 16px 10px; }
+.trip article.today { border: 2px solid var(--accent); }
+.trip h3 { margin-top: 12px; font-size: 1.15rem; display: block; }
+.trip .tag { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 0; }
+.trip ul { padding-left: 18px; margin: 8px 0; }
+.trip li { margin: 6px 0; font-size: 0.95rem; }
+.trip p { font-size: 0.95rem; }
+.keep { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; margin: 10px 0 4px; }
+.keep b { display: block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+.dot-muted { fill: var(--muted); }
+
+/* Connecting the dots */
+.recall { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; align-items: start; }
+@media (max-width: 900px) { .recall { grid-template-columns: minmax(0, 1fr); } }
+.recall details { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; margin: 0; font-size: 0.95rem; }
+.recall summary { color: var(--ink); line-height: 1.4; }
+.recall summary::marker { color: var(--accent); }
+.recall details[open] { border-color: var(--accent); }
+.chain caption { font-weight: 700; }
+.chain th[scope="row"] { font-family: var(--font-display); font-size: 1.05rem; white-space: nowrap; }
+.chain .mtg { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0.03em; }
+.chain tr.now th, .chain tr.now td { background: var(--accent-soft); }
+.chain tr.now .mtg { color: var(--accent); }
+.chain tr.later th, .chain tr.later td { color: var(--muted); font-style: italic; }
+.verdicts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+@media (max-width: 900px) { .verdicts { grid-template-columns: minmax(0, 1fr); } }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: 6px; padding: 2px 14px 8px; font-size: 0.95rem; }
+.verdict.yes { border-top-color: var(--stay); }
+.verdict.no { border-top-color: var(--back); }
+.verdict .v-tag { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; margin: 10px 0 0; }
+.verdict.yes .v-tag { color: var(--stay); }
+.verdict.no .v-tag { color: var(--back); }
+.verdict .v-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin: 2px 0 0; font-variant-numeric: tabular-nums; }
+.verdict .v-what { color: var(--muted); margin: 0 0 6px; font-size: 0.9rem; }
+
+/* ---------- Components from the tree and forest pages (Meetings 15-16) ---------- */
+.pt-back { stroke: var(--back); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.pt-stay { fill: var(--stay); }
+.box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.box-shade { fill: var(--back); }
+.cutline { stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.side-no { fill: var(--stay); opacity: 0.08; }
+.side-yes { fill: var(--back); opacity: 0.08; }
+.node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+.edge { stroke: var(--ink); stroke-width: 1.3; fill: none; }
+.on .node, .node.on { stroke: var(--accent); stroke-width: 3; }
+.edge.on { stroke: var(--accent); stroke-width: 3; }
+.newpt { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.region-on { fill: none; stroke: var(--accent); stroke-width: 3; }
+.curve { stroke: var(--accent); stroke-width: 3; fill: none; }
+.dot-accent { fill: var(--accent); }
+.line-tree { stroke: var(--accent); stroke-width: 2.6; fill: none; }
+.line-logit { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
+.band { fill: var(--accent-soft); }
+.pt-num { fill: var(--ink); }
+.resid { stroke: var(--back); stroke-width: 1.6; }
+.meanline { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.box-num { fill: var(--accent); }
+.boundary { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.leafedge { fill: none; stroke: var(--line); stroke-width: 1; }
+
+/* Three boundaries side by side */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+.trio-title { margin: 0 0 6px; }
+.trio-note { margin: 6px 0 0; font-size: 0.92rem; color: var(--muted); }
+/* Leaderboard of candidate questions */
+.board { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.board button { width: 100%; display: grid; grid-template-columns: minmax(0, 11.5em) minmax(0, 1fr) 3.6em; gap: 8px;
+                align-items: center; font: inherit; font-size: 0.85rem; text-align: left; color: var(--ink);
+                background: none; border: 1px solid transparent; border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+.board button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.board .bar { height: 10px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.board button[aria-pressed="true"] .bar { background: var(--accent); }
+.board .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+
+/* Real-data bars */
+.hbars { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 16em) minmax(0, 1fr) 4.4em; gap: 10px; align-items: center; font-size: 0.88rem; }
+.hbars .bar { height: 12px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.hbars li.win { font-weight: 700; }
+.hbars li.win .bar { background: var(--accent); }
+.hbars .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+@media (max-width: 560px) {
+  .hbars li { grid-template-columns: minmax(0, 1fr) 4em; }
+  .hbars li .bar { grid-column: 1 / -1; grid-row: 2; }
+  .board button { grid-template-columns: minmax(0, 1fr) 3.4em; }
+  .board .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+.chips { display: grid; gap: 6px; }
+.chiprow { display: grid; grid-template-columns: 12em minmax(0, 1fr); gap: 10px; align-items: start; }
+.chiprow > span { font-size: 0.85rem; color: var(--muted); padding-top: 2px; }
+.chiprow ul { list-style: none; display: flex; flex-wrap: wrap; gap: 3px; margin: 0; padding: 0; }
+.chip { font-family: var(--font-mono); font-size: 0.72rem; padding: 1px 6px; border: 1px solid var(--line); border-radius: 4px;
+        color: var(--muted); background: var(--paper); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
+@media (max-width: 620px) { .chiprow { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.ghost { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.tally { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.tally li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; font-size: 0.95rem; }
+.tick-tree { stroke: var(--back); stroke-width: 1.4; stroke-opacity: 0.55; }
+.seg-main { fill: var(--accent); }
+.dot-muted { fill: var(--muted); }
+.dot-tree { fill: var(--muted); fill-opacity: 0.45; }
+.hidden-line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ibar { display: inline-block; width: 7em; height: 10px; background: var(--grid); border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.ibar > span { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+.seg-other { fill: var(--muted); }
+.seg-gap { stroke: var(--surface); stroke-width: 2; }
+svg .on-seg { fill: var(--surface); font-weight: 700; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+select { font: inherit; font-size: 0.95rem; padding: 5px 8px; border: 1.5px solid var(--accent); border-radius: 6px;
+         background: var(--surface); color: var(--ink); max-width: 100%; }
+select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- The template's frame: contents bar and section labels ---------- */
+.toc { max-width: var(--wide); margin: 30px auto 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
+       font-size: 0.9rem; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.toc .toc-label { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase;
+                  color: var(--muted); margin-right: 4px; }
+.toc a { text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+         border-radius: 999px; padding: 3px 11px; }
+.toc a b { font-family: var(--font-mono); font-weight: 500; color: var(--accent); margin-right: 5px; }
+.toc a:hover { border-color: var(--accent); color: var(--accent); }
+.toc a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+main h2[id] { scroll-margin-top: 18px; }
+main h2 .part { margin-bottom: 6px; }
+
+/* The "Today's topic" banner: where the review ends and the new material begins */
+.topic { max-width: var(--wide); margin: 80px auto 0; padding: 18px 0 20px; border-top: 4px solid var(--ink);
+         border-bottom: 1px solid var(--line); }
+.topic h2 { font-size: clamp(2.4rem, 6vw, 3.4rem); margin-top: 0; letter-spacing: -0.02em; }
+.topic h2 .part { font-size: 0.85rem; margin-bottom: 8px; }
+.topic .topic-q { font-family: var(--font-display); font-size: clamp(1.15rem, 2.4vw, 1.4rem); color: var(--muted);
+                  margin: 8px 0 16px; max-width: 46ch; }
+.topic-parts { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .topic-parts { grid-template-columns: minmax(0, 1fr); } }
+.topic-parts a { display: block; text-decoration: none; color: var(--ink); background: var(--surface);
+                 border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 8px 12px; }
+.topic-parts a b { display: block; font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500;
+                   letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.topic-parts a:hover { border-color: var(--accent); }
+.topic-parts a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* A ledger: a model's stored lines, with the one a case uses marked (boosting's Step 3) */
+.ledger { max-height: 380px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+.ledger:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ledger table { font-size: 0.86rem; }
+.ledger thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.ledger td.pick { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.ledger td.n, .ledger th.n { white-space: nowrap; }
+.ledger tr.start th, .ledger tr.start td { font-style: italic; color: var(--muted); }
+/* A tree written as nested questions, with one case's path in bold */
+.tree-list, .tree-list ul { list-style: none; margin: 0; padding: 0; }
+.tree-list ul { padding-left: 20px; margin-left: 8px; border-left: 1px dashed var(--line); }
+.tree-list li { margin: 5px 0; }
+.tree-list .ans { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); margin-right: 8px;
+                  border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+.tree-list .q { font-weight: 500; }
+.tree-list .leaf { font-family: var(--font-mono); font-size: 0.9rem; }
+.tree-list .cnt { color: var(--muted); font-size: 0.86rem; }
+.tree-list li.on > .q, .tree-list li.on > .leaf, .tree-list li.on > .ans { font-weight: 700; color: var(--accent); border-color: var(--accent); }
+.tree-list .here { color: var(--accent); font-size: 0.86rem; }
+tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
+
+/* The terse pattern (Jeff, Nov 4): on screen one headline and one figure; the explanation sits in a reveal */
+.headline { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+            line-height: 1.3; margin: 10px 0 12px; }
+details.more { margin: 12px 0; border-left: 3px solid var(--line); padding: 2px 0 2px 12px; font-size: 0.97rem; }
+details.more[open] { border-left-color: var(--accent); }
+details.more summary { color: var(--accent); font-weight: 700; }
+/* One value changing along a line: a prediction moving tree by tree */
+.track { list-style: none; padding: 0; margin: 14px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+.track li { flex: 1 1 86px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.track li b { display: block; font-family: var(--font-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.track li span { color: var(--muted); font-size: 0.82rem; }
+.track li.end { border: 2px solid var(--accent); }
+/* The best value in a column of a scoreboard: bold, with a mark, never colour alone */
+td.best { font-weight: 700; color: var(--accent); white-space: nowrap; }
+td.best::after { content: " ★"; }
+
+/* ---------- This page ---------- */
+.fig svg { width: 100%; height: auto; display: block; }
+math.m { font-size: 1.05em; color: inherit; }
+.eq { text-align: center; margin: 12px 0; }
+.eq .eqin { display: inline-block; font-size: 1.15em; }
+.fig.narrow { max-width: 620px; }
+.def { border-left: 3px solid var(--accent); padding: 6px 0 6px 16px; margin: 16px 0 8px; }
+.def dt { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; }
+.def dd { margin: 2px 0 12px; }
+.def dd:last-child { margin-bottom: 0; }
+.bar-back { fill: var(--back); }
+.bar-other { fill: var(--muted); opacity: 0.8; }
+.truth { stroke: var(--ink); stroke-width: 2; stroke-dasharray: 6 4; }
+.m-drop { fill: var(--surface); stroke: var(--back); stroke-width: 2.5; }
+.m-fill { fill: var(--stay); }
+.m-true { fill: var(--ink); }
+.m-single { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.m-draw { fill: var(--accent); opacity: 0.72; }
+.code { font-family: var(--font-mono); font-size: 0.95rem; padding: 10px 14px; background: var(--accent-soft);
+  border-radius: 6px; overflow-x: auto; white-space: pre; margin: 12px 0; }
+.mval { font-size: 12px; }
+.keep ol { margin: 6px 0 0; padding-left: 22px; }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="col">
+  <p class="eyebrow">STAT 764 · Meeting 22 · Missing data</p>
+  <h1>Why is it blank?</h1>
+  <p class="lede">Every model this term did something with blanks: dropped the row, filled in a number, or made “blank”
+  a category. Each choice is a guess about why the value is missing. Today makes the guess out loud.</p>
+  <div class="method" role="list" aria-label="Missing data in three moves">
+    <div role="listitem"><b>Ask why</b><span>“None”, not yet known, or truly missing?</span></div>
+    <div role="listitem"><b>Check what it says</b><span>Compare the outcome, blank against filled.</span></div>
+    <div role="listitem"><b>Fill inside the pipeline</b><span>And remember a fill is a guess.</span></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="On this page"><span class="toc-label">On this page</span><a href="#where"><b>1</b>Where we are</a><a href="#dots"><b>2</b>Connecting the dots</a><a href="#topic"><b>3</b>Today: missing data</a><a href="#p1"><b>4</b>Part 1 · A blank can be information</a><a href="#p2"><b>5</b>Part 2 · Three reasons</a><a href="#p3"><b>6</b>Part 3 · Filling in honestly</a><a href="#studio"><b>7</b>Part 4 · Your capstone data</a><a href="#next"><b>8</b>Next</a></nav>
+
+<main>
+<section class="wide where" aria-labelledby="where">
+  <h2 id="where" data-toc="Where we are"><span class="part">Start here</span>Where we are</h2>
+  <div class="spine">
+    <p class="eyebrow" style="margin:0">The question the whole course is asking</p>
+    <p class="q">When is a number you computed actually evidence about the future?</p>
+    <ol class="units" aria-label="The six units of the course">
+      <li class="done"><b>Meetings 1–6</b>Can you trust your own number?</li>
+      <li class="done"><b>Meetings 7–8</b>Making models behave</li>
+      <li class="done"><b>Meetings 9–14</b>Decisions, not scores</li>
+      <li class="done"><b>Meetings 15–20</b>Flexible models, and reading them</li>
+      <li class="now" aria-current="step"><b>Meetings 21–25 · now</b>Structure without an answer key</li>
+      <li><b>Meetings 26–28</b>Where models fail</li>
+    </ol>
+  </div>
+  <div class="trip">
+    <article aria-labelledby="last">
+      <p class="tag">Last time · Meeting 21</p>
+      <h3 id="last">Thirty-nine measures, a few directions</h3>
+      <div class="keep"><b>Keep this</b>PCA builds a few new variables from many, ordered by how much of the spread each
+      carries. Read the loadings to name one, and ask first whether the measures were standardized.</div>
+    </article>
+    <article class="today" aria-labelledby="today">
+      <p class="tag">Today · Meeting 22</p>
+      <h3 id="today">Why is it blank?</h3>
+      <p>A short opener: a blank can be information. Then <strong>work time</strong>: a clinic on your own capstone
+      data, then your Stage 3 work.</p>
+    </article>
+    <article aria-labelledby="soon">
+      <p class="tag">Coming up</p>
+      <h3 id="soon">Capstone work day, then clustering</h3>
+      <ul>
+        <li><strong>Tue, Nov 24:</strong> capstone work day, with the Stage 3 checkpoint team by team.</li>
+        <li><strong>Thu, Nov 26:</strong> no class (Thanksgiving).</li>
+        <li><strong>Tue, Dec 1:</strong> clustering.</li>
+      </ul>
+    </article>
+  </div>
+  <div class="scroll" tabindex="0" role="group" aria-label="What is due soon">
+  <table>
+    <caption>Due soon</caption>
+    <thead><tr><th scope="col">due</th><th scope="col">what</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Fri, Nov 20, 3:40 pm</th><td>Today’s studio notebook</td></tr>
+      <tr><th scope="row">Sat, Nov 21, 11:59 pm</th><td>Capstone Stage 2 revision, if your team’s note asks for one</td></tr>
+      <tr><th scope="row">Sun, Nov 22, 11:59 pm</th><td>Peer audit memo 1 (your own memo)</td></tr>
+      <tr><th scope="row">Tue, Nov 24, in class</th><td>Capstone Stage 3: model checkpoint</td></tr>
+      <tr><th scope="row">Tue, Dec 1, 11:59 pm</th><td>Lab 10: Compress, and count who’s missing (before or after Thanksgiving)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="wide dots" aria-labelledby="dots">
+  <h2 id="dots" data-toc="Connecting the dots"><span class="part">Before the new idea · about six minutes</span>Connecting the dots: PCA</h2>
+  <h3>Try first: answer each in your head, then open it</h3>
+  <div class="recall">
+    <details>
+      <summary>1. Component 1 of the 39 county measures carried 39% of the variance. What was it about?</summary>
+      <p>Sickness and poverty: poor or fair health, disability, physical distress, diabetes, inactivity, children in
+      poverty. It correlated −0.80 with life expectancy.</p>
+    </details>
+    <details>
+      <summary>2. Why standardize before PCA?</summary>
+      <p>PCA finds the largest spread in whatever units it is handed. Left in dollars, component 1 was median household
+      income alone: 99.6% of the variance.</p>
+    </details>
+    <details>
+      <summary>3. Fitting PCA on every county before splitting: how big a leak?</summary>
+      <p>Tiny, 0.004 years: PCA never sees the outcome. It goes inside the pipeline anyway, and so does today’s filling
+      in.</p>
+    </details>
+  </div>
+  <h3 id="cov-cor">Covariance PCA or correlation PCA?</h3>
+  <p>Tuesday’s exit ticket asked what you would want to know about a report built on “the first principal component
+  of 39 health measures.” Every answer asked: <em>were the measures standardized?</em> The right first
+  question. Here is when the answer should be no.</p>
+  <p>PCA always finds the directions of largest spread. <strong>Standardizing first decides what “spread” means.</strong></p>
+  <div class="scroll" tabindex="0" role="group" aria-label="The two kinds of PCA">
+  <table>
+    <caption>The two choices</caption>
+    <thead><tr><th scope="col"></th><th scope="col">the loadings are the eigenvectors of</th><th scope="col">a step of 1 in a measure means</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">covariance PCA: center only</th><td><math class="m"><mi>S</mi></math>, the covariance matrix</td><td>one of its own units: a dollar, a percentage point, a day</td></tr>
+      <tr><th scope="row">correlation PCA: center and standardize</th><td><math class="m"><mi>R</mi><mo>=</mo><msup><mi>D</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mi>S</mi><msup><mi>D</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup></math>, the correlation matrix (<math class="m"><mi>D</mi></math>: each measure’s standard deviation, on the diagonal)</td><td>one standard deviation of that measure</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>The counties, unstandardized</strong> (Tuesday’s studio question 2, PCA on the raw measures): before computing, 6 of 8
+  of you guessed the measure with the biggest scale would take over; 2 guessed component 1 would still be about
+  health. With income in dollars, component 1 is income alone, 99.56% of the variance. In thousands of dollars, it is preventable hospital
+  stays alone, 99.98%. The counties did not change; the units chose the answer. Standardized, component 1 is the same
+  sickness-and-poverty direction, 38.8%, in either unit.</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="When to choose which">
+  <table>
+    <caption>When to choose which</caption>
+    <thead><tr><th scope="col">your measures</th><th scope="col">choose</th><th scope="col">because</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">different units: dollars, percents, days</th><td>correlation</td><td>otherwise the units pick component 1, as above</td></tr>
+      <tr><th scope="row">one unit, and the size of each spread means something: sensors measuring one quantity, pixel brightness, subscores on one scale</th><td>covariance</td><td>standardizing throws away which measures really vary more</td></tr>
+      <tr><th scope="row">one unit, but some measures barely move and are mostly noise</th><td>covariance</td><td>standardizing blows that noise up to variance 1</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li><strong>Equal spread in is not equal weight out:</strong> after standardizing, the correlations still set the
+    loadings.</li>
+    <li><strong>In scikit-learn:</strong> <code>PCA()</code> alone is covariance PCA (it centers, never scales);
+    <code>make_pipeline(StandardScaler(), PCA())</code> is correlation PCA, the one we used Tuesday.</li>
+  </ul>
+  <details class="more">
+    <summary>Why: standardizing changes how distance is measured</summary>
+    <p>Covariance PCA measures the distance between counties <math class="m"><mi>i</mi></math> and
+    <math class="m"><mi>k</mi></math> in the original units; correlation PCA divides each
+    measure’s difference by its standard deviation <math class="m"><msub><mi>s</mi><mi>j</mi></msub></math>:</p>
+    <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><msup><mi>d</mi><mn>2</mn></msup><mrow><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>x</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></munderover><msup><mrow><mo stretchy="false">(</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>−</mo><msub><mi>x</mi><mrow><mi>k</mi><mi>j</mi></mrow></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></msup></math></span></div>
+    <div class="eq"><span class="eqin"><math class="m" displaystyle="true"><msup><mi>d</mi><mn>2</mn></msup><mrow><mo stretchy="false">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>x</mi><mi>k</mi></msub><mo stretchy="false">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></munderover><mfrac><msup><mrow><mo stretchy="false">(</mo><msub><mi>x</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>−</mo><msub><mi>x</mi><mrow><mi>k</mi><mi>j</mi></mrow></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></msup><msubsup><mi>s</mi><mi>j</mi><mn>2</mn></msubsup></mfrac></math></span></div>
+    <p>So after standardizing, a one-standard-deviation difference in income counts the same as one in any other
+    measure. Two uncorrelated measures with variances 16 and 1 show the difference: covariance PCA’s component 1 is the
+    first measure, with 16/17 ≈ 94% of the variance. Correlation PCA sees <math class="m"><mi>R</mi><mo>=</mo><mi>I</mi></math>:
+    every direction carries 50%, and there is no single component 1.</p>
+    <p>The totals differ too. The eigenvalues of <math class="m"><mi>R</mi></math> add up to
+    <math class="m"><mi>p</mi></math> (every diagonal entry is 1), so a component’s share is
+    <math class="m"><msub><mi>λ</mi><mi>m</mi></msub><mo>/</mo><mi>p</mi></math>. Those of
+    <math class="m"><mi>S</mi></math> add up to the sum of the measures’ variances. And the two sets of loadings are
+    not rescaled copies of each other: they are eigenvectors of two different matrices.</p>
+  </details>
+  <h3>The chain, this unit</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="The chain of methods in this unit">
+  <table class="chain">
+    <caption>Meetings 21–25: what each method finds, and its catch</caption>
+    <thead><tr><th scope="col">method</th><th scope="col">what it finds</th><th scope="col">the catch</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">PCA<span class="mtg">Meeting 21</span></th><td>The few directions in many measures that move together.</td><td>Built from spread, not from any outcome; the answer depends on the units.</td></tr>
+      <tr class="now"><th scope="row">Missing data<span class="mtg">Meeting 22 · today</span></th><td>Which values are blank, and what the blank says.</td><td><strong>The data cannot tell you why it is blank.</strong></td></tr>
+      <tr class="later"><th scope="row">Clustering<span class="mtg">Meetings 24–25</span></th><td colspan="2">Groups of counties, and how to tell a real pattern from a story.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="topic" aria-labelledby="topic">
+  <h2 id="topic" data-toc="Today: missing data"><span class="part">Today’s topic</span>Blanks, and the guesses we make about them</h2>
+  <p class="topic-q">Before you drop, fill or ignore a blank, what do you need to know?</p>
+  <p>In class: Part 1, then work time (Part 4). Parts 2 and 3 are reading, for the clinic and for Lab 10.</p>
+  <ol class="topic-parts" aria-label="Today in four parts">
+    <li><a href="#p1"><b>Part 1</b>A blank can be information</a></li>
+    <li><a href="#p2"><b>Part 2 · reading</b>Three reasons for a blank</a></li>
+    <li><a href="#p3"><b>Part 3 · reading</b>Filling in honestly</a></li>
+    <li><a href="#studio"><b>Part 4 · work time</b>Your capstone data</a></li>
+  </ol>
+</section>
+
+<section class="col">
+  <h2 id="p1" data-toc="Part 1 · A blank can be information"><span class="part">Part 1 · the readmission data</span>The A1C test nobody ordered</h2>
+  <p class="headline">Stays with no A1C test came back more often than stays with any result, normal or high.</p>
+  <p>The <strong>A1C</strong> is a blood test of average blood sugar over three months. It is blank for 83% of the
+  99,343 stays, because nobody ordered it.</p>
+  <figure class="fig narrow">
+    <div id="a1c-plot"></div>
+    <figcaption>Share who came back within 30 days, by A1C result. “&gt;7” and “&gt;8” are high results; “Norm” is
+    normal.</figcaption>
+  </figure>
+  <p>What the test found barely matters; <strong>whether anyone ordered it</strong> does. So the blank is information.</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="Who gets tested">
+  <table>
+    <caption>Who gets an A1C test</caption>
+    <thead><tr><th scope="col">stays</th><th scope="col" class="n">share tested</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">diabetes the main reason for the stay</th><td class="num">31.6%</td></tr>
+      <tr><th scope="row">any other main reason</th><td class="num">15.5%</td></tr>
+      <tr><th scope="row">patients aged 20–30</th><td class="num">27.1%</td></tr>
+      <tr><th scope="row">patients aged 80–90</th><td class="num">13.3%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Drop the untested stays and 16.9% are left: younger, diabetes-first patients who came back 9.9% of the time, not
+  the hospital’s 11.4%. <strong>A model fitted on them is about a different group.</strong></p>
+  <details class="more">
+    <summary>How did our models handle this blank since Meeting 9?</summary>
+    <p>As its own category: the encoder turned the blank into <code>nan</code>, a column that is 1 when no test was
+    done. That kept the information. Filling in a typical result would have erased it.</p>
+  </details>
+  <div class="keep"><b>Before filling any blank, ask</b>
+    <ol>
+      <li>Why is it blank: “none”, not yet known at prediction time, or truly missing?</li>
+      <li>Does the blank say something about the outcome?</li>
+      <li>If you drop rows, who are they?</li>
+    </ol>
+  </div>
+</section>
+
+<section class="col">
+  <h2 id="p2" data-toc="Part 2 · Three reasons"><span class="part">Part 2 · reading: blanks we make ourselves</span>Why is it blank? Three reasons</h2>
+  <p class="headline">For an average, dropping blanks is safe only when they are random. Filling from other columns
+  recovers only what those columns know.</p>
+  <dl class="def">
+    <dt>MCAR · missing completely at random</dt>
+    <dd>The blank has nothing to do with anything. A lab machine was down that week.</dd>
+    <dt>MAR · missing at random</dt>
+    <dd>Whether it is blank depends on other columns you <strong>have</strong>, not on the hidden value. Diabetes
+    patients get the A1C test twice as often, so the blanks are not random overall. But if, among patients with the same
+    diagnosis and age, who got tested has nothing to do with their actual blood sugar, the blanks are MAR. (The name
+    misleads: random only within groups you can see.)</dd>
+    <dt>MNAR · missing not at random</dt>
+    <dd>The blank depends on the <strong>missing value itself</strong>, or on something the data do not record. A
+    county does not report a rate when the rate is bad.</dd>
+  </dl>
+  <p><strong>The test:</strong> take the unemployment rate of the 2,954 counties from Meeting 21, hide 30% of the values
+  in each of the three ways, then try both fixes. We know the truth, so we can check.</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="How each kind of blank was made">
+  <table>
+    <caption>How the blanks were made: each county gets a chance of being hidden, then a weighted coin flip</caption>
+    <thead><tr><th scope="col"></th><th scope="col">each county’s chance of being hidden</th><th scope="col">what decides it</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">MCAR</th><td>30% for every county</td><td>nothing</td></tr>
+      <tr><th scope="row">MAR</th><td>about 3% in the least-poor tenth of counties, rising to about 81% in the poorest tenth; 30% on average</td><td>the county’s child poverty rate, which stays visible</td></tr>
+      <tr><th scope="row">MNAR</th><td>about 4% in the tenth with the lowest unemployment, rising to about 77% in the highest; 30% on average</td><td>the county’s own unemployment rate: the value being hidden</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <details class="more">
+    <summary>The formula behind the chances</summary>
+    <p>Each county’s chance is 1 / (1 + e<sup>−(2z + c)</sup>), where z is the county’s standardized child poverty
+    (MAR) or standardized unemployment (MNAR), and c is set so that the chances average 30%. The flips hid 834, 881
+    and 910 counties.</p>
+  </details>
+  <figure class="fig">
+    <div id="mech-plot"></div>
+    <figcaption>Average unemployment over all counties, estimated two ways after hiding 30%. The dashed line is the truth
+    before hiding.</figcaption>
+  </figure>
+  <details class="more">
+    <summary>The numbers, and what “for a model” changes</summary>
+  <div class="scroll" tabindex="0" role="group" aria-label="The two fixes under each kind of blank">
+  <table>
+    <caption>Average unemployment, % (truth: 3.59)</caption>
+    <thead><tr><th scope="col">how the blanks were made</th><th scope="col" class="n">drop the blanks</th><th scope="col" class="n">fill from the other 38</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">MCAR: at random</th><td class="num">3.60</td><td class="num">3.61</td></tr>
+      <tr><th scope="row">MAR: more where child poverty is high</th><td class="num">3.37</td><td class="num">3.60</td></tr>
+      <tr><th scope="row">MNAR: more where unemployment is high</th><td class="num">3.15</td><td class="num">3.31</td></tr>
+    </tbody>
+  </table>
+  </div>
+    <p>For a model, dropping does something else too: it changes who the model is about, as the untested stays in
+    Part 1 showed.</p>
+  </details>
+  <details class="more">
+    <summary>Can the data tell you which reason you have?</summary>
+    <p>Only partly. Under MAR <strong>and</strong> under MNAR the blanked counties are poorer (26% and 23% of children in
+    poverty, against 16% and 17%). So the data can show the blanks are not random, but not which of the two they are.
+    That takes knowing how the data were collected: ask whoever made it.</p>
+  </details>
+  <details class="more">
+    <summary>What does “fill from the other 38” do?</summary>
+    <p><code>IterativeImputer</code> predicts the blank column from the other columns with a regression, fills the
+    blanks, and repeats until the fills settle. It recovers what the other columns know about the missing value.</p>
+  </details>
+
+  <h3 id="censored">One more kind: censored values</h3>
+  <p>Sometimes a value is not missing but <strong>cut off</strong>: you know it lies beyond a limit, not where. A lab
+  result below the test’s detection limit is reported as “&lt; 0.5”. A patient still out of the hospital when the data
+  end has “no readmission yet”, which only means “not within the days we watched”. Censoring is a cousin of MNAR:
+  whether a value is cut off depends on the value itself, but you also know which side of the limit it is on.</p>
+  <ul>
+    <li><strong>Don’t fill it with a typical value:</strong> you already know it is beyond the limit.</li>
+    <li><strong>Don’t drop it:</strong> you would drop exactly the extreme cases.</li>
+    <li><strong>Keep what you know:</strong> the limit plus a 0/1 “cut off” column, or a method built for it (survival
+    analysis for times, Tobit regression for capped values).</li>
+  </ul>
+  <p>In your capstone: a training row whose outcome had not happened yet by your cutoff date is censored. That is why
+  every training row’s outcome must be known before the test period starts.</p>
+  <details class="more">
+    <summary>When something else stops the event: competing risks</summary>
+    <p>A patient in a cancer study who dies in an accident can never die of the cancer: that is a <strong>competing
+    risk</strong>, not a blank. Treating such deaths as censored is fine for the rate of the event among those still
+    alive; for “what fraction will have it by time t” use competing-risks methods (cumulative incidence, Fine–Gray). In
+    a fixed-window prediction, change the outcome instead: “readmitted or died within 30 days”, or three outcomes.
+    Never count the deaths as successes, and always report them beside the event.</p>
+    <p>It is in our readmission data: we dropped stays that ended in death, but a patient who dies at home within 30
+    days is recorded as “not readmitted”. Deaths after discharge are not recorded, so all we can do is say so.</p>
+  </details>
+
+  <h3 id="what-to-do">What to do, by kind of blank</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="What to do with each kind of blank">
+  <table>
+    <thead><tr><th scope="col">kind</th><th scope="col">for an average or another estimate</th><th scope="col">for a prediction model</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">MCAR</th><td>Almost anything works. Dropping only costs precision; a median fill gets the average right but shrinks the spread.</td><td>Fill inside the pipeline; the median is fine.</td></tr>
+      <tr><th scope="row">MAR</th><td>Fill from the columns that explain the blanks (3.60 against the truth, 3.59). Don’t drop (3.37).</td><td>Fill from the other columns, inside the pipeline: <code>IterativeImputer</code> (Part 3) or <code>KNNImputer</code>. Or a model that takes blanks as they are (<code>HistGradientBoosting</code>).</td></tr>
+      <tr><th scope="row">MNAR</th><td>Nothing in the data fixes it (best: 3.31). Find out why it is blank, or show how the answer moves under different guesses.</td><td>Fill, plus a 0/1 “was blank” column: the blank itself often predicts. Say what the model cannot know.</td></tr>
+      <tr><th scope="row">censored</th><td>Never fill with a typical value, never drop. Keep the limit and a 0/1 “cut off” column, or use a method built for it.</td><td>Same for a feature. For the outcome: train only on rows whose outcome was known by your cutoff.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>For prediction, one default covers the first three:</strong> fill inside the pipeline and add the “was
+  blank” column (Part 3 shows both). That matters because the data cannot tell MAR from MNAR. The real risk is
+  the blanks’ cause changing after training, say a clinic that starts testing everyone.</p>
+</section>
+
+<section class="col">
+  <h2 id="p3" data-toc="Part 3 · Filling in honestly"><span class="part">Part 3 · reading: in practice</span>Filling in honestly</h2>
+  <p class="headline">A fill is learned, so it goes inside the pipeline. And a fill is a guess, not a measurement.</p>
+  <h3 id="fill-pipeline">1. The fill goes inside the pipeline</h3>
+  <ul>
+    <li><strong>Inside the pipeline:</strong> the medians, or the imputer’s regressions, come from the training rows
+    only, like the scaler and PCA.</li>
+    <li><strong>Keep the blank as information:</strong> <code>add_indicator=True</code> adds a 0/1 “was blank” column:
+    the number-column version of the A1C’s “not measured”.</li>
+  </ul>
+  <pre class="code" tabindex="0" aria-label="Code: a pipeline that fills blanks with the median plus a was-blank column, then scales and fits">make_pipeline(SimpleImputer(strategy="median", add_indicator=True),
+              StandardScaler(), LinearRegression())</pre>
+  <p>Part 2’s better fill works the same way. <code>IterativeImputer</code> predicts each blank from the other 38
+  measures; inside a pipeline, on Part 2’s MAR blanks, it lets the model predict life expectancy for all 2,954
+  counties, the 881 with unemployment hidden included: RMSE 1.73 years, about what Meeting 21’s regression on all 39
+  measures got with nothing hidden.</p>
+
+  <h3 id="fill-guess">2. A fill is a guess: how sure is it?</h3>
+  <p>Every fill so far puts <strong>one</strong> number in each blank: the median, or the imputer’s best guess. From
+  then on the model treats that number exactly like a measured one. But a guess from the other measures can be off,
+  and a single number cannot show by how much.</p>
+  <p>To see it, ask the imputer for <strong>plausible values</strong> instead of its best guess.
+  <code>sample_posterior=True</code> adds a random amount of its own uncertainty to each prediction. Run it five times
+  with different seeds and each blank gets five plausible fills: where they agree, the guess is solid; where they
+  scatter, it is not.</p>
+  <pre class="code" tabindex="0" aria-label="Code: five plausible fills, one per random seed">draws = [IterativeImputer(sample_posterior=True, random_state=s)
+             .fit_transform(X_mar) for s in range(5)]</pre>
+  <p>Part 2’s MAR test is the place to look, because there we know the hidden values. Three of the 881 counties:</p>
+  <figure class="fig narrow">
+    <div id="draw-plot"></div>
+    <figcaption>Three counties whose unemployment was hidden in Part 2’s MAR test. Diamond: the true value. Bar: the
+    single fill (the imputer’s best guess). Dots: five plausible fills drawn by <code>IterativeImputer(sample_posterior=True)</code>.</figcaption>
+  </figure>
+  <p><strong>Read it:</strong> Autauga’s single fill says 3.60; the truth is 2.19, and the draws run from 1.65 to 5.05.
+  The draws admit the imputer does not know; the single fill looks as sure as a measurement. (Barbour’s single fill
+  happens to land on the truth: 4.40 against 4.43.) Across all 881 counties, one county’s draws typically spread
+  ±0.64 points, about half of how much unemployment varies between counties (±1.18).</p>
+  <p><strong>Yet averages barely move:</strong> the average over all counties is 3.58 to 3.61 in every draw. So a
+  single fill is fine for an average, or for a model fitted on many rows; a statement about one row, or a margin of
+  error, has to carry the uncertainty forward.</p>
+  <details class="more">
+    <summary>What is multiple imputation?</summary>
+    <p>Fill the blanks several times with different draws, fit the model on each filled copy, and report how much the
+    answer moves. That spread is the uncertainty a single fill hides.</p>
+  </details>
+</section>
+
+<section class="col">
+  <h2 id="studio" data-toc="Part 4 · Your capstone data"><span class="part">Part 4 · work time</span>The capstone data clinic</h2>
+  <p>About an hour, with your team: the clinic first (about 40 minutes), then keep going on Stage 3. Run the checks on
+  <strong>your own team’s data</strong>; each of you uploads your own notebook.</p>
+  <h3 id="have">Before you start: what you have</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="What to use for each clinic question">
+  <table>
+    <caption>Where to look, question by question</caption>
+    <thead><tr><th scope="col">question</th><th scope="col">in your notebook</th><th scope="col">on this page</th><th scope="col">in ESL §9.6</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · count the blanks</th><td>the first studio cell: paste your team’s loading code into <code>df</code>, set <code>OUTCOME</code>; the counting code is given</td><td>Part 1: a blank that means “not measured”</td><td>the opening paragraph: why ask how the data went missing</td></tr>
+      <tr><th scope="row">2 · does a blank say something?</th><td>the loop over partly blank columns (given); Section 1’s tested-against-untested comparison is the model for (b)</td><td>Part 1’s “who gets an A1C test”; Part 2’s “Can the data tell you which reason you have?”</td><td>code “missing” as its own class and see if it predicts</td></tr>
+      <tr><th scope="row">3 · your plan</th><td>the plan table, a markdown cell</td><td>the “why it is blank” table below; Part 2’s “What to do, by kind of blank”; Part 3’s pipeline</td><td>the three ways to proceed, and when dropping is acceptable</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Your team’s capstone notebook has the loading code. If your data will not load, the readmission data is the
+  stand-in (below).</p>
+  <h3 id="questions">The three questions</h3>
+  <div class="scroll" tabindex="0" role="group" aria-label="The three studio questions">
+  <table>
+    <thead><tr><th scope="col">question</th><th scope="col">what you do</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · about 10 min</th><td><strong>Count the blanks</strong>, including the ones in disguise
+      (“?”, “Undefined”, an impossible 0), and any rows your team already dropped.</td></tr>
+      <tr><th scope="row">2 · about 15 min</th><td><strong>Does a blank say something?</strong> The outcome rate when
+      blank and when filled, for your three biggest partly blank columns.</td></tr>
+      <tr><th scope="row">3 · about 15 min</th><td><strong>Your missing-data plan:</strong> for each column, why it is
+      blank, what you will do, and who that affects.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="scroll" tabindex="0" role="group" aria-label="Reasons a value can be blank">
+  <table>
+    <caption>Question 3’s choices for “why it is blank”</caption>
+    <thead><tr><th scope="col">reason</th><th scope="col">an example</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">means “none”</th><td>No travel agent on a booking; a blank where 0 was meant.</td></tr>
+      <tr><th scope="row">not known yet</th><td>Known only after the moment of prediction, like a delay’s cause: a leak, not a blank to fill.</td></tr>
+      <tr><th scope="row">the outcome did not happen as defined</th><td>A cancelled flight has no arrival delay.</td></tr>
+      <tr><th scope="row">MCAR, MAR or MNAR</th><td>Truly missing: see Part 2.</td></tr>
+      <tr><th scope="row">censored</th><td>Known only to be beyond a limit: a lab value “&lt; 0.5”; an outcome not in yet when the data end.</td></tr>
+      <tr><th scope="row">don’t know yet</th><td>Say who you would ask.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Data won’t load today? Use the readmission data (<code>df = enc</code>, <code>OUTCOME = "came_back"</code>) and say
+  so. All three questions count. Upload to “Studio notebook — Day 22” by <strong>Friday, November 20, 3:40 pm</strong>.</p>
+
+  <h2 id="next" data-toc="Next"><span class="part">After class</span>Next: the Stage 3 checkpoint</h2>
+  <p>Tuesday is the Stage 3 checkpoint, in class: your baseline and candidate models running inside your plan, about
+  20 minutes with me team by team, and Auditor 2 signs. The question that day: did tuning or choosing contaminate your
+  performance estimate? Bring question 3’s plan; your models will need it.</p>
+  <p class="foot">Diabetes 130-US Hospitals (UCI), the readmission data from Meetings 9–20, without stays that ended in
+  death or hospice. County Health Rankings &amp; Roadmaps 2025 (University of Wisconsin Population Health Institute).
+  Every number comes from the Meeting 22 notebook.</p>
+</section>
+</main>
+</div>
+<script>
+(() => {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+  const txt = (p, x, y, s, a = {}) => { const t = el("text", { x, y, "font-size": 13, ...a }, p); t.textContent = s; return t; };
+
+  // Part 1: came-back rate by A1C result (from the Meeting 22 notebook, Section 1)
+  { const R = [["not measured", 82509, 0.117], ["Norm", 4922, 0.098], [">7", 3775, 0.101], [">8", 8137, 0.099]];
+    const W = 620, H = 214, l = 120, r = 150, top = 12, rowH = 44, xmax = 0.14, sx = (v) => l + v / xmax * (W - l - r);
+    const g = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Stays with no A1C test came back 11.7% of the time; stays with a normal result 9.8%, above 7 10.1%, above 8 9.9%." }, document.getElementById("a1c-plot"));
+    for (const v of [0, 0.05, 0.10]) { el("line", { x1: sx(v), x2: sx(v), y1: top, y2: top + rowH * R.length, class: "gridline" }, g);
+      txt(g, sx(v), top + rowH * R.length + 18, `${Math.round(v * 100)}%`, { "text-anchor": "middle", class: "muted mono" }); }
+    R.forEach(([name, n, v], i) => { const y = top + i * rowH;
+      el("rect", { x: sx(0), y: y + 8, width: sx(v) - sx(0), height: rowH - 16, class: i === 0 ? "bar-back" : "bar-other" }, g);
+      txt(g, l - 10, y + rowH / 2 + 5, name, { "text-anchor": "end", "font-weight": i === 0 ? 700 : 400 });
+      txt(g, sx(v) + 8, y + rowH / 2 + 5, `${(v * 100).toFixed(1)}%`, { "font-weight": 700 });
+      txt(g, sx(v) + 62, y + rowH / 2 + 5, `${n.toLocaleString("en-US")} stays`, { class: "muted" }); }); }
+
+  // Part 2: average unemployment under each kind of blank (from the Meeting 22 notebook, Section 2)
+  { const R = [["MCAR: at random", 3.60, 3.61], ["MAR: child poverty", 3.37, 3.60], ["MNAR: unemployment itself", 3.15, 3.31]], truth = 3.59;
+    const W = 760, H = 230, l = 200, r = 30, top = 34, rowH = 50, lo = 3.0, hi = 3.8, sx = (v) => l + (v - lo) / (hi - lo) * (W - l - r);
+    const g = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Dropping the blanks lands on the truth only when they are random; filling recovers MAR but only part of MNAR. Truth 3.59%. MCAR: drop 3.60, fill 3.61. MAR: drop 3.37, fill 3.60. MNAR: drop 3.15, fill 3.31." }, document.getElementById("mech-plot"));
+    for (const v of [3.0, 3.2, 3.4, 3.6, 3.8]) { el("line", { x1: sx(v), x2: sx(v), y1: top - 6, y2: top + rowH * R.length, class: "gridline" }, g);
+      txt(g, sx(v), top + rowH * R.length + 18, `${v.toFixed(1)}%`, { "text-anchor": "middle", class: "muted mono" }); }
+    el("line", { x1: sx(truth), x2: sx(truth), y1: top - 10, y2: top + rowH * R.length, class: "truth" }, g);
+    txt(g, sx(truth) + 6, top - 14, "truth 3.59", { "font-weight": 700 });
+    R.forEach(([name, drop, fill], i) => { const y = top + i * rowH + rowH / 2;
+      txt(g, l - 14, y + 5, name, { "text-anchor": "end" });
+      el("line", { x1: sx(Math.min(drop, fill)), x2: sx(Math.max(drop, fill)), y1: y, y2: y, stroke: "var(--line)", "stroke-width": 2 }, g);
+      el("circle", { cx: sx(drop), cy: y, r: 8, class: "m-drop" }, g);
+      el("rect", { x: sx(fill) - 7, y: y - 7, width: 14, height: 14, class: "m-fill" }, g);
+      if (Math.abs(drop - fill) > 0.06) { txt(g, sx(drop), y + 22, drop.toFixed(2), { "text-anchor": "middle", class: "mval mono" }); txt(g, sx(fill) + 12, y + 4, fill.toFixed(2), { class: "mval mono" }); }
+      else txt(g, sx(fill) + 14, y + 4, `${drop.toFixed(2)} · ${fill.toFixed(2)}`, { class: "mval mono" });
+      if (Math.abs(drop - fill) > 0.06) { txt(g, sx(drop), y - 14, "drop", { "text-anchor": "middle", class: "muted" }); txt(g, sx(fill), y - 14, "fill", { "text-anchor": "middle", class: "muted" }); } });
+    txt(g, l, H - 4, "○ drop the blanks    ■ fill from the other 38 measures", { class: "muted" }); }
+
+  // Part 3: five draws against the single fill and the truth (from the Meeting 22 notebook, Section 3)
+  { const R = [["Autauga, AL", 2.19, 3.60, [1.65, 2.59, 5.05, 2.68, 3.42]], ["Barbour, AL", 4.43, 4.40, [5.64, 4.78, 3.39, 4.84, 3.21]], ["Bibb, AL", 2.46, 4.07, [2.86, 4.75, 4.01, 3.54, 2.68]]];
+    const W = 620, H = 222, l = 110, r = 20, top = 14, rowH = 50, lo = 1, hi = 6, sx = (v) => l + (v - lo) / (hi - lo) * (W - l - r);
+    const g = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Each county's five plausible fills spread over a point or more, while the single fill shows one number. Autauga: true 2.19, single fill 3.60, draws from 1.65 to 5.05. Barbour: true 4.43, single fill 4.40, draws 3.21 to 5.64. Bibb: true 2.46, single fill 4.07, draws 2.68 to 4.75." }, document.getElementById("draw-plot"));
+    for (let v = 1; v <= 6; v++) { el("line", { x1: sx(v), x2: sx(v), y1: top, y2: top + rowH * R.length, class: "gridline" }, g);
+      txt(g, sx(v), top + rowH * R.length + 18, `${v}%`, { "text-anchor": "middle", class: "muted mono" }); }
+    R.forEach(([name, truth, single, draws], i) => { const y = top + i * rowH + rowH / 2;
+      txt(g, l - 12, y + 5, name, { "text-anchor": "end" });
+      el("line", { x1: sx(single), x2: sx(single), y1: y - 14, y2: y + 14, class: "m-single" }, g);
+      draws.forEach((d) => el("circle", { cx: sx(d), cy: y, r: 5.5, class: "m-draw" }, g));
+      el("path", { d: `M ${sx(truth)} ${y - 9} L ${sx(truth) + 8} ${y} L ${sx(truth)} ${y + 9} L ${sx(truth) - 8} ${y} Z`, class: "m-true" }, g); });
+    txt(g, l, H - 4, "◆ true    | single fill    ● five draws", { class: "muted" }); }
+})();
+</script>
+</body>
+</html>
