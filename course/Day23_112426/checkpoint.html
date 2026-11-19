@@ -387,7 +387,6 @@ td.best::after { content: " ★"; }
 .check td, .check th { vertical-align: top; }
 .check .ok { color: var(--stay); font-weight: 700; }
 .check .bad { color: var(--back); font-weight: 700; }
-.order td, .order th { white-space: nowrap; }
 .formula { font-family: var(--font-mono); font-size: 1.02rem; background: var(--surface); border: 1px solid var(--line);
   border-radius: 6px; padding: 10px 14px; margin: 12px 0; text-align: center; }
 .sweep { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
@@ -420,10 +419,11 @@ table.flip td .ours-tag { font-family: var(--font-body); color: var(--accent); f
 <body>
 <div class="page">
 <header class="col">
-  <p class="eyebrow">STAT 764 · Meeting 23 · Capstone work day</p>
+  <p class="eyebrow">STAT 764 · Meeting 23 · No class: capstone work</p>
   <h1>Did tuning contaminate your estimate?</h1>
-  <p class="lede">Today your models meet your plan. Each team walks me through a notebook where every choice was made
-  without the test data; while you wait, check your own work and find where your recommendation flips.</p>
+  <p class="lede">No class today: meet with your team when it suits you, and manage the week as you see fit. Stage 3 is
+  due Sunday, November 29. This page is what you need for it: the self-check I will use on your notebook, and how to
+  show where your recommendation flips.</p>
   <div class="method" role="list" aria-label="Today in three moves">
     <div role="listitem"><b>Run it inside the plan</b><span>Baseline and candidates, your folds, your metric.</span></div>
     <div role="listitem"><b>Check what touched what</b><span>Nothing chosen on the data it is judged on.</span></div>
@@ -431,7 +431,7 @@ table.flip td .ours-tag { font-family: var(--font-body); color: var(--accent); f
   </div>
 </header>
 
-<nav class="toc" aria-label="On this page"><span class="toc-label">On this page</span><a href="#where"><b>1</b>Where we are</a><a href="#dots"><b>2</b>Connecting the dots</a><a href="#topic"><b>3</b>Today: the checkpoint</a><a href="#p1"><b>4</b>Part 1 · What I will ask</a><a href="#p2"><b>5</b>Part 2 · One ratio</a><a href="#p3"><b>6</b>Part 3 · Where it flips</a><a href="#work"><b>7</b>Part 4 · Work time</a><a href="#next"><b>8</b>Next</a></nav>
+<nav class="toc" aria-label="On this page"><span class="toc-label">On this page</span><a href="#where"><b>1</b>Where we are</a><a href="#dots"><b>2</b>Connecting the dots</a><a href="#topic"><b>3</b>Today: the checkpoint</a><a href="#p1"><b>4</b>Part 1 · The self-check</a><a href="#p2"><b>5</b>Part 2 · One ratio</a><a href="#p3"><b>6</b>Part 3 · Where it flips</a><a href="#work"><b>7</b>Part 4 · Your team</a><a href="#next"><b>8</b>Next</a></nav>
 <main>
 <section class="wide where" aria-labelledby="where">
   <h2 id="where" data-toc="Where we are"><span class="part">Start here</span>Where we are</h2>
@@ -456,10 +456,10 @@ table.flip td .ours-tag { font-family: var(--font-body); color: var(--accent); f
       pipeline, with a “was blank” column.</div>
     </article>
     <article class="today" aria-labelledby="today">
-      <p class="tag">Today · Meeting 23</p>
-      <h3 id="today">The Stage 3 checkpoint</h3>
-      <p>About 20 minutes per team, in the order in Part 4. Everyone first: the self-check (Part 1), then where a
-      decision flips as its made-up numbers move (Parts 2 and 3).</p>
+      <p class="tag">Today · Meeting 23 · no class</p>
+      <h3 id="today">Stage 3, with your team</h3>
+      <p>Meet when it suits you; Stage 3 is due Sunday, November 29. Run the self-check (Part 1) on your notebook
+      first, then read where a decision flips as its made-up numbers move (Parts 2 and 3).</p>
     </article>
     <article aria-labelledby="soon">
       <p class="tag">Coming up</p>
@@ -476,16 +476,19 @@ table.flip td .ours-tag { font-family: var(--font-body); color: var(--accent); f
     <caption>Due soon</caption>
     <thead><tr><th scope="col">due</th><th scope="col">what</th></tr></thead>
     <tbody>
-      <tr><th scope="row">Tue, Nov 24, 2:15 pm</th><td>Capstone Stage 3: one notebook per team, uploaded; then the checkpoint in class</td></tr>
+      <tr><th scope="row">Tue, Nov 24, 11:59 pm</th><td>Peer audit memo 1, and any Stage 2 revision</td></tr>
+      <tr><th scope="row">Sun, Nov 29, 11:59 pm</th><td>Capstone Stage 3: one notebook per team, with Auditor 2’s sign-off at the end</td></tr>
+      <tr><th scope="row">Mon, Nov 30</th><td>My written questions on your Stage 3, as a comment on the assignment</td></tr>
       <tr><th scope="row">Tue, Dec 1, 11:59 pm</th><td>Lab 10: Compress, and count who’s missing</td></tr>
       <tr><th scope="row">Tue, Dec 1</th><td>Lab 11 comes out (due Tuesday, December 8)</td></tr>
+      <tr><th scope="row">Thu, Dec 3, 11:59 pm</th><td>Your team’s written answers, signed by Auditor 2</td></tr>
     </tbody>
   </table>
   </div>
 </section>
 
 <section class="wide dots" aria-labelledby="dots">
-  <h2 id="dots" data-toc="Connecting the dots"><span class="part">Before the checkpoint · about five minutes</span>Connecting the dots: honest numbers</h2>
+  <h2 id="dots" data-toc="Connecting the dots"><span class="part">Before you upload · about five minutes</span>Connecting the dots: honest numbers</h2>
   <h3>Try first: answer each in your head, then open it</h3>
   <div class="recall">
     <details>
@@ -513,18 +516,19 @@ table.flip td .ours-tag { font-family: var(--font-body); color: var(--accent); f
   <p class="topic-q">Is your performance estimate still honest, and how far can your made-up numbers move before your
   recommendation changes?</p>
   <ol class="topic-parts" aria-label="Today in four parts">
-    <li><a href="#p1"><b>Part 1</b>What I will ask</a></li>
+    <li><a href="#p1"><b>Part 1</b>What my questions will ask</a></li>
     <li><a href="#p2"><b>Part 2</b>Two made-up numbers, one ratio</a></li>
     <li><a href="#p3"><b>Part 3</b>Where the $150 visit flips</a></li>
-    <li><a href="#work"><b>Part 4 · work time</b>Checkpoints, team by team</a></li>
+    <li><a href="#work"><b>Part 4 · your team</b>Stage 3, on your own schedule</a></li>
   </ol>
 </section>
 
 <section class="col">
-  <h2 id="p1" data-toc="Part 1 · What I will ask"><span class="part">Part 1 · the self-check</span>What I will ask at the checkpoint</h2>
+  <h2 id="p1" data-toc="Part 1 · The self-check"><span class="part">Part 1 · the self-check</span>What my written questions will ask</h2>
   <p class="headline">One question, seven places to look: did any choice see the data it is judged on?</p>
-  <p>Auditor 2 walks me through the notebook you uploaded, run from the top; the whole team answers. Run this list on
-  your own notebook first.</p>
+  <p>I run the notebook you upload, top to bottom, and send your team written questions by Monday, November 30;
+  Auditor 2 signs your answers. Run this list on your own notebook first: whatever it catches, fix before you
+  upload.</p>
   <div class="scroll" tabindex="0" role="group" aria-label="The checkpoint self-check">
   <table class="check">
     <caption>The self-check</caption>
@@ -632,29 +636,19 @@ for t in np.arange(0.02, 0.40, 0.01):        # sweep the break-even
 </section>
 
 <section class="col">
-  <h2 id="work" data-toc="Part 4 · Work time"><span class="part">Part 4 · work time</span>Checkpoints, team by team</h2>
-  <div class="scroll" tabindex="0" role="group" aria-label="The checkpoint order">
-  <table class="order">
-    <caption>About 20 minutes each; Auditor 2 leads</caption>
-    <thead><tr><th scope="col">starts about</th><th scope="col">team</th></tr></thead>
-    <tbody>
-      <tr><th scope="row">2:35</th><td>O’Hare flights</td></tr>
-      <tr><th scope="row">2:55</th><td>MSP flights</td></tr>
-      <tr><th scope="row">3:15</th><td>Hotel bookings</td></tr>
-    </tbody>
-  </table>
-  </div>
-  <h3 id="wait">While you wait</h3>
+  <h2 id="work" data-toc="Part 4 · Your team"><span class="part">Part 4 · your team</span>Stage 3, on your own schedule</h2>
   <ol>
-    <li><strong>Run the self-check</strong> (Part 1) on your notebook, top to bottom.</li>
-    <li><strong>Start your sensitivity sweep</strong> on out-of-fold predictions: your prices or limit, the range from
-    your plan, and where the recommendation flips. The final report needs it.</li>
-    <li><strong>Check against your plan:</strong> if your team revised Stage 2, the checkpoint follows the revised plan.</li>
+    <li><strong>Meet with your team</strong> when it suits you. If your team revised Stage 2, follow the revised plan.</li>
+    <li><strong>Run the self-check</strong> (Part 1) on your notebook, top to bottom, and fix what it catches.</li>
+    <li><strong>Upload by Sunday, November 29, at 11:59 pm:</strong> one notebook per team, run from the top, every
+    name at the top, Auditor 2’s three sign-off lines at the end.</li>
+    <li><strong>Start your sensitivity sweep</strong> (Parts 2 and 3) on out-of-fold predictions: your prices or limit,
+    the range from your plan, and where the recommendation flips. The final report needs it.</li>
   </ol>
-  <p class="note">Nothing else is due today: no studio. Stage 3 is due at 2:15 pm, one upload per team, every name at
-  the top.</p>
+  <p class="note"><strong>Then:</strong> my written questions by Monday, November 30; your team’s answers, signed by
+  Auditor 2, by Thursday, December 3, at 11:59 pm, uploaded to the same Stage 3 assignment.</p>
 
-  <h2 id="next" data-toc="Next"><span class="part">After class</span>Next: clustering</h2>
+  <h2 id="next" data-toc="Next"><span class="part">After today</span>Next: clustering</h2>
   <p>Tuesday, December 1 (Meeting 24): clustering, with mixture models as the frame and a way to choose the number of
   clusters. Read ISLP §12.4 first. Lab 10 is due that night; Lab 11 comes out.</p>
   <p class="foot">Diabetes 130-US Hospitals (UCI), the readmission data from Meetings 9–20, without stays that ended in
