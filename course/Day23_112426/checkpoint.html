@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Built from content/lessons/pages/day23_checkpoint.html in the course repo by tools/build_page.py. Open this file in a web browser. -->
+<title>The Model Checkpoint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* STAT 764 daily pages: the shared theme.
+   Inlined into every page by tools/build_page.py, so each page stays one self-contained file.
+   Edit here, then rebuild the pages; never edit a built page's <style> by hand. */
+
+/* Layout: the tree and forest pages' system (one reading column, figures widen to 1040px), so the three read as a set. */
+:root {
+  --paper: #f1f5f4;
+  --surface: #ffffff;
+  --ink: #13242a;
+  --muted: #485b60;
+  --line: #c6d2d1;
+  --grid: #e2e9e8;
+  --back: #ad3822;          /* came back within 30 days */
+  --stay: #276a6f;          /* did not come back */
+  --accent: #1d4c87;        /* the thing you are steering: a selected question, a path */
+  --accent-soft: #e2ebf6;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --read: 68ch;
+  --wide: 1040px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+    --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a1d; --surface: #16252a; --ink: #e2ebea; --muted: #a2b4b6; --line: #314449;
+  --grid: #22343a; --back: #f07f66; --stay: #67b9b9; --accent: #8fb7ee; --accent-soft: #1d3349;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px;
+       line-height: 1.6; margin: 0; }
+.page { padding-inline: 16px; padding-block: 40px 72px; }
+.col { max-width: var(--read); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 700; margin-top: 64px; }
+h3 { font-size: 1.25rem; font-weight: 700; margin-top: 40px; display: flex; gap: 12px; align-items: baseline; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+strong { font-weight: 700; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+           color: var(--muted); margin: 0 0 12px; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+.step { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em;
+        color: var(--accent); border: 1.5px solid var(--accent); border-radius: 999px; padding: 1px 9px;
+        white-space: nowrap; transform: translateY(-2px); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.part { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--muted); display: block; margin-bottom: 6px; font-weight: 500; }
+
+/* Figures */
+figure { margin: 28px auto; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+.split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 12px; max-width: var(--read); }
+svg { display: block; max-width: 100%; height: auto; }
+.scroll { overflow-x: auto; }
+.treebox { display: flex; justify-content: center; margin-bottom: 18px; }
+.treebox svg { flex: none; max-width: 100%; }
+.plotbox { display: flex; justify-content: center; }
+svg text { font-family: var(--font-body); fill: var(--ink); }
+svg .mono { font-family: var(--font-mono); }
+svg .muted { fill: var(--muted); }
+svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.axis { stroke: var(--line); stroke-width: 1; }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; color: var(--muted); margin: 0 0 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Controls */
+.controls { display: grid; gap: 14px; margin-bottom: 14px; }
+label, .label { font-weight: 700; font-size: 0.95rem; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.seg { display: inline-flex; border: 1.5px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.92rem; padding: 6px 12px; border: 0; background: var(--surface);
+              color: var(--accent); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 700; }
+.btn { font: inherit; font-size: 0.92rem; font-weight: 700; padding: 7px 14px; border-radius: 6px; cursor: pointer;
+       border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Readouts */
+.readout { display: grid; gap: 10px; }
+.sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.side { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.side .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.side b { display: block; }
+.calc { font-family: var(--font-mono); font-size: 0.9rem; background: var(--paper); border-radius: 6px; padding: 10px 12px;
+        line-height: 1.7; overflow-x: auto; }
+.calc .big { font-size: 1.05rem; font-weight: 500; color: var(--accent); }
+.say { font-size: 1rem; }
+
+/* Stat strip, tables, code */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); margin: 24px 0; }
+.stats div { padding: 12px 12px 12px 0; }
+.stats b { display: block; font-family: var(--font-display); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 620px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--ink); font-size: 0.85rem; }
+td.n, th.n, td.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px;
+      overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; background: var(--surface); }
+.card .tag { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.card b { font-family: var(--font-display); font-size: 1.2rem; display: block; margin-top: 2px; }
+details { margin-top: 10px; font-size: 0.92rem; }
+summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.foot { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); margin-top: 64px; padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  .board .bar, .hbars .bar { transition: width 0.25s ease; }
+}
+/* The one-sentence method: the page's thesis */
+.method { margin: 28px 0 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+          border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+.method div { padding: 14px 16px 14px 0; }
+.method div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.method b { display: block; font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 2px; }
+.method span { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 620px) {
+  .method { grid-template-columns: 1fr; }
+  .method div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* Forest page additions */
+.box-note { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 18px 6px; margin: 22px 0 8px; }
+.box-note h4 { font-family: var(--font-display); font-size: 1.1rem; margin: 12px 0 4px; }
+
+/* Boosting page additions */
+.line-model { stroke: var(--accent); stroke-width: 3; fill: none; stroke-linejoin: round; }
+.line-stump { stroke: var(--accent); stroke-width: 3; fill: none; stroke-dasharray: 7 4; }
+.line-truth { stroke: var(--muted); stroke-width: 1.6; fill: none; stroke-dasharray: 2 4; }
+.line-train { stroke: var(--stay); stroke-width: 2.4; fill: none; stroke-dasharray: 6 4; }
+.line-new { stroke: var(--back); stroke-width: 2.8; fill: none; }
+.line-other { stroke: var(--muted); stroke-width: 1.6; fill: none; opacity: 0.7; }
+.line-floor { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.zero { stroke: var(--ink); stroke-width: 1; opacity: 0.5; }
+.pt { fill: var(--ink); }
+.pt-res { fill: var(--back); }
+.stick { stroke: var(--back); stroke-width: 1.4; opacity: 0.8; }
+.now-line { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.dot-new { fill: var(--back); stroke: var(--surface); stroke-width: 1.5; }
+.dot-train { fill: var(--stay); stroke: var(--surface); stroke-width: 1.5; }
+.dot-best { fill: var(--surface); stroke: var(--back); stroke-width: 2.4; }
+.dot-acc { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.sw { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; }
+.sw.model { border-color: var(--accent); }
+.sw.stump { border-top-style: dashed; border-color: var(--accent); }
+.sw.truth { border-top: 2px dotted var(--muted); }
+.sw.train { border-top-style: dashed; border-color: var(--stay); }
+.sw.new { border-color: var(--back); }
+.sw.other { border-top-width: 2px; border-color: var(--muted); }
+.dotsw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.dotsw.res { background: var(--back); }
+tr.is-on th, tr.is-on td { background: var(--accent-soft); font-weight: 700; }
+
+/* Where we are: the course's question, the six units, and last time / today / coming up */
+.where { margin-top: 40px; }
+.spine { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); padding: 14px 0 16px; margin-top: 14px; }
+.spine .q { font-family: var(--font-display); font-size: clamp(1.25rem, 2.6vw, 1.55rem); font-weight: 700; line-height: 1.25; margin: 4px 0 0; }
+.units { list-style: none; padding: 0; margin: 16px 0 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.units li { border-top: 4px solid var(--line); padding: 6px 4px 0 0; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
+.units li b { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; }
+.units li.done { border-top-color: var(--stay); }
+.units li.now { border-top-color: var(--accent); color: var(--ink); font-weight: 700; }
+.units li.now b { color: var(--accent); }
+@media (max-width: 760px) { .units { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.trip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+@media (max-width: 900px) { .trip { grid-template-columns: minmax(0, 1fr); } }
+.trip article { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 16px 10px; }
+.trip article.today { border: 2px solid var(--accent); }
+.trip h3 { margin-top: 12px; font-size: 1.15rem; display: block; }
+.trip .tag { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 12px 0 0; }
+.trip ul { padding-left: 18px; margin: 8px 0; }
+.trip li { margin: 6px 0; font-size: 0.95rem; }
+.trip p { font-size: 0.95rem; }
+.keep { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; margin: 10px 0 4px; }
+.keep b { display: block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+.dot-muted { fill: var(--muted); }
+
+/* Connecting the dots */
+.recall { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; align-items: start; }
+@media (max-width: 900px) { .recall { grid-template-columns: minmax(0, 1fr); } }
+.recall details { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; margin: 0; font-size: 0.95rem; }
+.recall summary { color: var(--ink); line-height: 1.4; }
+.recall summary::marker { color: var(--accent); }
+.recall details[open] { border-color: var(--accent); }
+.chain caption { font-weight: 700; }
+.chain th[scope="row"] { font-family: var(--font-display); font-size: 1.05rem; white-space: nowrap; }
+.chain .mtg { display: block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0.03em; }
+.chain tr.now th, .chain tr.now td { background: var(--accent-soft); }
+.chain tr.now .mtg { color: var(--accent); }
+.chain tr.later th, .chain tr.later td { color: var(--muted); font-style: italic; }
+.verdicts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+@media (max-width: 900px) { .verdicts { grid-template-columns: minmax(0, 1fr); } }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: 6px; padding: 2px 14px 8px; font-size: 0.95rem; }
+.verdict.yes { border-top-color: var(--stay); }
+.verdict.no { border-top-color: var(--back); }
+.verdict .v-tag { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; margin: 10px 0 0; }
+.verdict.yes .v-tag { color: var(--stay); }
+.verdict.no .v-tag { color: var(--back); }
+.verdict .v-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin: 2px 0 0; font-variant-numeric: tabular-nums; }
+.verdict .v-what { color: var(--muted); margin: 0 0 6px; font-size: 0.9rem; }
+
+/* ---------- Components from the tree and forest pages (Meetings 15-16) ---------- */
+.pt-back { stroke: var(--back); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+.pt-stay { fill: var(--stay); }
+.box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.box-shade { fill: var(--back); }
+.cutline { stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.side-no { fill: var(--stay); opacity: 0.08; }
+.side-yes { fill: var(--back); opacity: 0.08; }
+.node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+.edge { stroke: var(--ink); stroke-width: 1.3; fill: none; }
+.on .node, .node.on { stroke: var(--accent); stroke-width: 3; }
+.edge.on { stroke: var(--accent); stroke-width: 3; }
+.newpt { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.region-on { fill: none; stroke: var(--accent); stroke-width: 3; }
+.curve { stroke: var(--accent); stroke-width: 3; fill: none; }
+.dot-accent { fill: var(--accent); }
+.line-tree { stroke: var(--accent); stroke-width: 2.6; fill: none; }
+.line-logit { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
+.band { fill: var(--accent-soft); }
+.pt-num { fill: var(--ink); }
+.resid { stroke: var(--back); stroke-width: 1.6; }
+.meanline { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.box-num { fill: var(--accent); }
+.boundary { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; fill: none; }
+.leafedge { fill: none; stroke: var(--line); stroke-width: 1; }
+
+/* Three boundaries side by side */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+.trio-title { margin: 0 0 6px; }
+.trio-note { margin: 6px 0 0; font-size: 0.92rem; color: var(--muted); }
+/* Leaderboard of candidate questions */
+.board { list-style: none; padding: 0; margin: 0; display: grid; gap: 3px; }
+.board button { width: 100%; display: grid; grid-template-columns: minmax(0, 11.5em) minmax(0, 1fr) 3.6em; gap: 8px;
+                align-items: center; font: inherit; font-size: 0.85rem; text-align: left; color: var(--ink);
+                background: none; border: 1px solid transparent; border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+.board button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.board .bar { height: 10px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.board button[aria-pressed="true"] .bar { background: var(--accent); }
+.board .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+
+/* Real-data bars */
+.hbars { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 16em) minmax(0, 1fr) 4.4em; gap: 10px; align-items: center; font-size: 0.88rem; }
+.hbars .bar { height: 12px; background: var(--muted); border-radius: 2px; min-width: 1px; }
+.hbars li.win { font-weight: 700; }
+.hbars li.win .bar { background: var(--accent); }
+.hbars .v { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; }
+@media (max-width: 560px) {
+  .hbars li { grid-template-columns: minmax(0, 1fr) 4em; }
+  .hbars li .bar { grid-column: 1 / -1; grid-row: 2; }
+  .board button { grid-template-columns: minmax(0, 1fr) 3.4em; }
+  .board .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+.chips { display: grid; gap: 6px; }
+.chiprow { display: grid; grid-template-columns: 12em minmax(0, 1fr); gap: 10px; align-items: start; }
+.chiprow > span { font-size: 0.85rem; color: var(--muted); padding-top: 2px; }
+.chiprow ul { list-style: none; display: flex; flex-wrap: wrap; gap: 3px; margin: 0; padding: 0; }
+.chip { font-family: var(--font-mono); font-size: 0.72rem; padding: 1px 6px; border: 1px solid var(--line); border-radius: 4px;
+        color: var(--muted); background: var(--paper); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
+@media (max-width: 620px) { .chiprow { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.ghost { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.tally { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.tally li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; font-size: 0.95rem; }
+.tick-tree { stroke: var(--back); stroke-width: 1.4; stroke-opacity: 0.55; }
+.seg-main { fill: var(--accent); }
+.dot-muted { fill: var(--muted); }
+.dot-tree { fill: var(--muted); fill-opacity: 0.45; }
+.hidden-line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ibar { display: inline-block; width: 7em; height: 10px; background: var(--grid); border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.ibar > span { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+.seg-other { fill: var(--muted); }
+.seg-gap { stroke: var(--surface); stroke-width: 2; }
+svg .on-seg { fill: var(--surface); font-weight: 700; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .duo { grid-template-columns: minmax(0, 1fr); } }
+select { font: inherit; font-size: 0.95rem; padding: 5px 8px; border: 1.5px solid var(--accent); border-radius: 6px;
+         background: var(--surface); color: var(--ink); max-width: 100%; }
+select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- The template's frame: contents bar and section labels ---------- */
+.toc { max-width: var(--wide); margin: 30px auto 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center;
+       font-size: 0.9rem; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.toc .toc-label { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase;
+                  color: var(--muted); margin-right: 4px; }
+.toc a { text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+         border-radius: 999px; padding: 3px 11px; }
+.toc a b { font-family: var(--font-mono); font-weight: 500; color: var(--accent); margin-right: 5px; }
+.toc a:hover { border-color: var(--accent); color: var(--accent); }
+.toc a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+main h2[id] { scroll-margin-top: 18px; }
+main h2 .part { margin-bottom: 6px; }
+
+/* The "Today's topic" banner: where the review ends and the new material begins */
+.topic { max-width: var(--wide); margin: 80px auto 0; padding: 18px 0 20px; border-top: 4px solid var(--ink);
+         border-bottom: 1px solid var(--line); }
+.topic h2 { font-size: clamp(2.4rem, 6vw, 3.4rem); margin-top: 0; letter-spacing: -0.02em; }
+.topic h2 .part { font-size: 0.85rem; margin-bottom: 8px; }
+.topic .topic-q { font-family: var(--font-display); font-size: clamp(1.15rem, 2.4vw, 1.4rem); color: var(--muted);
+                  margin: 8px 0 16px; max-width: 46ch; }
+.topic-parts { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .topic-parts { grid-template-columns: minmax(0, 1fr); } }
+.topic-parts a { display: block; text-decoration: none; color: var(--ink); background: var(--surface);
+                 border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 8px 12px; }
+.topic-parts a b { display: block; font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500;
+                   letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.topic-parts a:hover { border-color: var(--accent); }
+.topic-parts a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* A ledger: a model's stored lines, with the one a case uses marked (boosting's Step 3) */
+.ledger { max-height: 380px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+.ledger:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ledger table { font-size: 0.86rem; }
+.ledger thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.ledger td.pick { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.ledger td.n, .ledger th.n { white-space: nowrap; }
+.ledger tr.start th, .ledger tr.start td { font-style: italic; color: var(--muted); }
+/* A tree written as nested questions, with one case's path in bold */
+.tree-list, .tree-list ul { list-style: none; margin: 0; padding: 0; }
+.tree-list ul { padding-left: 20px; margin-left: 8px; border-left: 1px dashed var(--line); }
+.tree-list li { margin: 5px 0; }
+.tree-list .ans { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); margin-right: 8px;
+                  border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+.tree-list .q { font-weight: 500; }
+.tree-list .leaf { font-family: var(--font-mono); font-size: 0.9rem; }
+.tree-list .cnt { color: var(--muted); font-size: 0.86rem; }
+.tree-list li.on > .q, .tree-list li.on > .leaf, .tree-list li.on > .ans { font-weight: 700; color: var(--accent); border-color: var(--accent); }
+.tree-list .here { color: var(--accent); font-size: 0.86rem; }
+tr.tot th, tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
+
+/* The terse pattern (Jeff, Nov 4): on screen one headline and one figure; the explanation sits in a reveal */
+.headline { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+            line-height: 1.3; margin: 10px 0 12px; }
+details.more { margin: 12px 0; border-left: 3px solid var(--line); padding: 2px 0 2px 12px; font-size: 0.97rem; }
+details.more[open] { border-left-color: var(--accent); }
+details.more summary { color: var(--accent); font-weight: 700; }
+/* One value changing along a line: a prediction moving tree by tree */
+.track { list-style: none; padding: 0; margin: 14px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+.track li { flex: 1 1 86px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.track li b { display: block; font-family: var(--font-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.track li span { color: var(--muted); font-size: 0.82rem; }
+.track li.end { border: 2px solid var(--accent); }
+/* The best value in a column of a scoreboard: bold, with a mark, never colour alone */
+td.best { font-weight: 700; color: var(--accent); white-space: nowrap; }
+td.best::after { content: " ★"; }
+
+/* ---------- This page ---------- */
+.code { font-family: var(--font-mono); font-size: 0.95rem; padding: 10px 14px; background: var(--accent-soft);
+  border-radius: 6px; overflow-x: auto; white-space: pre; margin: 12px 0; }
+.check td, .check th { vertical-align: top; }
+.check .ok { color: var(--stay); font-weight: 700; }
+.check .bad { color: var(--back); font-weight: 700; }
+.order td, .order th { white-space: nowrap; }
+.formula { font-family: var(--font-mono); font-size: 1.02rem; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 10px 14px; margin: 12px 0; text-align: center; }
+.sweep { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+.sweep .ctl { display: grid; grid-template-columns: 15rem minmax(0, 1fr) 5rem; gap: 10px; align-items: center; margin: 6px 0; }
+.sweep input[type=range] { width: 100%; accent-color: var(--accent); }
+.sweep output { font-family: var(--font-mono); text-align: right; }
+.sweep .read { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.sweep .read div { border-top: 2px solid var(--line); padding-top: 6px; }
+.sweep .read b { display: block; font-family: var(--font-mono); font-size: 1.15rem; }
+.sweep .read span { font-size: 0.85rem; color: var(--muted); }
+.sweep .call { margin: 12px 0 0; font-weight: 700; }
+table.flip td { text-align: center; padding: 6px 4px; font-size: 0.88rem; line-height: 1.25; min-width: 5.6rem; }
+table.flip td b { display: block; font-size: 0.9rem; }
+table.flip td span { display: block; font-family: var(--font-mono); font-size: 0.8rem; }
+table.flip td span.t { color: var(--muted); font-size: 0.72rem; }
+table.flip td.v-hi { background: var(--accent-soft); }
+table.flip td.v-ev { background: var(--surface); }
+table.flip td.v-no { color: var(--muted); }
+table.flip td.v-no b { font-weight: 500; }
+table.flip td.ours { outline: 3px solid var(--accent); outline-offset: -3px; }
+table.flip td .ours-tag { font-family: var(--font-body); color: var(--accent); font-weight: 700; font-size: 0.75rem; }
+.legend-v { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; margin: 8px 0; }
+.legend-v span::before { content: ""; display: inline-block; width: 0.9em; height: 0.9em; margin-right: 6px;
+  vertical-align: -0.1em; border: 1px solid var(--line); }
+.legend-v .l-hi::before { background: var(--accent-soft); }
+.legend-v .l-ev::before { background: var(--surface); }
+.legend-v .l-no::before { background: transparent; }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="col">
+  <p class="eyebrow">STAT 764 · Meeting 23 · Capstone work day</p>
+  <h1>Did tuning contaminate your estimate?</h1>
+  <p class="lede">Today your models meet your plan. Each team walks me through a notebook where every choice was made
+  without the test data; while you wait, check your own work and find where your recommendation flips.</p>
+  <div class="method" role="list" aria-label="Today in three moves">
+    <div role="listitem"><b>Run it inside the plan</b><span>Baseline and candidates, your folds, your metric.</span></div>
+    <div role="listitem"><b>Check what touched what</b><span>Nothing chosen on the data it is judged on.</span></div>
+    <div role="listitem"><b>Find where it flips</b><span>How far can your made-up numbers move?</span></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="On this page"><span class="toc-label">On this page</span><a href="#where"><b>1</b>Where we are</a><a href="#dots"><b>2</b>Connecting the dots</a><a href="#topic"><b>3</b>Today: the checkpoint</a><a href="#p1"><b>4</b>Part 1 · What I will ask</a><a href="#p2"><b>5</b>Part 2 · One ratio</a><a href="#p3"><b>6</b>Part 3 · Where it flips</a><a href="#work"><b>7</b>Part 4 · Work time</a><a href="#next"><b>8</b>Next</a></nav>
+<main>
+<section class="wide where" aria-labelledby="where">
+  <h2 id="where" data-toc="Where we are"><span class="part">Start here</span>Where we are</h2>
+  <div class="spine">
+    <p class="eyebrow" style="margin:0">The question the whole course is asking</p>
+    <p class="q">When is a number you computed actually evidence about the future?</p>
+    <ol class="units" aria-label="The six units of the course">
+      <li class="done"><b>Meetings 1–6</b>Can you trust your own number?</li>
+      <li class="done"><b>Meetings 7–8</b>Making models behave</li>
+      <li class="done"><b>Meetings 9–14</b>Decisions, not scores</li>
+      <li class="done"><b>Meetings 15–20</b>Flexible models, and reading them</li>
+      <li class="now" aria-current="step"><b>Meetings 21–25 · now</b>Structure without an answer key</li>
+      <li><b>Meetings 26–28</b>Where models fail</li>
+    </ol>
+  </div>
+  <div class="trip">
+    <article aria-labelledby="last">
+      <p class="tag">Last time · Meeting 22</p>
+      <h3 id="last">Why is it blank?</h3>
+      <div class="keep"><b>Keep this</b>Ask why a value is blank before you drop or fill it. A blank can predict: stays
+      with no A1C test came back 11.7% of the time, against about 9.9%. And a fill is a guess: it goes inside the
+      pipeline, with a “was blank” column.</div>
+    </article>
+    <article class="today" aria-labelledby="today">
+      <p class="tag">Today · Meeting 23</p>
+      <h3 id="today">The Stage 3 checkpoint</h3>
+      <p>About 20 minutes per team, in the order in Part 4. Everyone first: the self-check (Part 1), then where a
+      decision flips as its made-up numbers move (Parts 2 and 3).</p>
+    </article>
+    <article aria-labelledby="soon">
+      <p class="tag">Coming up</p>
+      <h3 id="soon">Thanksgiving, then clustering</h3>
+      <ul>
+        <li><strong>Thu, Nov 26:</strong> no class (Thanksgiving).</li>
+        <li><strong>Tue, Dec 1, Meeting 24:</strong> clustering, and what it can and cannot establish.</li>
+        <li><strong>Thu, Dec 3, Meeting 25:</strong> finding patterns when nothing tells you the right answer.</li>
+      </ul>
+    </article>
+  </div>
+  <div class="scroll" tabindex="0" role="group" aria-label="What is due soon">
+  <table>
+    <caption>Due soon</caption>
+    <thead><tr><th scope="col">due</th><th scope="col">what</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Tue, Nov 24, 2:15 pm</th><td>Capstone Stage 3: one notebook per team, uploaded; then the checkpoint in class</td></tr>
+      <tr><th scope="row">Tue, Dec 1, 11:59 pm</th><td>Lab 10: Compress, and count who’s missing</td></tr>
+      <tr><th scope="row">Tue, Dec 1</th><td>Lab 11 comes out (due Tuesday, December 8)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="wide dots" aria-labelledby="dots">
+  <h2 id="dots" data-toc="Connecting the dots"><span class="part">Before the checkpoint · about five minutes</span>Connecting the dots: honest numbers</h2>
+  <h3>Try first: answer each in your head, then open it</h3>
+  <div class="recall">
+    <details>
+      <summary>1. Stays with no A1C test came back more often (11.7% against about 9.9%). Drop them, fill them, or keep the blank?</summary>
+      <p>Keep the blank as information: a “not measured” category, or a “was blank” column. Dropping them changes who
+      the model is about; filling them hides that the blank itself predicts.</p>
+    </details>
+    <details>
+      <summary>2. You pick the threshold with the lowest cost on your test months. What is wrong?</summary>
+      <p>The threshold is a tuned choice, so the test months stop being a fair test. Choose it on out-of-fold
+      predictions from your resampling; apply it to the test months once, at the end.</p>
+    </details>
+    <details>
+      <summary>3. You tried 30 models and report the best cross-validated score. Is it honest?</summary>
+      <p>A little optimistic: the best of 30 noisy averages won partly by luck. Say how many you tried and give the
+      fold-to-fold spread; the honest number is the test months, scored once.</p>
+    </details>
+  </div>
+  <p class="note">All three are the same question, the one the checkpoint asks: did any choice see the data it is
+  judged on?</p>
+</section>
+
+<section class="topic" aria-labelledby="topic">
+  <h2 id="topic" data-toc="Today: the checkpoint"><span class="part">Today’s topic</span>The checkpoint, and where your decision flips</h2>
+  <p class="topic-q">Is your performance estimate still honest, and how far can your made-up numbers move before your
+  recommendation changes?</p>
+  <ol class="topic-parts" aria-label="Today in four parts">
+    <li><a href="#p1"><b>Part 1</b>What I will ask</a></li>
+    <li><a href="#p2"><b>Part 2</b>Two made-up numbers, one ratio</a></li>
+    <li><a href="#p3"><b>Part 3</b>Where the $150 visit flips</a></li>
+    <li><a href="#work"><b>Part 4 · work time</b>Checkpoints, team by team</a></li>
+  </ol>
+</section>
+
+<section class="col">
+  <h2 id="p1" data-toc="Part 1 · What I will ask"><span class="part">Part 1 · the self-check</span>What I will ask at the checkpoint</h2>
+  <p class="headline">One question, seven places to look: did any choice see the data it is judged on?</p>
+  <p>Auditor 2 walks me through the notebook you uploaded, run from the top; the whole team answers. Run this list on
+  your own notebook first.</p>
+  <div class="scroll" tabindex="0" role="group" aria-label="The checkpoint self-check">
+  <table class="check">
+    <caption>The self-check</caption>
+    <thead><tr><th scope="col">where to look</th><th scope="col"><span class="ok">✓</span> looks like</th><th scope="col"><span class="bad">✗</span> looks like</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · the test data</th><td>Set aside first, and untouched until the final report.</td><td>Any score, plot or threshold computed on it.</td></tr>
+      <tr><th scope="row">2 · steps that learn</th><td>Imputer, encoder, scaler, PCA and model inside one pipeline.</td><td><code>fit_transform</code> on all the rows before the split.</td></tr>
+      <tr><th scope="row">3 · the folds</th><td>Train on the past, validate on the future; repeats of one patient, aircraft or booking stay together.</td><td>Shuffled folds on time-ordered rows.</td></tr>
+      <tr><th scope="row">4 · tuned choices</th><td>Settings, threshold, capacity, number of components: chosen on out-of-fold predictions.</td><td>Chosen by looking at the test months.</td></tr>
+      <tr><th scope="row">5 · how many you tried</th><td>The count, and the fold-to-fold spread beside each average.</td><td>The best of many, reported alone.</td></tr>
+      <tr><th scope="row">6 · the columns</th><td>Each one known at the moment of prediction.</td><td>Anything recorded after it, like a delay’s cause.</td></tr>
+      <tr><th scope="row">7 · the baseline</th><td>Run in the same folds and scored by the same metric.</td><td>Scored on a different split, or quoted from somewhere else.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <details class="more">
+    <summary>Why is the best of many optimistic?</summary>
+    <p>Every fold-average has some luck in it. Try 30 models and the winner is the best one plus, usually, some of the
+    best luck. On new data the luck does not come along, so the winner looks a little worse. That is why the test
+    months are scored once, after every choice is made.</p>
+  </details>
+</section>
+
+<section class="col">
+  <h2 id="p2" data-toc="Part 2 · One ratio"><span class="part">Part 2 · the idea</span>Two made-up numbers, one ratio</h2>
+  <p class="headline">A threshold rule depends on your prices only through their ratio. Sweep the ratio, not each
+  price.</p>
+  <p>The readmission decision from Meetings 18–20: a follow-up visit costs $150 and prevents some share of the
+  readmissions among the patients it reaches; a readmission costs $17,700. The share was made up (5%). Visit when</p>
+  <p class="formula">chance of coming back ≥ cost of a visit ÷ (share prevented × $17,700) = <strong>the break-even</strong></p>
+  <div class="scroll" tabindex="0" role="group" aria-label="Three price pairs with the same break-even">
+  <table>
+    <caption>Different prices, the same decision</caption>
+    <thead><tr><th scope="col">a visit costs</th><th scope="col">and prevents</th><th scope="col" class="n">break-even</th><th scope="col">who gets a visit</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">$75</th><td>2.5%</td><td class="n">0.169</td><td>the same stays</td></tr>
+      <tr><th scope="row">$150</th><td>5%</td><td class="n">0.169</td><td>the same stays</td></tr>
+      <tr><th scope="row">$300</th><td>10%</td><td class="n">0.169</td><td>the same stays; the dollars double</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3 id="try">Try it: move the two made-up numbers</h3>
+  <div class="sweep" role="group" aria-labelledby="try">
+    <div class="ctl"><label for="c-cost">a visit costs</label><input id="c-cost" type="range" min="25" max="800" step="5" value="150"><output id="o-cost" for="c-cost">$150</output></div>
+    <div class="ctl"><label for="c-share">share of readmissions it prevents</label><input id="c-share" type="range" min="1" max="25" step="0.5" value="5"><output id="o-share" for="c-share">5%</output></div>
+    <div class="read" aria-live="polite">
+      <div><b id="r-t">0.169</b><span>break-even</span></div>
+      <div><b id="r-v">13%</b><span>of stays visited</span></div>
+      <div><b id="r-net">$6,965</b><span>net per 1,000 stays (<span id="r-band">$5,129 to $8,632</span>)</span></div>
+      <div><b id="r-ev">−$51,886</b><span>if you visit everyone</span></div>
+    </div>
+    <p class="call" id="r-verdict" aria-live="polite">Visit the high-risk stays.</p>
+  </div>
+  <p>Logistic regression’s chances on Meeting 18’s 24,706 test stays, as in Meeting 20. The band is the middle 95% when
+  the test patients are redrawn.</p>
+  <details class="more">
+    <summary>Your capstone’s version</summary>
+    <p><strong>Two error costs</strong> (a false alarm and a miss): act when the chance is at least false-alarm cost ÷
+    (false-alarm cost + miss cost). With $50 and $200, that is 50 ÷ 250 = 0.20; $100 and $400 give the same 0.20.
+    Sweep that ratio. <strong>A capacity</strong> (act on at most K a day): sweep K instead, and report how many of
+    the K were real.</p>
+  </details>
+</section>
+
+<section class="col">
+  <h2 id="p3" data-toc="Part 3 · Where it flips"><span class="part">Part 3 · the readmission data</span>Where the $150 visit flips</h2>
+  <p class="headline">The recommendation holds for break-evens from about 0.06 to 0.265. Outside that, it changes.</p>
+  <div class="legend-v" aria-hidden="true"><span class="l-hi">high-risk: visit the stays above the break-even; it beats both alternatives</span><span class="l-ev">everyone: visiting everyone does as well</span><span class="l-no">not clearly: not clearly worth running</span></div>
+  <div class="scroll" tabindex="0" role="group" aria-label="The best policy for each visit cost and share prevented">
+  <table class="flip">
+    <caption>Rows: share of readmissions a visit prevents. Columns: what a visit costs. Each cell: the verdict, the net per 1,000 stays, and the break-even.</caption>
+    <thead><tr><th scope="col">prevents</th><th scope="col">$100</th><th scope="col">$150</th><th scope="col">$200</th><th scope="col">$300</th><th scope="col">$400</th><th scope="col">$600</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">2.5%</th><td class="v-hi"><b>high-risk</b><span>$1,243</span><span class="t">0.226</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">0.339</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">0.452</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">0.678</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">0.904</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">1.356</span></td></tr>
+      <tr><th scope="row">5%</th><td class="v-hi"><b>high-risk</b><span>$17,351</span><span class="t">0.113</span></td><td class="v-hi ours"><b>high-risk</b><span>$6,965</span><span class="t">0.169</span><span class="ours-tag">our guess</span></td><td class="v-hi"><b>high-risk</b><span>$2,487</span><span class="t">0.226</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">0.339</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">0.452</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">0.678</span></td></tr>
+      <tr><th scope="row">7.5%</th><td class="v-hi"><b>high-risk</b><span>$53,023</span><span class="t">0.075</span></td><td class="v-hi"><b>high-risk</b><span>$26,026</span><span class="t">0.113</span></td><td class="v-hi"><b>high-risk</b><span>$13,954</span><span class="t">0.151</span></td><td class="v-hi"><b>high-risk</b><span>$3,730</span><span class="t">0.226</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">0.301</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">0.452</span></td></tr>
+      <tr><th scope="row">10%</th><td class="v-ev"><b>everyone</b><span>$97,031</span><span class="t">0.056</span></td><td class="v-hi"><b>high-risk</b><span>$59,475</span><span class="t">0.085</span></td><td class="v-hi"><b>high-risk</b><span>$34,701</span><span class="t">0.113</span></td><td class="v-hi"><b>high-risk</b><span>$13,929</span><span class="t">0.169</span></td><td class="v-hi"><b>high-risk</b><span>$4,973</span><span class="t">0.226</span></td><td class="v-no"><b>not clearly</b><span>≈ $0</span><span class="t">0.339</span></td></tr>
+      <tr><th scope="row">15%</th><td class="v-ev"><b>everyone</b><span>$194,198</span><span class="t">0.038</span></td><td class="v-ev"><b>everyone</b><span>$145,547</span><span class="t">0.056</span></td><td class="v-hi"><b>high-risk</b><span>$106,045</span><span class="t">0.075</span></td><td class="v-hi"><b>high-risk</b><span>$52,052</span><span class="t">0.113</span></td><td class="v-hi"><b>high-risk</b><span>$27,909</span><span class="t">0.151</span></td><td class="v-hi"><b>high-risk</b><span>$7,460</span><span class="t">0.226</span></td></tr>
+      <tr><th scope="row">20%</th><td class="v-ev"><b>everyone</b><span>$291,976</span><span class="t">0.028</span></td><td class="v-ev"><b>everyone</b><span>$241,957</span><span class="t">0.042</span></td><td class="v-ev"><b>everyone</b><span>$194,063</span><span class="t">0.056</span></td><td class="v-hi"><b>high-risk</b><span>$118,951</span><span class="t">0.085</span></td><td class="v-hi"><b>high-risk</b><span>$69,403</span><span class="t">0.113</span></td><td class="v-hi"><b>high-risk</b><span>$27,858</span><span class="t">0.169</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The verdicts run in diagonal bands because each depends only on the break-even. A finer sweep puts the edges
+  around our guess at about $50 and $230 a visit (at 5% prevented), or about 3% and 15% prevented (at $150).</p>
+  <div class="keep"><b>The sentence for your final report</b>We recommend visiting the high-risk stays as long as a
+  $150 visit prevents between about 3% and 15% of readmissions. Below that, too few stays qualify for the gain to be
+  real; above it, visiting everyone does as well.</div>
+  <details class="more">
+    <summary>How each verdict is decided</summary>
+    <p>For each break-even, the 24,706 test stays are redrawn 300 times by patient, as in Meeting 20. <strong>High-risk</strong>:
+    the model’s net and its edge over visiting everyone both stay above zero in the middle 95%. <strong>Everyone</strong>:
+    the edge’s band includes zero, or the model visits 99% of stays anyway. <strong>Not clearly</strong>: the model’s
+    own net band includes zero; at a break-even of 0.265 it visits only 4% of stays.</p>
+  </details>
+  <h3 id="code">See it in code</h3>
+  <pre class="code" tabindex="0" aria-label="Code: sweep the break-even and print who is visited and the net"># p: each stay's chance of coming back; y: 1 if it came back
+# net: per 1,000 stays; multiply by share × $17,700 for dollars
+for t in np.arange(0.02, 0.40, 0.01):        # sweep the break-even
+    visit = p &gt;= t
+    net = ((y - t) * visit).mean() * 1000
+    print(f"{t:.2f}  visited {visit.mean():5.1%}  net {net:6.1f}")</pre>
+  <p class="note"><strong>Which predictions?</strong> Today, your out-of-fold predictions: the test months stay
+  untouched. In the final report, the test months, once. Add a band by redrawing your units (patients, days, hotels)
+  the way Meeting 20 did.</p>
+</section>
+
+<section class="col">
+  <h2 id="work" data-toc="Part 4 · Work time"><span class="part">Part 4 · work time</span>Checkpoints, team by team</h2>
+  <div class="scroll" tabindex="0" role="group" aria-label="The checkpoint order">
+  <table class="order">
+    <caption>About 20 minutes each; Auditor 2 leads</caption>
+    <thead><tr><th scope="col">starts about</th><th scope="col">team</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">2:35</th><td>O’Hare flights</td></tr>
+      <tr><th scope="row">2:55</th><td>MSP flights</td></tr>
+      <tr><th scope="row">3:15</th><td>Hotel bookings</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3 id="wait">While you wait</h3>
+  <ol>
+    <li><strong>Run the self-check</strong> (Part 1) on your notebook, top to bottom.</li>
+    <li><strong>Start your sensitivity sweep</strong> on out-of-fold predictions: your prices or limit, the range from
+    your plan, and where the recommendation flips. The final report needs it.</li>
+    <li><strong>Check against your plan:</strong> if your team revised Stage 2, the checkpoint follows the revised plan.</li>
+  </ol>
+  <p class="note">Nothing else is due today: no studio. Stage 3 is due at 2:15 pm, one upload per team, every name at
+  the top.</p>
+
+  <h2 id="next" data-toc="Next"><span class="part">After class</span>Next: clustering</h2>
+  <p>Tuesday, December 1 (Meeting 24): clustering, with mixture models as the frame and a way to choose the number of
+  clusters. Read ISLP §12.4 first. Lab 10 is due that night; Lab 11 comes out.</p>
+  <p class="foot">Diabetes 130-US Hospitals (UCI), the readmission data from Meetings 9–20, without stays that ended in
+  death or hospice. Part 2 and Part 3’s numbers come from <code>tools/day23_sensitivity.py</code>, on logistic
+  regression’s chances for Meeting 18’s test stays, the same model and stays as Meeting 20’s price curve.</p>
+</section>
+</main>
+</div>
+<script>
+(() => {
+  "use strict";
+  const D = {"T":[0.01,0.015,0.02,0.025,0.0282,0.03,0.035,0.0377,0.04,0.0424,0.045,0.05,0.055,0.0565,0.06,0.065,0.07,0.075,0.0753,0.08,0.0847,0.085,0.09,0.095,0.1,0.105,0.11,0.113,0.115,0.12,0.125,0.13,0.135,0.14,0.145,0.15,0.1507,0.155,0.16,0.165,0.1695,0.17,0.175,0.18,0.185,0.19,0.195,0.2,0.205,0.21,0.215,0.22,0.225,0.226,0.23,0.235,0.24,0.245,0.25,0.255,0.26,0.265,0.27,0.275,0.28,0.285,0.29,0.295,0.3,0.3013,0.305,0.31,0.315,0.32,0.325,0.33,0.335,0.339,0.34,0.345,0.35,0.355,0.36,0.365,0.37,0.375,0.38,0.385,0.39,0.395,0.4,0.405,0.41,0.415,0.42,0.425,0.43,0.435,0.44,0.445,0.45,0.452,0.455,0.46,0.465,0.47,0.475,0.48,0.485,0.49,0.495,0.5,0.505,0.51,0.515,0.52,0.525,0.53,0.535,0.54,0.545,0.55,0.555,0.56,0.565,0.57,0.575,0.58,0.585,0.59,0.595,0.6,0.678,0.904,1.3559],"m":[100.8638,95.8638,90.867,85.8445,82.4791,80.7302,75.8028,73.1442,70.6695,68.3496,65.7662,61.1167,56.1884,54.8201,52.0246,48.315,44.6487,39.9923,39.9417,36.6939,33.6019,33.4629,30.9864,27.6749,25.5201,23.7821,21.4345,19.6052,19.1737,17.4419,16.4434,14.6066,13.9733,12.9297,11.567,10.6169,10.5118,9.642,9.2237,8.2911,7.8695,7.8054,7.1126,6.7303,6.0955,5.4825,5.1765,4.4605,4.4337,4.0266,3.6973,3.2122,2.9122,2.8098,2.6257,2.3529,2.1663,2.0845,1.8113,1.5263,1.4482,1.0734,0.8978,0.9208,0.7091,0.5786,0.4525,0.4841,0.2833,0.3052,0.0488,0.0599,-0.0117,0.0939,0.0688,0.0623,-0.0561,-0.0679,-0.0429,-0.1326,-0.2408,-0.1943,-0.0356,-0.0729,-0.0959,-0.1214,-0.0801,-0.0196,0.0134,0.0646,-0.0405,-0.1255,-0.1348,-0.1077,-0.1004,-0.083,-0.1085,-0.1247,-0.1328,-0.1518,-0.081,-0.1587,-0.157,-0.1538,-0.2319,-0.1805,-0.1275,-0.1133,-0.138,-0.1413,-0.082,-0.081,-0.0996,-0.138,-0.0731,-0.0696,-0.1447,-0.1971,-0.2103,-0.2226,-0.2562,-0.344,-0.3493,-0.34,-0.325,-0.3145,-0.251,-0.2558,-0.2667,-0.2943,-0.2809,-0.2671,-0.1873,0.0039,0.0],"lo":[96.8944,91.8944,86.896,81.8539,78.5124,76.8007,71.8854,69.2033,66.7663,64.4497,62.0117,57.2738,52.5535,51.1296,48.4673,44.7268,41.3506,36.7351,36.7598,33.5644,30.71,30.5369,28.1313,24.7373,22.4979,20.8379,18.37,16.6777,16.3093,14.6646,13.8464,11.8876,11.4022,10.2765,8.9862,8.2471,8.0258,7.2242,7.0727,6.0875,5.796,5.6825,5.0296,4.6122,4.2411,3.6989,3.4867,2.8053,2.8595,2.4044,2.0824,1.5907,1.3118,1.2584,1.0091,0.92,0.7838,0.7974,0.5164,0.2665,0.1542,-0.1252,-0.3101,-0.2739,-0.4774,-0.5002,-0.6496,-0.6019,-0.7546,-0.7445,-0.9462,-0.9275,-0.9602,-0.823,-0.8082,-0.7542,-0.8551,-0.8369,-0.7857,-0.9008,-1.0269,-0.9794,-0.8631,-0.8336,-0.7557,-0.7543,-0.7338,-0.6703,-0.5676,-0.5107,-0.6112,-0.7084,-0.7193,-0.643,-0.6199,-0.5707,-0.647,-0.6279,-0.6394,-0.6324,-0.5549,-0.6293,-0.633,-0.6604,-0.697,-0.5694,-0.5347,-0.4786,-0.5118,-0.4932,-0.4366,-0.4137,-0.4326,-0.4573,-0.3958,-0.3933,-0.4542,-0.4972,-0.5,-0.4942,-0.552,-0.6088,-0.6235,-0.619,-0.5936,-0.5546,-0.5069,-0.5173,-0.5302,-0.5577,-0.5305,-0.5345,-0.3912,0.0,0.0],"hi":[105.1494,100.1494,95.1522,90.1275,86.7766,85.0484,80.1274,77.4666,74.9405,72.6202,70.026,65.4262,60.4157,59.1016,56.2272,52.6598,48.9842,44.1314,44.0553,40.6281,37.5666,37.4565,34.8345,31.3368,28.8215,26.9678,24.6632,22.6711,21.9739,20.0817,19.0361,17.21,16.5295,15.4507,13.8862,12.8317,12.8002,11.8892,11.2842,10.2575,9.7539,9.7148,9.0809,8.5943,7.9944,7.3982,7.015,6.2053,6.2428,5.7852,5.3362,4.8563,4.4861,4.3755,4.126,3.7212,3.5717,3.4699,3.2228,2.8115,2.6407,2.2813,1.973,2.0118,1.7378,1.5189,1.4402,1.4521,1.1951,1.2047,0.9009,0.8763,0.7993,0.8871,0.9084,0.8056,0.7127,0.6694,0.683,0.6206,0.4696,0.4673,0.6015,0.5106,0.5121,0.4363,0.5033,0.5456,0.5765,0.5977,0.477,0.3873,0.3788,0.3778,0.3905,0.3993,0.3984,0.3458,0.3379,0.2799,0.3515,0.2889,0.28,0.3,0.1877,0.2012,0.2568,0.2541,0.2163,0.2069,0.2477,0.2428,0.2244,0.1928,0.2543,0.2632,0.1568,0.1005,0.0765,0.0547,0.0306,-0.0806,-0.0498,-0.05,-0.0387,-0.0457,0.02,0.0252,0.0178,-0.0144,-0.0175,-0.0162,0.0012,0.0117,0.0],"v":[1.0,1.0,0.9998,0.9992,0.9977,0.9964,0.9936,0.9918,0.9887,0.9852,0.9797,0.9634,0.9367,0.9268,0.8997,0.8533,0.7939,0.7264,0.7217,0.6615,0.6065,0.6035,0.5507,0.5054,0.46,0.418,0.3806,0.3599,0.3454,0.313,0.2849,0.2591,0.2374,0.2167,0.1985,0.1829,0.1809,0.1679,0.1541,0.1418,0.1324,0.1315,0.122,0.1135,0.1058,0.099,0.093,0.0876,0.0814,0.0774,0.0735,0.0693,0.0655,0.0648,0.062,0.0584,0.0557,0.0526,0.0496,0.0469,0.0444,0.0418,0.0391,0.0368,0.0351,0.0329,0.0307,0.0288,0.0267,0.0264,0.0251,0.024,0.0229,0.0212,0.0196,0.0187,0.0174,0.0168,0.0166,0.016,0.0153,0.0146,0.0135,0.013,0.0122,0.0117,0.011,0.0106,0.0102,0.0097,0.0093,0.0089,0.0086,0.0083,0.0079,0.0075,0.0071,0.0068,0.0066,0.0061,0.0057,0.0055,0.0055,0.0053,0.0049,0.0048,0.0046,0.0045,0.0043,0.0041,0.0038,0.0037,0.0037,0.0037,0.0035,0.0035,0.0034,0.0032,0.0031,0.003,0.003,0.0028,0.0027,0.0026,0.0025,0.0025,0.0023,0.0022,0.0022,0.0021,0.0021,0.0021,0.0011,0.0,0.0],"k":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],"cb":0.11086375779162956,"pmax":0.9182};
+  const R = 17700;
+  const $ = id => document.getElementById(id);
+  const money = x => (x < 0 ? "−$" : "$") + Math.abs(Math.round(x)).toLocaleString("en-US");
+  const VERDICT = ["Visit the high-risk stays: the model beats both alternatives.",
+                   "Visiting everyone does as well as the model here.",
+                   "Not clearly worth running: too few stays qualify for the gain to be real."];
+  function update() {
+    const C = +$("c-cost").value, e = +$("c-share").value / 100, t = C / (e * R);
+    $("o-cost").textContent = "$" + C; $("o-share").textContent = (+$("c-share").value) + "%";
+    $("r-t").textContent = t.toFixed(3);
+    $("r-ev").textContent = money((D.cb - t) * 1000 * e * R);
+    if (t > D.T[D.T.length - 1] || t > D.pmax) {
+      $("r-v").textContent = "0%"; $("r-net").textContent = "$0"; $("r-band").textContent = "nobody qualifies";
+      $("r-verdict").textContent = VERDICT[2]; return;
+    }
+    let i = 0; for (let j = 1; j < D.T.length; j++) if (Math.abs(D.T[j] - t) < Math.abs(D.T[i] - t)) i = j;
+    const s = e * R;
+    $("r-v").textContent = (D.v[i] * 100).toFixed(D.v[i] < 0.1 ? 1 : 0) + "%";
+    $("r-net").textContent = money(D.m[i] * s);
+    $("r-band").textContent = money(D.lo[i] * s) + " to " + money(D.hi[i] * s);
+    $("r-verdict").textContent = VERDICT[D.k[i]];
+  }
+  $("c-cost").addEventListener("input", update); $("c-share").addEventListener("input", update);
+  update();
+})();
+</script>
+</body>
+</html>
